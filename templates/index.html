@@ -2,13 +2,17 @@
 {#- The landing page, top to bottom as in the P2633 plan: hero, products, the Donguru spotlight, software, the lab,
     the open-source stack, notify and contact. Facts come from the project and crate READMEs; anything not yet
     confirmed carries a draft badge. Board renders and lab photos are taken by path and show once the files exist. -#}
-{% block preload -%}
+{% block head -%}
 {#- The hero render, before anything else: the largest paint on every width. Same candidates as its <picture>. #}
 {%- set hero = "img/boards/b153-donguru/b153_hero" %}
 <link rel="preload" as="image" type="image/avif" fetchpriority="high" imagesrcset="{% for w in [640, 1280, 1920] %}{{ get_url(path=hero ~ '-' ~ w ~ '.avif') }} {{ w }}w{% if not loop.last %}, {% endif %}{% endfor %}" imagesizes="(max-width: 52rem) calc(100vw - 2rem), 34rem">
-{%- endblock preload %}
+{#- The intro plays once per tab, with JS on, without reduced motion and when the page opens at its top. Set before the
+    first paint, so the page never flashes before the scope covers it. #}
+<script>try{if(!sessionStorage.getItem("intro")&&!location.hash&&!matchMedia("(prefers-reduced-motion: reduce)").matches){sessionStorage.setItem("intro","1");document.documentElement.classList.add("intro")}}catch(e){}</script>
+{%- endblock head %}
 {% block content %}
 {%- set draft = '<span class="v-badge">draft</span>' -%}
+{% include "partials/intro.html" %}
 <section class="section hero">
   <div class="hero-text">
     {{ <vh.label text="Boards · Rust firmware · Open source" /> }}

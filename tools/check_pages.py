@@ -16,6 +16,8 @@ First-view budget: what a phone loads for the front page before scrolling (HTML,
 stays under BUDGET_KB as sent over the wire: text gzipped (as the local build would be served by a server that
 compresses), fonts and images as they are; against a deployed site, the transfer sizes the browser saw. Every image
 has alt text and its width and height.
+The front page's intro: it plays on the first visit in a tab and clears by itself, a key skips it, it does not play
+again in the same tab, and it never shows under reduced motion or without JavaScript.
 With --shots, writes a full-page screenshot per width in dark (traces shown drawn: reduced motion).
 """
 
@@ -102,6 +104,51 @@ class Quiet(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
 
+INTRO_ON = "document.documentElement.classList.contains('intro')"
+SCOPE_SHOWN = "getComputedStyle(document.querySelector('.scope')).display !== 'none'"
+
+
+def check_intro(browser, base):
+    """The intro plays once per tab, clears itself, can be skipped, and stays off under reduced motion or no JS."""
+    failures = []
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900}, color_scheme="dark")
+    page = ctx.new_page()
+    page.goto(base)
+    if not page.evaluate(SCOPE_SHOWN):
+        failures.append("intro: the scope does not show on the first visit")
+    if not page.locator("h1").is_visible():
+        failures.append("intro: the headline is not rendered under the intro")
+    try:
+        page.wait_for_function(f"!({INTRO_ON})", timeout=3000)
+    except Exception:
+        failures.append("intro: still on after 3 s")
+    page.reload()
+    if page.evaluate(INTRO_ON):
+        failures.append("intro: plays again in the same tab")
+    ctx.close()
+
+    ctx = browser.new_context(viewport={"width": 390, "height": 844}, color_scheme="light")
+    page = ctx.new_page()
+    page.goto(base)
+    page.wait_for_timeout(300)
+    page.keyboard.press("Escape")
+    try:
+        page.wait_for_function(f"!({INTRO_ON})", timeout=500)
+    except Exception:
+        failures.append("intro: a key press did not skip it within 0.5 s")
+    ctx.close()
+
+    for opts, why in (({"reduced_motion": "reduce"}, "reduced motion"), ({"java_script_enabled": False}, "no JS")):
+        ctx = browser.new_context(viewport={"width": 1440, "height": 900}, **opts)
+        page = ctx.new_page()
+        page.goto(base)
+        if page.evaluate(SCOPE_SHOWN) if opts.get("java_script_enabled", True) else \
+                page.locator(".scope").is_visible():
+            failures.append(f"intro: shows under {why}")
+        ctx.close()
+    return failures
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("base", nargs="?")
@@ -158,10 +205,13 @@ def main():
             failures.append(f"image without alt, width or height: {src}")
         ctx.close()
 
-        # Interactions, on a desktop page in the dark scheme
+        failures += check_intro(browser, base)
+
+        # Interactions, on a desktop page in the dark scheme (the intro skipped by the first click)
         ctx = browser.new_context(viewport={"width": 1440, "height": 900}, color_scheme="dark")
         page = ctx.new_page()
         page.goto(base)
+        page.wait_for_function("!document.documentElement.classList.contains('intro')")
         theme = lambda: page.evaluate(  # noqa: E731
             "getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()")
         if theme() != "#0f0f10":

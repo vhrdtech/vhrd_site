@@ -1,0 +1,46 @@
+{#- The front page's intro (LOOK-4 scope-intro): an oscilloscope screen with a graticule, a phosphor trace sweeping
+    a step response that rings and settles, then the screen grows out to FIG. 1's red corners and becomes that frame
+    while the page shows through. The page is in the HTML and painted underneath from the start; this layer only
+    covers it. It plays only when the head script in index.html set `html.intro` (JS on, no reduced motion, first
+    view in this tab); otherwise it is never shown. Styles in site.css ("Intro"). -#}
+{%- set hero = get_image_metadata(path="img/boards/b153-donguru/b153_hero-640.webp") %}
+<div class="scope" aria-hidden="true">
+<div class="scope-screen" style="--hr: {{ hero.height / hero.width }}">
+<svg class="scope-crt" viewBox="0 0 400 300" preserveAspectRatio="none">
+<defs><path id="scope-sig" pathLength="1" d="M0 220H56L60 216.7 64 207.4 68 193.2 72 175.4 76 155.5 80 134.8 84 114.5 88 96 92 80 96 67.3 100 58.4 104 53.3 108 52.1 112 54.5 116 59.9 120 67.7 124 77.3 128 87.9 132 98.8 136 109.4 140 119 144 127.1 148 133.4 152 137.8 156 140.1 160 140.4 164 138.9 168 135.8 172 131.4 176 126.3 180 120.6 184 114.9 188 109.4 192 104.5 196 100.3 200 97.2 204 95.1 208 94.1 212 94.1 216 95 220 96.8 224 99.2 228 101.9 232 104.9 236 107.9 240 110.8 244 113.3 248 115.4 252 117 256 118 260 118.4 264 118.3 268 117.8 272 116.8 276 115.5 280 114 284 112.4 288 110.8 292 109.3 296 108 300 107 304 106.2 308 105.7 312 105.5 316 105.6 320 106 324 106.5 328 107.3 332 108.1 336 108.9 340 109.7 344 110.5 348 111.1 352 111.7 356 112.1 360 112.3 364 112.3 368 112.3 372 112.1 376 111.8 380 111.4 384 111 388 110.5 392 110.1 396 109.7 400 109.3"/>
+<pattern id="scope-div" width="40" height="37.5" patternUnits="userSpaceOnUse"><path d="M40 0V37.5M0 37.5H40" class="scope-grid"/></pattern></defs>
+<rect width="400" height="300" fill="url(#scope-div)"/>
+<path class="scope-axes" d="M200 0V300M0 150H400"/>
+<use href="#scope-sig" class="scope-glow"/><use href="#scope-sig" class="scope-trail"/><use href="#scope-sig" class="scope-beam"/>
+</svg>
+</div>
+</div>
+<script>
+// Starts the screen's growth when the sweep ends, and clears the layer when it is done or skipped (click, key,
+// wheel, touch, scroll). The timings live in site.css; a CSS failsafe hides the layer after 4 s whatever happens here.
+(() => {
+  const root = document.documentElement;
+  if (!root.classList.contains("intro")) return;
+  const scope = document.querySelector(".scope");
+  const screen = scope.querySelector(".scope-screen");
+  const events = ["pointerdown", "keydown", "wheel", "touchstart", "scroll"];
+  const done = () => {
+    root.classList.remove("intro", "intro-grow", "intro-skip");
+    events.forEach((e) => removeEventListener(e, skip, true));
+  };
+  const skip = () => {
+    root.classList.add("intro-skip");
+    setTimeout(done, 200);
+  };
+  events.forEach((e) => addEventListener(e, skip, { capture: true, passive: true }));
+  scope.querySelector(".scope-beam").addEventListener("animationend", () => {
+    // Land exactly on FIG. 1's frame, wherever the layout put it. A transform, so nothing counts as a layout shift;
+    // the screen has the render's proportions, so the scale is near uniform and the corners keep their size.
+    const s = screen.getBoundingClientRect();
+    const r = document.querySelector(".hero-fig .fig-frame").getBoundingClientRect();
+    screen.style.transform = `translate(${r.left - s.left}px, ${r.top - s.top}px) scale(${r.width / s.width}, ${r.height / s.height})`;
+    root.classList.add("intro-grow");
+    scope.addEventListener("transitionend", (e) => e.target === scope && done());
+  });
+})();
+</script>

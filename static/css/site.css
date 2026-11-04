@@ -192,7 +192,7 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 
 /* Figures: corner marks in the brand red like the datasheet frame, the caption in mono caps. */
 .fig { margin: 0; }
-.fig-frame {
+.fig-frame, .scope-screen {
   position: relative;
   padding: 0.75rem;
   --c: 14px;
@@ -544,3 +544,83 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
   :root:not([data-theme="dark"]) .logo-light { display: block; }
   :root:not([data-theme="dark"]) .logo-dark { display: none; }
 }
+
+/* Intro, the front page only (partials/intro.html): an oscilloscope screen sweeps a ringing step, grows out to
+   FIG. 1's corners and becomes that frame while the page shows through. The page is painted underneath from the
+   start (the largest paint is not held back); this layer only covers it. Without `html.intro` it never shows.
+   Timeline: power-on 0.25 s, sweep 0.7 s, growth and reveal 0.6 s, about 1.55 s in all.
+   The trace is the CAN cyan, the brightest signal colour on the screen's #0f0f10 and the colour a scope channel is
+   read as; the brand red stays on the corner marks the screen turns into. The screen is dark in both themes, so the
+   trace takes the token's hue at a fixed phosphor brightness (the light theme's CAN colour is too dark to glow). */
+.scope { display: none; }
+.intro .scope {
+  --trace: var(--signal-can);
+  --trace: oklch(from var(--signal-can) 0.82 0.14 h);
+  --beam: color-mix(in oklch, var(--trace) 40%, var(--vhrd-grey-0));
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background-color: var(--bg);
+  animation: scope-failsafe 0.2s 4s forwards;
+}
+/* Centred, in the render's proportions (--hr, height over width, set by the template). */
+.scope-screen {
+  --sw: min(86vw, 30rem, 70vh / var(--hr));
+  position: fixed;
+  left: calc(50% - var(--sw) / 2);
+  top: calc(50% - var(--sw) * var(--hr) / 2);
+  width: var(--sw);
+  height: calc(var(--sw) * var(--hr));
+  box-sizing: border-box;
+  transform-origin: 0 0;
+}
+.scope-crt {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  background: radial-gradient(ellipse at center, color-mix(in oklch, var(--trace) 8%, var(--vhrd-grey-950)), var(--vhrd-grey-950) 75%);
+  box-shadow: 0 0 0 1px var(--vhrd-grey-800), inset 0 0 2rem color-mix(in oklch, var(--trace) 6%, transparent);
+  animation: scope-on 0.25s ease-out both;
+}
+.scope-grid, .scope-axes { fill: none; vector-effect: non-scaling-stroke; stroke-width: 1; }
+.scope-grid { stroke: color-mix(in oklch, var(--trace) 14%, transparent); }
+.scope-axes { stroke: color-mix(in oklch, var(--trace) 26%, transparent); stroke-dasharray: 2 3; }
+.scope-glow, .scope-trail, .scope-beam {
+  fill: none;
+  stroke: var(--trace);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+/* The phosphor: a wide faint glow and the trace itself, written as the beam passes and then slowly dimming, and
+   the beam's bright spot running ahead of them. */
+.scope-glow { stroke-width: 8; opacity: 0.25; stroke-dasharray: 1 1; animation: scope-draw 0.7s 0.25s linear both; }
+.scope-trail {
+  stroke-width: 2;
+  stroke-dasharray: 1 1;
+  animation: scope-draw 0.7s 0.25s linear both, scope-decay 1.2s 0.6s ease-out both;
+}
+.scope-beam {
+  stroke: var(--beam);
+  stroke-width: 3;
+  stroke-dasharray: 0.025 1;
+  filter: drop-shadow(0 0 4px var(--trace));
+  animation: scope-beam 0.7s 0.25s linear both;
+}
+@keyframes scope-on {
+  from { transform: scaleY(0.01); filter: brightness(4); }
+  60% { transform: scaleY(1); filter: brightness(1.6); }
+}
+@keyframes scope-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes scope-beam { from { stroke-dashoffset: 0.025; } to { stroke-dashoffset: -0.975; } }
+@keyframes scope-decay { to { opacity: 0.75; } }
+@keyframes scope-failsafe { to { opacity: 0; visibility: hidden; } }
+/* The growth: the screen moves onto FIG. 1's frame (its place set by the script), the tube goes dark, the cover
+   clears and the page shows; the screen's red corners are then the frame's own. */
+.intro-grow .scope-screen { transition: transform 0.45s cubic-bezier(0.6, 0, 0.2, 1); }
+.intro-grow .scope-crt { opacity: 0; transition: opacity 0.3s 0.2s; }
+.intro-grow .scope { background-color: transparent; transition: background-color 0.45s 0.15s; }
+.intro-skip .scope { opacity: 0; transition: opacity 0.15s; }
+@media (prefers-reduced-motion: reduce) { .intro .scope { display: none; } }

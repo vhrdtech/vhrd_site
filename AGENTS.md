@@ -18,7 +18,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 - `content/`: one Markdown file per page (`donguru.md` is `/donguru/`), `blog/` is a section. Stubs carry `extra.stub = true`.
 - `templates/base.html`: the page frame. `partials/header.html`, `partials/footer.html` (build stamp from `VHRD_GIT` and `VHRD_BUILT`, which the justfile sets) and `partials/wordmark.html` (generated).
 - `templates/components.html`: the `vh.*` components, usable in templates and Markdown (README "Components").
-- `templates/index.html`: the landing page; `partials/donguru-diagram.html` is its block diagram. `page.html` is a plain page, `section.html` is the blog list, and there are `404.html` and `robots.txt`.
+- `templates/index.html`: the landing page; `partials/donguru-diagram.html` is its block diagram and `partials/intro.html` its oscilloscope intro (README "Intro"). `page.html` is a plain page, `section.html` is the blog list, and there are `404.html` and `robots.txt`.
 - `static/css/brand/`: `tokens.css` and `vhrd.css` from vhrd_brand (`just brand`). Never edit these here; change vhrd_brand and pull.
 - `static/css/site.css`: the site's own layer. `base.html` inlines all the CSS (fonts.css, the brand files and site.css) into each page with `load_data`, so there is no render-blocking request. `static/js/site.js`: theme toggle and tabs, nothing else.
 - `static/fonts/`: IBM Plex woff2 subsets and `fonts.css`. `static/img/boards/` holds board renders (`just renders`, README "Board renders") and `static/img/lab/` lab photos.
@@ -50,7 +50,7 @@ just renders --variants  # only the missing web widths, from the PNG sources (no
 
 - **Colours only through tokens** (`var(--accent)`, `var(--signal-usb)`), never hex values in templates or `site.css`. The brand red is used sparingly: one word of the hero headline, the main button, the wordmark, the MCU in diagrams and figure corner marks. Headlines are in the text colour. Power is orange, never red.
 - **Dark first, light equal.** Every change is checked in both themes. The theme follows `prefers-color-scheme`; the toggle stores an override in localStorage, and choosing the system's own theme clears it.
-- **Almost no JavaScript, no framework.** Animation is CSS (scroll-driven for the traces), off under `prefers-reduced-motion`. The page must work without `site.js`.
+- **Almost no JavaScript, no framework.** Animation is CSS (scroll-driven for the traces), off under `prefers-reduced-motion`. The page must work without `site.js`. The front page's intro has a small inline script; without it the intro never shows.
 - **Links through `get_url`**, so the preview under a sub-path works. Internal Markdown links use `@/page.md`.
 - **Draft copy is marked** (`<span class="v-badge">draft</span>` or `extra.stub = true`) until Marketing and PM have read it.
 - **Nothing private on the site or the preview.** A share link is public to anyone who has it. No employer work in the lab pages (decided 4 Nov 2026).

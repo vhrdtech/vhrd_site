@@ -4,6 +4,7 @@
 
 ### Added
 
+- Intro on the front page (LOOK-4 scope-intro): an oscilloscope screen sweeps a ringing step in CAN cyan, then grows out to FIG. 1's red corners and becomes that frame as the page shows. About 1.55 s, skipped by a click, key, wheel, touch or scroll, once per tab, never under reduced motion or without JavaScript. The page is painted underneath from the start: the largest paint stays at 1.4 s on a slow phone, no layout shift. The browser check covers it.
 - Fast first load (SITE-8 fast-first-load). On a phone the front page's first view went from 187 KB to 143 KB and from 14 to 10 requests; on a slow 4G phone the first paint came at 484 ms instead of 724 ms and the largest paint at 1400 ms instead of 1592 ms. All CSS is inline, the hero render is preloaded with high priority, three Core font subsets are preloaded, and the PNG render sources no longer ship with the site (54 MB to 17 MB built).
 - `just perf` (`tools/perf.py`): the front page's first screen on a slow phone, as Lighthouse's mobile run measures it.
 - `just fonts` (`tools/fonts.py`): Core subsets of the IBM Plex Latin1 faces, about 30 % smaller.
