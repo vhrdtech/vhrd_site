@@ -50,7 +50,6 @@
 - Lab copy toned down: the lab page says "Selected work from our own bench: digital, power, communications and motors.", and the front page's lab lead names the four pieces instead of areas.
 - wire_weaver and shrink_wrap show their icon SVGs from wire_weaver's docs, the dark variant on the dark theme, instead of the PNG logos.
 - The RockFace lab card shows the timeline view (portfolio page 9, cropped 4:3 to stay readable) instead of the log table.
-
 - The Donguru product card shows the same render as the hero, so a phone loads it once; with the board renders in place the first view on a phone is 187 KB of the 200 KB budget.
 - Traces between sections are routed like PCB tracks: vertical and horizontal runs, 45° corners, a via at each end and the net name on the run (they used to be stretched diagonals).
 - Headlines are in the text colour; the brand red marks one word of the hero and stays for accents.
@@ -59,3 +58,4 @@
 ### Fixed
 
 - The open-source stack's vias sit on the track's centre (they were 6 px to the left, the track running along their side). The browser check now checks it on every page, width and theme.
+
