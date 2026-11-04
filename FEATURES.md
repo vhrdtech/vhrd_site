@@ -24,4 +24,5 @@ Status: ✅ done · 🚧 in progress · 📋 planned · 💡 idea · 🐛 bug
 
 ## PREVIEW: publishing
 
-- ✅ PREVIEW-1 deploy-preview: `just deploy-preview` builds with noindex (meta robots, robots.txt Disallow all) for https://static.vhrd.tech/vhrd-site-preview/ and publishes it through the server's mover
+- ✅ PREVIEW-1 deploy-preview: `just deploy-preview` builds with noindex (meta robots, robots.txt Disallow all) for https://static.vhrd.tech/vhrd-site-preview/ and publishes it through the server's mover; the live footer hash is checked
+- 📋 PREVIEW-2 static-replace: re-deploys without hand work, through a root helper on vhrd.tech (draft in `deploy/static/`, needs a security review and the symlink-race fix before Roman installs it)

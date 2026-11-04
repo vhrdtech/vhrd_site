@@ -1,0 +1,3 @@
+# /etc/sudoers.d/static (mode 0440): re-deploys of a static.vhrd.tech dir (vhrd_site deploy/static/README.md).
+# The mover is already allowed in /etc/sudoers.
+deploy ALL=(root) NOPASSWD: /root/static_replace.sh

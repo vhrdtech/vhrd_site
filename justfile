@@ -62,11 +62,14 @@ brand:
 wordmark:
     uv run tools/wordmark.py "{{ brand }}/typst/vhrd/fonts/Audiowide-Regular.ttf"
 
-# Publish a noindex build to https://static.vhrd.tech/vhrd-site-preview/ (public: nothing private goes there)
+# Publish a noindex build to https://static.vhrd.tech/vhrd-site-preview/ (public: nothing private goes there).
+# Needs a PC whose ssh key the deploy user accepts. The server's mover only creates dirs: before a re-deploy the old
+# vhrd-site-preview dir must be moved away on the server by hand (README "Preview"). The mover exits 0 even when it
+# could not move, so the last line checks that the live footer carries this build's hash.
 deploy-preview:
     rm -rf target/preview
     zola check --skip-external-links
     VHRD_NOINDEX=1 zola build --base-url "{{ preview_url }}" --output-dir target/preview/vhrd-site-preview
     rsync -rlz --delete --chmod=D755,F644 --info=progress2 -e "ssh -p 7722" target/preview/vhrd-site-preview deploy@vhrd.tech:/home/deploy/to_static/
     ssh -p 7722 deploy@vhrd.tech "sudo /root/move_to_www_fix_perms.sh"
-    curl -fsS -o /dev/null -w "%{http_code} {{ preview_url }}\n" "{{ preview_url }}"
+    curl -fsS "{{ preview_url }}" | grep -qF "built from <code>$VHRD_GIT</code>" && echo "live: {{ preview_url }} ($VHRD_GIT)"
