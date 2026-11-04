@@ -35,8 +35,8 @@
 {% <vh.cards> %}
 {{ <vh.card title="Donguru" href="#donguru" badge="Coming Q1–Q2 2027" sig="usb" n="2"
    stem="img/boards/b153-donguru/b153_hero" widths={[640, 1280, 1920]} alt="Donguru, the B153 board, three-quarter view" caption="B153 Donguru"
-   pitch="A USB-C dongle with a USB hub, a serial port, a power switch and a power meter."
-   specs={["Hub: USB, on board", "Serial: TX/RX flip", "Power: switch + meter"]} /> }}
+   pitch="A USB-C dongle with a USB 2.0 hub, a VBUS switch with a power meter, and UART, I2C and SWD on the plug's sideband pins."
+   specs={["Hub: USB 2.0 Hi-Speed", "SBU: UART, I2C, SWD, FDCAN", "VBUS: switch to 20 V, 5 A + meter"]} /> }}
 {{ <vh.card title="rePort" href="/report/" badge="In development" badge_cls="" sig="bus" n="3"
    stem="img/boards/b200-re-port/b200_hero" alt="rePort board, three-quarter view" caption="B200 rePort"
    pitch="Digital and analog I/O over USB. No programming needed."
@@ -53,13 +53,13 @@
 {% <vh.section label="Donguru · B153" n="02" id="donguru" title="One cable to your board"> %}
 <div class="spotlight">
 <div class="spotlight-text">
-<p class="v-lead">Donguru sits between your computer and a board with a USB-C port. One cable carries USB, a serial console and power you can switch and measure.</p>
+<p class="v-lead">Donguru sits between your computer and a device with a USB-C port. One cable carries USB, the device's sideband pins and power you can switch and measure.</p>
 <ol class="features">
-<li><h3>Hub and serial in one plug</h3><p>A USB hub and a UART on the same cable. TX and RX are flipped for you.</p></li>
-<li><h3>Power under control</h3><p>Electronic switches on VBUS and the USB data lines, a power meter, and a mechanical switch for the boot mode.</p></li>
-<li><h3>Scriptable</h3><p>A fast CLI, <code>donguru</code> or <code>dg</code>, with a Rust driver and Python behind it.</p></li>
+<li><h3>Hub and sideband pins in one plug</h3><p>A USB 2.0 Hi-Speed hub, and UART, I2C, SWD, FDCAN, GPIO and ADC on the plug's SBU pins. The cable orientation is a setting: a flipped cable is one command, not re-plugging.</p></li>
+<li><h3>Power under control</h3><p>A VBUS switch up to 20 V and 5 A, off at power-up, a power meter, and a switch on the device's USB data lines. Guards in the firmware cut VBUS at a voltage, current or power limit.</p></li>
+<li><h3>Scriptable</h3><p>A CLI, <code>dg</code>, with a Rust library and a Python wheel behind it, and a CMSIS-DAP debug probe for probe-rs, OpenOCD and pyOCD.</p></li>
 </ol>
-<p class="v-muted">For development, debugging and production flashing of devices with a USB-C port.</p>
+<p class="v-muted">For bring-up, debugging, flashing and production test of devices with a USB-C port.</p>
 <div class="ctas">
 <a class="v-btn v-primary" href="#notify">Get notified</a>
 <a class="v-btn" href="{{ get_url(path='/donguru/') }}">More about Donguru</a>

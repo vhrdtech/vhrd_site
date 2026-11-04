@@ -86,4 +86,5 @@
 
 - The open-source stack's vias sit on the track's centre (they were 6 px to the left, the track running along their side). The browser check now checks it on every page, width and theme.
 - The intro's replay no longer blinks off at once: it ignores skips for its first 0.4 s, so the click, tap or key that started it, or a wheel's scroll still running out, does not end it.
+- The front page's Donguru card, spotlight and block diagram match the B153 datasheet (Preview 0.2): the cable orientation is a setting, not an automatic TX/RX flip, and there is no boot-mode switch claim. They now name what the datasheet lists: a USB 2.0 Hi-Speed hub; UART, I2C, SWD, FDCAN, GPIO and ADC on the plug's SBU pins; a VBUS switch to 20 V and 5 A with a power meter and firmware guards; the `dg` CLI and a CMSIS-DAP probe. The rePort and CAN cards were checked against their sources and already matched.
 

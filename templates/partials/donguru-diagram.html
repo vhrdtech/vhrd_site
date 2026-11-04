@@ -1,9 +1,10 @@
 {#- Donguru (B153) block diagram, drawn like the datasheet's: blocks in hairlines, the MCU in the brand red, nets in
-    the signal colours and routed with 45° corners. Only what the P2534 and typec_dongle READMEs say: a USB hub, a
-    UART with automatic TX/RX flip, electronic switches on VBUS and the USB data lines, a power meter. The boot mode switch is left out: the READMEs don't say what it is wired to. -#}
+    the signal colours and routed with 45° corners. Only what the B153 datasheet (Preview 0.2,
+    hw/b153_typec_serial/spec/datasheet) says: a USB hub, the sideband pins (UART, I2C, SWD...) whose order follows
+    the cable orientation setting, switches on VBUS and the USB data lines, a power meter. -#}
 <svg class="bd" viewBox="0 0 640 380" role="img" aria-labelledby="bd-title bd-desc" focusable="false">
 <title id="bd-title">Donguru block diagram</title>
-<desc id="bd-desc">The host's USB-C cable goes into a USB hub. The hub feeds the on-board MCU and, through a data line switch, the USB-C plug to your board. VBUS passes a power switch with a power meter on its way to the plug. The MCU's UART reaches the plug with TX and RX flipped as needed, and the MCU drives both switches.</desc>
+<desc id="bd-desc">The host's USB-C cable goes into a USB hub. The hub feeds the on-board MCU and, through a data line switch, the USB-C plug to your board. VBUS passes a power switch with a power meter on its way to the plug. The MCU's sideband lines (UART, I2C, SWD and more) reach the plug's SBU pins in the order the cable orientation setting gives, and the MCU drives both switches.</desc>
 <g class="bd-net" style="--sig: var(--signal-usb)">
   <path d="M120 80 H232"/>
   <path d="M328 70 H404"/>
@@ -44,7 +45,7 @@
   <text x="280" y="262" text-anchor="middle" class="bd-sub">FIRMWARE</text>
   <text x="140" y="72" class="bd-net-t">USB</text>
   <text x="150" y="332" class="bd-net-t">VBUS</text>
-  <text x="352" y="242" class="bd-net-t">UART · TX/RX FLIP</text>
+  <text x="352" y="242" class="bd-net-t">SBU · UART I2C SWD</text>
   <text x="352" y="204" class="bd-net-t">CTRL</text>
 </g>
 </svg>
