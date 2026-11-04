@@ -33,3 +33,4 @@
   fonts each board names are checked against `fc-list` first, failing loudly on a missing one
   instead of silently falling back. Covers the front-page boards: Donguru (B153), rePort
   (B200), B125, B135; the rest of `~/git/hw`'s boards are a later task. (P2633#4nov-0919d)
+
