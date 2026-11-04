@@ -512,20 +512,35 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .crate-code pre { margin: 0; font-size: 0.75rem; line-height: 1.5; padding: 0.75rem 0.9rem; overflow-x: auto; border-radius: var(--radius); }
 .crate-links { font: 500 0.75rem/1.4 var(--font-mono); }
 
-/* /open-source after the stack: the other repositories by area, small cards in a grid, the area's signal colour
-   on top. A private one is muted and has no link. */
+/* /open-source: the group selector on top, one link per group with its signal colour's via. */
+.groups { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 1rem; margin-top: 2rem; padding: 0.9rem 1.25rem; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--raised); }
+.groups .v-label { margin: 0; }
+.groups ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem; }
+.groups a { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 1.75rem; font: 500 0.875rem/1.4 var(--font-mono); text-decoration: none; }
+.groups a:hover { text-decoration: underline; text-decoration-color: var(--sig); }
+.group-via { flex: none; width: 10px; height: 10px; border: 3px solid var(--sig); border-radius: 50%; }
+
+/* /open-source after the stack: the other repositories, one group per area wired like the stack in the area's
+   signal colour. Cards like the stack's: one with code spans the row, the others share it two or three across;
+   a private one is muted and has no link. */
 .repos { margin-top: 3rem; }
-.repo-area { margin-top: 1.75rem; }
-.repo-area > .v-label { margin: 0 0 0.75rem; }
-.repo-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; grid-template-columns: minmax(0, 1fr); }
+.repo-stack { margin-top: 1rem; }
+.repo-area .layer-head h3 { margin: 0; }
+.repo-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; grid-template-columns: minmax(0, 1fr); grid-auto-flow: row dense; }
 @media (min-width: 40rem) { .repo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 68rem) { .repo-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.repo { margin: 0; padding: 0.85rem 1rem 0.95rem; border: 1px solid var(--line); box-shadow: inset 0 2px 0 var(--sig); background: var(--bg); min-width: 0; }
-.repo h4 { margin: 0; font: 500 0.9375rem/1.3 var(--font-mono); overflow-wrap: anywhere; }
+.repo { margin: 0; padding: 1rem 1.25rem 1.1rem; border: 1px solid var(--line); box-shadow: inset 0 2px 0 var(--sig); background: var(--bg); min-width: 0; }
+.repo.crate { grid-template-columns: minmax(0, 1fr); align-content: start; }
+.repo-code { grid-column: 1 / -1; }
+@media (min-width: 60rem) { .repo-code.crate { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); } }
+.repo h4 { margin: 0; font: 500 1rem/1.3 var(--font-mono); overflow-wrap: anywhere; }
 .repo h4 a { text-decoration: none; }
 .repo h4 a:hover { text-decoration: underline; text-decoration-color: var(--sig); }
 .repo-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.5rem; margin: 0.25rem 0 0; font: 500 0.6875rem/1.4 var(--font-mono); letter-spacing: 0.04em; color: var(--muted); }
-.repo-pitch { margin: 0.4rem 0 0; font-size: 0.875rem; color: var(--muted); }
+.repo .crate-text > p:not([class]) { font-size: 0.875rem; }
+.repo .crate-head { flex-wrap: wrap; gap: 0.5rem 1rem; }
+.repo-logo, .repo-logo img { height: 48px; }
+.repo-tbd { margin: 0; align-self: end; padding: 0.4rem 0.75rem; border: 1px dashed var(--line-strong); border-radius: var(--radius); font: 500 0.6875rem/1.4 var(--font-mono); letter-spacing: 0.04em; color: var(--muted); }
 .repo-private { box-shadow: inset 0 2px 0 var(--line-strong); }
 .repo-private h4 { color: var(--muted); }
 
@@ -565,11 +580,11 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 /* On a phone the code runs to the card's edges in a smaller face, so a sample written to 44 columns fits without a
    sideways scroll from 320px up (the browser check holds every card to it). */
 @media (max-width: 26rem) {
-  .layer > .crate { padding-inline: 0.9rem; }
+  .layer > .crate, .repo { padding-inline: 0.9rem; }
   .crate-code pre { margin-inline: -0.9rem; border-radius: 0; font-size: 0.6875rem; padding-inline: 0.75rem; }
 }
 @media (max-width: 22rem) {
-  .layer > .crate { padding-inline: 0.6rem; }
+  .layer > .crate, .repo { padding-inline: 0.6rem; }
   .crate-code pre { margin-inline: -0.6rem; font-size: 0.625rem; padding-inline: 0.5rem; }
 }
 .crate-logo { flex: none; display: grid; place-items: center; height: 56px; }

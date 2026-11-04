@@ -8,4 +8,4 @@ label = "Open source"
 sig = "bus"
 +++
 
-The stack comes first. The first five are the core: the API, its wire format, units, the firmware template and the event counters. canzone is work in progress. The last ones are the tools around the boards: a test bench scheduler and the GUI building blocks. After the stack comes every other repository, by area. The ones marked "coming in the future" are not public yet. <span class="v-badge">draft</span>
+This page is all of VHRD's open-source work. The stack comes first: the crates the rest is built on, from the API and its wire format through units and firmware to the test bench and the GUI. After it come the other repositories, by area: wire format and APIs, firmware, drivers, host tools and instruments, and hardware tools. Each card says what the repository does and links to its source. The ones marked "coming in the future" are not public yet. <span class="v-badge">draft</span>

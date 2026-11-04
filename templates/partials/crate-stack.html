@@ -1,10 +1,13 @@
 {#- The open-source stack as a wired list: the products on top, then one row per crate, each wired down the left
     in its layer's signal colour. Reads data/stack.toml; `stack_front` true shows only the crates marked `front`
-    (the front page), false shows them all (/open-source). Published crates get their crates.io version and
-    downloads, fetched at build time; without the network the card just says it is on crates.io. -#}
+    (the front page, with the products on top), false shows them all (/open-source, where a group selector takes
+    the products' place). Published crates get their crates.io version and downloads, fetched at build time; without
+    the network the card just says it is on crates.io. -#}
 {%- set stack = load_data(path="data/stack.toml") -%}
-<ol class="stack" aria-label="The open-source stack">
+<ol class="stack" id="stack" aria-label="The open-source stack">
+{%- if stack_front %}
 <li class="stack-top"><span class="v-label">Products</span><span class="stack-products">Donguru · rePort · CAN line · IOWeaver · RockFace</span></li>
+{%- endif %}
 {%- for c in stack.crate %}{% if c.front or not stack_front %}
 {%- if c.crate %}{% set meta = load_data(url="https://crates.io/api/v1/crates/" ~ c.crate, format="json", required=false, headers=["User-Agent=vhrd_site build (https://vhrd.tech, hello@vhrd.tech)"]) %}{% else %}{% set meta = "" %}{% endif %}
 <li class="layer" style="--sig: var(--signal-{{ c.sig }})">

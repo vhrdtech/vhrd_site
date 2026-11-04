@@ -1,11 +1,19 @@
 # The other repositories on /open-source, after the stack (data/stack.toml), grouped by area in the order below.
-# Facts come from each repo's README (or its files where there is none); the pitch is one plain sentence.
+# Facts come from each repo's README (or its files where there is none). Every repo gets a card like the stack's.
 #
-# - `private = true`: not public yet. The card says "coming in the future" and has no link.
+# - `desc`: 2-4 sentences, Markdown inline (backticks).
+# - `lang`; `crate` (on crates.io: crates.io and docs.rs links) and `docs` where there are some.
+# - `logo_dark`, `logo_light`, `logo_w`, `logo_h`: the repo's own logo or icon, under static/, as in data/stack.toml.
+# - `code`, `code_wide`, `wide`, `fence`: a short sample (tools/samples.py), with `source`: README or examples/NAME,
+#   the place it is taken from as it is (only line breaks differ). samples.py checks it against a local checkout;
+#   nothing is compiled. A public repo without an obvious sample shows "example: TBD".
+# - `private = true`: not public yet. The card says "coming in the future" and has no link, code or logo.
 # - Left off for now, until Roman confirms (4 Nov 2026): romixlab/dot (personal dotfiles), vhrdtech/mx3 (internal
 #   server), romixlab/shrink_wrap (an old private copy; shrink_wrap lives in wire_weaver), vhrdtech/io_weaver and
 #   romixlab/rockface (paid products, on /software), vhrdtech/usb_io_fw (closed source, its README says so), and
 #   vhrdtech/can_bus and romixlab/power_meter (private, no README or description to write a pitch from yet).
+
+
 
 [[area]]
 id = "wire"
@@ -39,35 +47,77 @@ name = "wire_weaver_template"
 owner = "vhrdtech"
 area = "wire"
 lang = "Rust"
-pitch = "WireWeaver over USB as a template: a shared API, example firmware and a Rust host driver with a REPL."
+desc = "A starting point for a WireWeaver device on USB. One API crate is shared by the firmware and the host. Example firmware runs on Nucleo H743ZI2 and H753ZI boards and an STM32G0 board, and any board with embassy-usb should work. A Rust driver comes with a simple client example and a REPL with history and auto-complete. A rename script and a virtual device are still to do."
 
 [[repo]]
 name = "can_bus_ww"
 owner = "vhrdtech"
 area = "wire"
 lang = "Rust"
-pitch = "WireWeaver API and data structures for CAN bus bridges."
+desc = "The WireWeaver definition of a CAN bus bridge's API and data types, for a CAN FD to USB adapter. It describes classic and FD frames with standard or extended ids, bit timing, acceptance filters, bus modes, SD card logging settings and bus error notifications. The API has properties that switch CAN and termination on, a stream of received frames and a method to send one. The repo has no README yet."
 
 [[repo]]
 name = "ww_lsp"
 owner = "romixlab"
 area = "wire"
 lang = "Rust"
-pitch = "Language server for WireWeaver APIs: units as inlay hints, beside rust-analyzer. A prototype."
+desc = "A language server for WireWeaver APIs that runs beside rust-analyzer. It shows the ExactUnits types of API items as inlay hints, such as `mV · i16 · ±32.767 V`, and on hover the unit, exact scale, step, range and size on the wire. Setups for Neovim, Helix, Kakoune, Emacs, VS Code, JetBrains IDEs and Zed come with it. It is a prototype."
 
 [[repo]]
 name = "napier"
 owner = "romixlab"
 area = "wire"
 lang = "Rust"
-pitch = "Parses SI values and units from text at run time, schematic shorthand like 4k7 included."
+crate = "si_dynamic"
+desc = "A Rust parser for SI quantities and units in text, at run time. It reads every SI base and derived unit and prefix, exponents, unit expressions such as m/s² or W/(m·K), percent and ppm. It also reads the resistance shorthand of schematics and BOMs, such as 4k7 and 499kR. Each unit carries its dimension and scale, and units beyond SI, such as rpm, are registered at run time."
+source = "README"
+fence = "rust"
+wide = 60
+code = '''
+use si_dynamic::{
+    BaseUnit, OhmF32, Prefix, Quantity,
+    Unit
+};
+
+let q = Quantity::parse("4.7 uF")?;
+assert_eq!(
+    q.unit.as_unit(),
+    Some(&Unit::new(
+        Prefix::Micro, BaseUnit::Farad, 1
+    ))
+);
+assert_eq!(q.base_decimal()?, "0.0000047");
+
+let q = Quantity::parse("10 V/us")?;
+    // a unit expression
+assert_eq!(q.unit.to_string(), "V/μs");
+
+let r = OhmF32::parse("4k7")?; // 4700 Ω
+assert_eq!(r.0, 4700.0);
+'''
+code_wide = '''
+use si_dynamic::{BaseUnit, OhmF32, Prefix, Quantity, Unit};
+
+let q = Quantity::parse("4.7 uF")?;
+assert_eq!(
+    q.unit.as_unit(),
+    Some(&Unit::new(Prefix::Micro, BaseUnit::Farad, 1))
+);
+assert_eq!(q.base_decimal()?, "0.0000047");
+
+let q = Quantity::parse("10 V/us")?; // a unit expression
+assert_eq!(q.unit.to_string(), "V/μs");
+
+let r = OhmF32::parse("4k7")?; // 4700 Ω
+assert_eq!(r.0, 4700.0);
+'''
 
 [[repo]]
 name = "bitfield_introspect"
 owner = "romixlab"
 area = "wire"
 lang = "Rust"
-pitch = "Value descriptions on bitfield-struct fields, turned into structured data for decoding."
+desc = "A Rust attribute macro for structs made with bitfield-struct. A field takes #[value(0 = \"off\")] attributes that say what each raw value means, and the macro turns them into doc lines such as \"0 = off\" on that field. It is an early 0.1.0 crate without a README."
 
 # Firmware and embedded
 
@@ -76,89 +126,243 @@ name = "typec_dongle"
 owner = "vhrdtech"
 area = "firmware"
 lang = "Rust"
-pitch = "Donguru: a USB-C dongle with a USB hub, UART, I2C, GPIO and ADC, a power switch and a power meter."
+docs = "https://vhrdtech.github.io/typec_dongle/"
+desc = "Donguru is a USB-C dongle that turns one USB-C port into a small test bench: a USB hub, UART, I2C, GPIO and ADC, a power switch and a power meter. The `donguru` (`dg`) command line drives all of it, with JSON output and fixed exit codes for scripts and CI. A Python package does the same through the same Rust library. Rev B boards for testers are planned for the end of 2026."
 
 [[repo]]
 name = "logring"
 owner = "vhrdtech"
 area = "firmware"
 lang = "Rust"
-pitch = "Power-cut-safe multi-track log store for embedded Rust, with USB disk access and MF4, MCAP and CSV export."
+desc = "A power-cut-safe log store for embedded Rust, no_std and without alloc. Many tracks of any ShrinkWrap type are written into a ring file on an SD card, with sessions, recordings and markers. A PC tool and a Python module read a card image and export CSV, MCAP and MF4. It is tested on card images so far, not yet on a real card, and showing the log as a USB disk is planned."
+source = "README"
+fence = "python"
+code = '''
+import logring
+
+card = logring.open("card.img")
+df = card.track("can1_rx").to_pandas()
+'''
 
 [[repo]]
 name = "exfat_lite"
 owner = "vhrdtech"
 area = "firmware"
 lang = "Rust"
-pitch = "Minimal exFAT for SD cards, no_std and no alloc: format, mount, contiguous files, read-only volumes."
+desc = "A minimal exFAT for microcontroller SD cards, no_std and without allocation. It formats a card with SD Association geometry, mounts and checks a volume, finds and reads files, and creates preallocated contiguous files that their owner writes by raw sector address. A crafted card gives an error, never a panic or a hang. Checked with fsck.exfat and a Linux mount; Windows and macOS checks are pending."
+source = "README"
+fence = "rust"
+wide = 70
+code = '''
+let mut vol = Volume::mount(dev).await?;
+    // validates boot sector, checksum,
+    // bitmap, up-case
+vol.create(&NewFile::new("README.txt")
+    .with_data(b"hello\n")).await?;
+let ring = NewFile::new("logring.wlr")
+    .size(32 << 20)
+        // preallocated, contiguous,
+        // FAT untouched
+    .align_sectors(
+        geometry.boundary_unit_sectors)
+        // starts on an allocation unit
+        // boundary
+    .attributes(attr::READ_ONLY
+        | attr::SYSTEM | attr::HIDDEN);
+let ring = vol.create(&ring).await?;
+let lba = vol.info()
+    .cluster_lba(ring.first_cluster);
+    // write it by raw sector address
+    // from here
+'''
+code_wide = '''
+let mut vol = Volume::mount(dev).await?;
+    // validates boot sector, checksum, bitmap, up-case
+vol.create(&NewFile::new("README.txt").with_data(b"hello\n")).await?;
+let ring = NewFile::new("logring.wlr")
+    .size(32 << 20) // preallocated, contiguous, FAT untouched
+    .align_sectors(geometry.boundary_unit_sectors)
+        // starts on an allocation unit boundary
+    .attributes(attr::READ_ONLY | attr::SYSTEM | attr::HIDDEN);
+let ring = vol.create(&ring).await?;
+let lba = vol.info().cluster_lba(ring.first_cluster);
+    // write it by raw sector address from here
+'''
 
 [[repo]]
 name = "usb_msc_device"
 owner = "vhrdtech"
 area = "firmware"
 lang = "Rust"
-pitch = "USB Mass Storage device class for embassy-usb, async, with several LUNs."
+desc = "A USB Mass Storage device class for embassy-usb, which today has only the host side of MSC. It is planned to do Bulk-Only Transport with SCSI commands, several LUNs on one interface, an async `Lun` trait, media change and write protect. It is built for logring's two-LUN USB view. So far the repo is a scaffold: the class itself is not written yet."
 
 [[repo]]
 name = "motor_sim"
 owner = "vhrdtech"
 area = "firmware"
 lang = "Rust"
-pitch = "Deterministic no_std electric motor simulator, for testing motor controllers in software."
+docs = "https://ww.vhrd.tech/examples/motor_demo/"
+desc = "A deterministic no_std electric motor simulator in pure Rust, for testing motor controllers in software. It models a PMSM in dq with an average inverter, rotor mechanics and loads. The true state is kept apart from what a controller measures, with sensor offsets, noise and faults. The same parameters and seed give the same run on every target, and libm is the only dependency."
+source = "README"
+fence = "rust"
+wide = 80
+code = '''
+use motor_sim::{
+    Drive, Load, Motor, presets
+};
+
+let mut motor = Motor::new(
+    presets::vesc_hobby_outrunner(),
+    42
+);
+motor.set_load(Load::Fan {
+    k_nms2_per_rad2: 2e-7
+});
+let dt = 1.0 / 25_000.0;
+for _ in 0..25_000 {
+    let _s = motor.sensors();
+    // i_abc_a, vdc_v, encoder_count, hall
+    let drive = Drive::Duty([0.5; 3]);
+    // your controller here
+    motor.step(&drive, dt);
+}
+'''
+code_wide = '''
+use motor_sim::{Drive, Load, Motor, presets};
+
+let mut motor = Motor::new(presets::vesc_hobby_outrunner(), 42);
+motor.set_load(Load::Fan { k_nms2_per_rad2: 2e-7 });
+let dt = 1.0 / 25_000.0;
+for _ in 0..25_000 {
+    let _s = motor.sensors();          // i_abc_a, vdc_v, encoder_count, hall
+    let drive = Drive::Duty([0.5; 3]); // your controller here
+    motor.step(&drive, dt);
+}
+'''
 
 [[repo]]
 name = "nucleo_g0b1re_template"
 owner = "romixlab"
 area = "firmware"
 lang = "Rust"
-pitch = "Firmware template for the ST Nucleo-G0B1RE: firmware, API, client library, CLI and Python module."
+logo_dark = "img/oss/nucleo_g0b1re_template-dark.svg"
+logo_light = "img/oss/nucleo_g0b1re_template-light.svg"
+logo_w = 208
+logo_h = 80
+desc = "A firmware template for the ST Nucleo-G0B1RE board (STM32G0B1RE). From one WireWeaver API definition it gives the firmware, a typed Rust client, a command line and a Python module. It talks to the PC through the board's own ST-LINK, so only the Nucleo and its USB cable are needed. The firmware starts with device info, crash records, a stored log, settings in flash and a shared clock."
+source = "README"
+fence = "python"
+wide = 80
+code = '''
+import nucleo_g0b1re
+with nucleo_g0b1re.Device() as dev:
+        # Device(probe_serial="...",
+        # elf="firmware/target/.../
+        # nucleo_g0b1re")
+    print(dev.firmware())
+    dev.label = "bench 1"
+    dev.blink(count=3, period_ms=400)
+    print(dev.board(), dev.variant(),
+          dev.uid())
+    print(dev.last_reset())
+    print(dev.counters())
+        # {"RAM/loop_iterations": 139, ...}
+    print("\n".join(dev.log()))
+'''
+code_wide = '''
+import nucleo_g0b1re
+with nucleo_g0b1re.Device() as dev:
+        # Device(probe_serial="...", elf="firmware/target/.../nucleo_g0b1re")
+    print(dev.firmware())
+    dev.label = "bench 1"
+    dev.blink(count=3, period_ms=400)
+    print(dev.board(), dev.variant(), dev.uid())
+    print(dev.last_reset())
+    print(dev.counters())  # {"RAM/loop_iterations": 139, ...}
+    print("\n".join(dev.log()))
+'''
 
 [[repo]]
 name = "cannify_micro_template"
 owner = "romixlab"
 area = "firmware"
 lang = "Rust"
-pitch = "Firmware template for the B129A CANnify Micro board (STM32G0): API, client library, CLI and Python module."
+logo_dark = "img/oss/cannify_micro_template-dark.svg"
+logo_light = "img/oss/cannify_micro_template-light.svg"
+logo_w = 208
+logo_h = 80
+desc = "A firmware template for the B129A CANnify Micro, a one-channel CAN FD board with an STM32G0B1. One WireWeaver API definition gives the firmware, a Rust client library, the `cannify` command line and a Python module. The firmware starts with firmware info, crash records, a label and settings in flash, event counters, a kept log and a host-steered clock. It is built, not yet run on a board, and does not drive CAN yet."
+source = "README"
+fence = "python"
+wide = 80
+code = '''
+import cannify_micro
+with cannify_micro.Device() as dev:
+        # Device(probe_serial="...",
+        # elf="firmware/target/.../
+        # cannify_micro")
+    print(dev.firmware())
+    dev.label = "bench 1"
+    dev.blink(count=3, period_ms=400)
+    print(dev.board(), dev.variant(),
+          dev.uid())
+    print(dev.last_reset())
+    print(dev.counters())
+        # {"RAM/loop_iterations": 139, ...}
+    print("\n".join(dev.log()))
+'''
+code_wide = '''
+import cannify_micro
+with cannify_micro.Device() as dev:
+        # Device(probe_serial="...", elf="firmware/target/.../cannify_micro")
+    print(dev.firmware())
+    dev.label = "bench 1"
+    dev.blink(count=3, period_ms=400)
+    print(dev.board(), dev.variant(), dev.uid())
+    print(dev.last_reset())
+    print(dev.counters())  # {"RAM/loop_iterations": 139, ...}
+    print("\n".join(dev.log()))
+'''
 
 [[repo]]
 name = "donguru_template"
 owner = "romixlab"
-private = true
 area = "firmware"
+private = true
 lang = "Rust"
-pitch = "Firmware template for Donguru: a typed API, Rust client, CLI and Python module from one spec."
+desc = "A firmware template for the B153A Donguru board (STM32G0B1). One API definition gives the embassy firmware, a typed WireWeaver API, a Rust client library, a command line and a Python module. The firmware starts with device info, crash records, a settings store in flash, a stored defmt log and reboots into the ROM bootloader. It is meant to be copied and renamed for a new device."
 
 [[repo]]
 name = "report_template"
 owner = "romixlab"
-private = true
 area = "firmware"
+private = true
 lang = "Rust"
-pitch = "Firmware template for rePort: a typed API, Rust client, CLI and Python module from one spec."
+desc = "A firmware template for the rePort board (RP2350B). From one WireWeaver API definition it gives the firmware, a typed Rust client, a command line and a Python module. The board talks to the PC over its own USB-C, which also powers it. The firmware starts with device info, crash records, a log kept across a reset, settings in flash and reboots into the boot ROM."
 
 [[repo]]
 name = "b135_template"
 owner = "romixlab"
-private = true
 area = "firmware"
+private = true
 lang = "Rust"
-pitch = "Firmware template for the B135B FDCAN-ISO-USB board: WireWeaver API, firmware, Rust client and CLI."
+desc = "A firmware template for the B135B, an isolated USB high-speed to CAN FD adapter with an STM32H725. One WireWeaver API definition gives the firmware, a Rust client library, a command line and a Python module. The firmware starts with firmware info, crash records, settings in flash, event counters and a kept log. It is built but not yet run on a board."
 
 [[repo]]
 name = "pico_template"
 owner = "romixlab"
-private = true
 area = "firmware"
+private = true
 lang = "Rust"
-pitch = "Firmware template for the Raspberry Pi Pico: a typed API, Rust client, CLI and Python module from one spec."
+desc = "A firmware template for the Raspberry Pi Pico (RP2040). One API definition gives the embassy firmware, a typed WireWeaver API, a Rust client library, a command line and a Python module. The firmware starts with device info, crash records, a settings store in flash, a stored defmt log and reboots into BOOTSEL. It is meant to be copied and renamed for a new device."
 
 [[repo]]
 name = "pico2_template"
 owner = "romixlab"
-private = true
 area = "firmware"
+private = true
 lang = "Rust"
-pitch = "Firmware template for the Raspberry Pi Pico 2: a typed API, Rust client, CLI and Python module from one spec."
+desc = "A firmware template for the Raspberry Pi Pico 2 (RP2350). From one WireWeaver API definition it gives the firmware, a typed Rust client, a command line and a Python module. The board talks to the PC over its own micro-USB, and BOOTSEL gives drag-and-drop UF2 flashing without a probe. The firmware starts with device info, crash records, a log kept across a reset and settings in flash."
 
 # Drivers and HALs
 
@@ -167,44 +371,47 @@ name = "slg4682x"
 owner = "romixlab"
 area = "drivers"
 lang = "Rust"
-pitch = "HAL for the SLG46824 and SLG46826 mixed-signal matrix: read, program and rewire it over I2C."
+crate = "slg4682x"
+desc = "A Rust HAL for the SLG46824 and SLG46826 mixed-signal matrix chips. It reads and programs their RAM and NVM over I2C, and rewires the matrix while it runs. Any `embedded-hal` I2C implementation works, and the crate is `no_std` without its default features."
 
 [[repo]]
 name = "bq769x2"
 owner = "romixlab"
 area = "drivers"
 lang = "Rust"
-pitch = "Register definitions for the BQ76952, BQ76942 and BQ769142 battery monitor AFEs."
+desc = "Register definitions in no_std Rust for the TI BQ76952, BQ76942 and BQ769142 battery monitor AFEs. It covers the direct command and subcommand registers as bitfield structs, with optional defmt. So far it is register definitions only, without a README or a driver on top."
 
 [[repo]]
 name = "usb4604"
 owner = "romixlab"
 area = "drivers"
 lang = "Rust"
-pitch = "HAL for the GPIO and I2C of the USB4604 USB hub."
+crate = "usb4604"
+desc = "A Rust HAL for the GPIO pins and the I2C master of Microchip's USB4604 USB hub. It reaches them through the hub's feature controller with USB control transfers (nusb), and its I2C bridge implements the embedded-hal 1.0 I2c trait. Eight PIO pins are verified to work; SPI and UART are not supported."
 
 [[repo]]
 name = "otm8009a"
 owner = "romixlab"
 area = "drivers"
 lang = "Rust"
-pitch = "Bare-metal driver for the OTM8009A LCD controller."
+crate = "otm8009a"
+desc = "A bare-metal `no_std` Rust driver for the OTM8009A LCD controller. It sends the controller's init sequence through a MIPI DSI host, using the `embedded-display-controller` traits. Frame rate, portrait or landscape, RGB or BGR order and the size are settings."
 
 [[repo]]
 name = "i2c_periph"
 owner = "romixlab"
-private = true
 area = "drivers"
+private = true
 lang = "Rust"
-pitch = "Async no_std I2C driver with one API across microcontrollers and I2C IPs."
+desc = "A portable async no_std I2C driver for microcontrollers, with one API across I2C IPs. It adds what a test adapter needs and HAL drivers often lack: repeated starts per operation, NACK reports with the byte, a clock-stretch watchdog, bus recovery through GPIO and the actual SCL frequency. The DesignWare I2C of the RP2350 is the only backend so far; STM32 is an idea."
 
 [[repo]]
 name = "pd_bench"
 owner = "romixlab"
-private = true
 area = "drivers"
+private = true
 lang = "Rust"
-pitch = "A no_std FUSB302 USB PD driver, and a PC tool that acts as a sink to test PD sources."
+desc = "A no_std driver for the onsemi FUSB302 USB PD PHY over embedded-hal-async, with batched I2C transactions and a register-level simulator for host tests. Next to it are a USB PD sink library on usbpd's policy engine, with policies for testing PD sources, and a PD message log that both ends of a link write the same way. The driver has had one hardware run; the rest is host-tested only."
 
 # Host tools and instruments
 
@@ -213,81 +420,251 @@ name = "io_bridge"
 owner = "vhrdtech"
 area = "host"
 lang = "Rust"
-pitch = "Client library that reads and drives GPIO, I2C, USART, SPI and ADC on a device over USB, Ethernet or CAN."
+desc = "A client library meant to read and drive GPIO, I2C, USART, SPI and ADC on a device over USB, Ethernet or CAN, built on WireWeaver. It is an early start: the API has one method that switches an LED, the client connects over USB, and the Python module is a stub."
 
 [[repo]]
 name = "picoboot_host"
 owner = "vhrdtech"
 area = "host"
 lang = "Rust"
-pitch = "The RP2040 and RP2350 USB boot ROM from a PC: flash, erase, verify and reboot a device in BOOTSEL mode."
+desc = "A Rust library for the RP2350 and RP2040 boot ROM in BOOTSEL mode, on nusb without libusb. It erases, writes and verifies flash from UF2, ELF or raw images and reboots the chip, so a host can update a device without a button press or picotool. A simulated boot ROM tests the whole sequence without hardware. OTP and the RP2040 EXEC commands are not implemented yet."
+source = "README"
+fence = "rust"
+wide = 80
+code = '''
+use picoboot_host::{Image, Picoboot, usb};
+
+let image = Image::from_uf2(
+    &std::fs::read("app.uf2").unwrap(),
+    &[picoboot_host::image::family
+        ::RP2350_ARM_S]
+)?;
+let mut pb = usb::open(None).await?;
+// the only BOOTSEL device connected
+pb.flash(&image, &mut |stage, done, total| {
+    eprintln!("{stage:?}: {done}/{total}");
+})
+.await?;
+pb.reboot2(
+    picoboot_host::proto::Reboot2::Normal,
+    picoboot_host::proto::REBOOT_DELAY
+)
+.await?;
+'''
+code_wide = '''
+use picoboot_host::{Image, Picoboot, usb};
+
+let image = Image::from_uf2(
+    &std::fs::read("app.uf2").unwrap(),
+    &[picoboot_host::image::family::RP2350_ARM_S]
+)?;
+let mut pb = usb::open(None).await?; // the only BOOTSEL device connected
+pb.flash(&image, &mut |stage, done, total| {
+    eprintln!("{stage:?}: {done}/{total}");
+})
+.await?;
+pb.reboot2(
+    picoboot_host::proto::Reboot2::Normal,
+    picoboot_host::proto::REBOOT_DELAY
+)
+.await?;
+'''
 
 [[repo]]
 name = "m2k"
 owner = "romixlab"
 area = "host"
 lang = "Rust"
-pitch = "The ADALM2000 from Rust, Python or the shell: scope, generator, supplies and voltmeter."
+desc = "The Analog Devices ADALM2000 (M2K) from Rust, the shell or Python: scope, signal generator, power supplies, voltmeter, logic analyzer and calibration. It talks to the device over the network with its own pure-Rust iiod client, without libiio, libm2k or C. Every command can answer in JSON, and the iiod client also works for other IIO devices. It is not on crates.io yet."
+source = "README"
+fence = "sh"
+wide = 80
+code = '''
+m2k info
+    # model, serial, firmware, calibration,
+    # outputs, supplies
+m2k cal run
+    # self-calibration, ~1.5 s; kept until
+    # power-off
+m2k scope -n 10k -r 1M --csv cap.csv
+    # both channels: stats per channel,
+    # all samples as CSV
+m2k gen -c 1 --for 10s sine -f 1k -a 1
+    # W1: 1 kHz, ±1 V; off again after
+    # 10 s (or Ctrl+C)
+m2k voltmeter --range 2.5
+    # DC and AC rms on 1+/1- and 2+/2-
+m2k psu set --pos 3.3 --neg -3.3;
+m2k psu off
+m2k logic -n 100k -r 10M -p 0-7
+'''
+code_wide = '''
+m2k info                                # model, serial, firmware, calibration,
+                                        # outputs, supplies
+m2k cal run                             # self-calibration, ~1.5 s;
+                                        # kept until power-off
+m2k scope -n 10k -r 1M --csv cap.csv    # both channels: stats per channel,
+                                        # all samples as CSV
+m2k gen -c 1 --for 10s sine -f 1k -a 1  # W1: 1 kHz, ±1 V;
+                                        # off again after 10 s (or Ctrl+C)
+m2k voltmeter --range 2.5               # DC and AC rms on 1+/1- and 2+/2-
+m2k psu set --pos 3.3 --neg -3.3; m2k psu off
+m2k logic -n 100k -r 10M -p 0-7
+'''
 
 [[repo]]
 name = "saleae_rs"
 owner = "romixlab"
 area = "host"
 lang = "Rust"
-pitch = "Drive a Saleae logic analyzer from Rust, Python or the command line."
+desc = "Drives Saleae logic analyzers through Saleae's headless Logic 2 automation server, without the Logic 2 GUI. It is a Rust library, the `saleae` command line and a Python module for notebooks and test benches. One command captures, runs an I2C, SPI or UART analyzer and prints a short summary. Saleae's simulated devices work without hardware."
+source = "README"
+fence = "python"
+wide = 80
+code = '''
+import saleae_rs as saleae
+
+s = saleae.Session(sim_only=True)
+    # starts the server in the background
+    # on first use
+sim = next(d for d in s.devices()
+           if d["simulated"])
+    # F4241 / F4244 / F4243 without real
+    # hardware
+rec = s.capture(device=sim["id"],
+                digital=[0, 1],
+                duration=0.5)
+analyzer = s.add_analyzer(
+    rec["capture"], "I2C",
+    settings={"SDA": 0, "SCL": 1})
+print(s.summarize(rec["capture"],
+                  analyzer,
+                  kind="i2c")["text"])
+s.close(rec["capture"])
+'''
+code_wide = '''
+import saleae_rs as saleae
+
+s = saleae.Session(sim_only=True)
+    # starts the server in the background on first use
+sim = next(d for d in s.devices() if d["simulated"])
+    # F4241 / F4244 / F4243 without real hardware
+rec = s.capture(device=sim["id"], digital=[0, 1], duration=0.5)
+analyzer = s.add_analyzer(rec["capture"], "I2C", settings={"SDA": 0, "SCL": 1})
+print(s.summarize(rec["capture"], analyzer, kind="i2c")["text"])
+s.close(rec["capture"])
+'''
 
 [[repo]]
 name = "gw121"
 owner = "romixlab"
 area = "host"
 lang = "Rust"
-pitch = "The EEVblog 121GW multimeter over Bluetooth LE: a Rust library, CLI, Python module and agent skill."
+desc = "Reads an EEVblog 121GW multimeter over Bluetooth LE. A Rust library gives typed readings and a stream of packets, a CLI scans, reads and logs to CSV, and a Python module serves notebooks and test benches. An agent skill sits on top. It only reads the meter, mode and range stay on its knob, and not every knob position is checked on a real meter yet."
+source = "README"
+fence = "rust"
+wide = 80
+code = '''
+let meter = gw121::Meter::open(
+    None,
+    Duration::from_secs(10)
+)
+.await?;
+println!(
+    "{}",
+    meter
+        .read(Duration::from_secs(5))
+        .await?
+        .main()?
+);
+// -0.0021 V
+let mut packets = meter.packets().await?;
+// a futures Stream
+meter.disconnect().await?;
+'''
+code_wide = '''
+let meter = gw121::Meter::open(None, Duration::from_secs(10)).await?;
+println!("{}", meter.read(Duration::from_secs(5)).await?.main()?); // -0.0021 V
+let mut packets = meter.packets().await?; // a futures Stream
+meter.disconnect().await?;
+'''
 
 [[repo]]
 name = "rvariant"
 owner = "romixlab"
 area = "host"
 lang = "Rust"
-pitch = "A dynamically typed value like Qt's QVariant, with SI units: table cells, CSV import, BOM parsing."
+crate = "rvariant"
+desc = "A dynamically typed value for Rust, inspired by Qt's QVariant: a Variant plus a type descriptor with an SI unit, enum variants or a currency. Text is parsed strictly and printed so it reads back: 4k7 with an ohm type is 4700 Ω. Conversions never lose information silently, and a vendor-text parser reads distributor and BOM values like 13.7 kOhms. Used for table cells, CSV import and stored parameters."
+source = "README"
+fence = "rust"
+wide = 80
+code = '''
+use rvariant::{
+    Variant, VariantTy, NumberTy,
+    si_dynamic::{Unit, BaseUnit}
+};
+
+let ohm = VariantTy::si(NumberTy::F32,
+    Unit::base(BaseUnit::Ohm));
+let r = Variant::try_from_str("4k7", &ohm)?;
+// 4700 Ω
+assert_eq!(r.to_string(), "4700 Ω");
+// Display is parseable back
+assert_eq!(Variant::try_from_str("-1",
+    &VariantTy::u32()).is_err(), true);
+let n: u16 =
+    Variant::str("0x10").try_into()?;
+// 16
+'''
+code_wide = '''
+use rvariant::{Variant, VariantTy, NumberTy, si_dynamic::{Unit, BaseUnit}};
+
+let ohm = VariantTy::si(NumberTy::F32, Unit::base(BaseUnit::Ohm));
+let r = Variant::try_from_str("4k7", &ohm)?;      // 4700 Ω
+assert_eq!(r.to_string(), "4700 Ω");               // Display is parseable back
+assert_eq!(Variant::try_from_str("-1", &VariantTy::u32()).is_err(), true);
+let n: u16 = Variant::str("0x10").try_into()?;     // 16
+'''
 
 [[repo]]
 name = "vhrd_cli"
 owner = "vhrdtech"
 area = "host"
 lang = "Rust"
-pitch = "A UX guide for Rust command-line tools. The shared crates it describes are still planned."
+desc = "A UX guide for Rust command-line tools: completion, help, colour, output, errors and exit codes, progress, prompts, configuration and `--version`. The small shared `vc_*` crates that are to do these parts are planned and not written yet. With them, a new CLI gets the parts by adding a dependency instead of copying code."
 
 [[repo]]
 name = "can_bus_cli"
 owner = "vhrdtech"
-private = true
 area = "host"
+private = true
 lang = "Rust"
-pitch = "Command line for CAN bus bridges."
+desc = "A command line for CAN bus bridges."
 
 [[repo]]
 name = "fpga_tools"
 owner = "vhrdtech"
-private = true
 area = "host"
-lang = "Rust"
-pitch = "FPGA lab tools on an Efinix board: a signal glitcher and a cycle-exact bus, UART and PWM generator."
+private = true
+lang = "Verilog, Rust"
+desc = "FPGA tools for lab benches on the Efinix Xyloni board (Trion T8). A signal glitcher injects needles, double edges, dropped pulses and stuck levels into a passing logic signal, also on an MCU's reset line or a power switch. A bus generator drives 8 lines with cycle-exact squares, pulses, PWM, UART and I2C, and reports the cycles it used, to check logic analyzers. The host CLIs and Python modules are in Rust."
 
 [[repo]]
 name = "popov"
 owner = "romixlab"
-private = true
 area = "host"
+private = true
 lang = "Rust"
-pitch = "SDR and DSP toolkit: FIR filters, NCOs, a seeded test channel simulator and a command line."
+desc = "Radio in Rust: software-defined radio and signal processing, taught by the Radio Room, a book of short stories set on a Moon prospecting mission. It has FIR filters and NCOs in float and Q15, SigMF recordings, a seeded channel simulator with noise and frequency offset, and the `popov` command. FPGA, GPU and plotting crates are ideas so far, and the book has its sample page."
 
 [[repo]]
 name = "mdcheck"
 owner = "romixlab"
-private = true
 area = "host"
+private = true
 lang = "Rust"
-pitch = "Compile-checks the Rust code blocks in Markdown files, each against its own inferred Cargo.toml."
+desc = "Compile-checks the Rust code blocks in Markdown files. Each block becomes its own scratch crate with a Cargo.toml inferred from the nearest heading and the crates the code names, looked up on crates.io. cargo check runs over all of them in parallel with one shared build cache, so a dependency used by many blocks compiles once. rustdoc block attributes such as rust,no_run work as they are."
 
 # EDA and hardware tools
 
@@ -296,26 +673,52 @@ name = "better_erc"
 owner = "romixlab"
 area = "eda"
 lang = "Rust"
-pitch = "Finds schematic mistakes beyond KiCad's own ERC, and turns KiCad files into readable git diffs."
+logo_dark = "img/oss/better_erc.webp"
+logo_light = "img/oss/better_erc.webp"
+logo_w = 64
+logo_h = 64
+desc = "Schematic checks beyond the ERC built into an EDA tool: they know what an I2C bus, a pull-up, a MOSFET or a power rail is. It reads KiCad projects, OrCAD and Altium netlists and Altium Smart PDFs, and runs from the shell or CI with text, JSON, SARIF or Markdown output. berc textconv makes git diffs of KiCad files readable and is ready for daily use. The project is early; the desktop app is a first prototype."
+source = "README"
+fence = "sh"
+wide = 80
+code = '''
+berc check hw/board
+    # findings worst first, the checks
+    # that could not run and why
+berc explain I2C-3
+    # what a check catches, why it
+    # matters, how to fix it
+berc checks list --project hw/board
+    # every catalogue check: ran, not run
+    # (and why), planned
+'''
+code_wide = '''
+berc check hw/board                  # findings worst first,
+                                     # the checks that could not run and why
+berc explain I2C-3                   # what a check catches, why it matters,
+                                     # how to fix it
+berc checks list --project hw/board  # every catalogue check: ran,
+                                     # not run (and why), planned
+'''
 
 [[repo]]
 name = "kicad-library"
 owner = "vhrdtech"
 area = "eda"
 lang = "KiCad"
-pitch = "VHRD's KiCad library: symbols, footprints, 3D models, drawing sheets and a project template."
+desc = "VHRD's KiCad library: symbols, footprints and 3D models, drawing sheets in A4 and A3, and a project template with net class colours. Power symbols are coloured by kind, supplies orange and grounds grey. Board templates for a Raspberry Pi HAT, an STM32 Nucleo-64, a Hammond case and others come with it. The README explains KiKit panelization setup."
 
 [[repo]]
 name = "radiated-immunity-tester"
 owner = "romixlab"
 area = "eda"
 lang = "Python"
-pitch = "EN 61000-4-3 radiated immunity test bench with GNU Radio, a USRP SDR and a TEM cell."
+desc = "A GNU Radio graph for radiated immunity pre-tests in the style of EN 61000-4-3, with a USRP B210 SDR and a desktop TEM cell. It sweeps a carrier from 80 to 1000 MHz by default with adjustable AM, at about 18 dBm out of the B210. It is a cheap bench that keeps the device under test easy to reach, not a test house setup."
 
 [[repo]]
 name = "eda_lens"
 owner = "romixlab"
-private = true
 area = "eda"
+private = true
 lang = "Rust"
-pitch = "Reads schematic PDFs, images and scans into structured netlist data; Gerbers and PCB photos next."
+desc = "A planned reader of EDA artwork: schematic PDFs, screenshots, scans and hand drawings into netlists first, Gerbers and PCB photos later. What exists today is the test harness: a corpus of 48 KiCad projects whose ground truth kicad-cli renders, checked end to end. The readers and their scoring are not built yet."
