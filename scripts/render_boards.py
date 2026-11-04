@@ -67,9 +67,9 @@ BOARDS = [
 
 VIEWS = {
     # name: (kicad-cli --side, extra args)
-    "hero": ("top", ["--perspective", "--rotate", "-45,0,45", "--zoom", "1.25", "--floor"]),
-    "top": ("top", ["--zoom", "1.15"]),
-    "bottom": ("bottom", ["--zoom", "1.15"]),
+    "hero": ("top", ["--perspective", "--rotate", "-45,0,45", "--floor"]),
+    "top": ("top", []),
+    "bottom": ("bottom", []),
 }
 ALT_SUFFIX = {
     "hero": "three-quarter view",
