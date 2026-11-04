@@ -60,10 +60,12 @@ ITEMS = {
         ("p14_img02_952x1269.jpeg", (0, 230, 952, 944), "laser-scanner-aoi-rails"),
     ],
     # RockFace under its old name, "MCU tracer - debugger" (page 9): the whole window for the software panel, and
-    # the log view alone for the lab card, where the whole window's text would be too small to read
+    # the left part of the timeline view alone for the lab card (4:3, its labels readable at card size; Roman,
+    # 4 Nov 2026). The log view crop is kept for later use.
     "rockface": [
         ("p09_img00_1830x1456.png", (112, 76, 1718, 1308), "rockface-window", 20),
         ("p09_img00_1830x1456.png", (126, 676, 686, 1096), "rockface-log"),
+        ("p09_img00_1830x1456.png", (126, 188, 610, 551), "rockface-timeline"),
     ],
     "granite-cnc": [
         ("p18_img02_2021x1617.jpeg", None, "granite-cnc-1"),

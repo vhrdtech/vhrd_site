@@ -10,8 +10,9 @@ Without BASE_URL it builds the site with zola into target/check for a local port
 `just check-browser` does); with one it checks that site as deployed (`just check-preview`).
 
 For every page in the site map, at phone (390), tablet (820) and desktop (1440) widths, in dark and light:
-no console errors or failed requests, no sideways scroll. On the front page: the theme toggle switches and the
-choice survives a reload, the code tabs work by keyboard (arrow keys), the skip link is the first tab stop.
+no console errors or failed requests, no sideways scroll, the open-source stack's track through every via's centre.
+On the front page: the theme toggle switches and the choice survives a reload, the code tabs work by keyboard
+(arrow keys), the skip link is the first tab stop.
 First-view budget: what a phone loads for the front page before scrolling (HTML, CSS, script, fonts, images)
 stays under BUDGET_KB as sent over the wire: text gzipped (as the local build would be served by a server that
 compresses), fonts and images as they are; against a deployed site, the transfer sizes the browser saw. Every image
@@ -44,6 +45,12 @@ BUDGET_KB = 200
 FETCHED = """() => [performance.getEntriesByType("navigation")[0], ...performance.getEntriesByType("resource")]
   .map((e) => [e.name, e.decodedBodySize || 0, e.transferSize || 0])"""
 TEXT = (".html", ".css", ".js", ".svg", ".json", ".xml", ".txt")
+# The open-source stack: every via's centre against the centre of the track that runs through it, in px.
+VIA_OFFSETS = """() => [...document.querySelectorAll('.layer')].map((l) => {
+  const v = l.querySelector('.layer-head .via').getBoundingClientRect();
+  const t = getComputedStyle(l, '::before');
+  return v.left + v.width / 2 - (l.getBoundingClientRect().left + parseFloat(t.left) + parseFloat(t.width) / 2);
+})"""
 IMAGES_WITHOUT = """() => [...document.images]
   .filter((i) => !i.hasAttribute("alt") || !i.getAttribute("width") || !i.getAttribute("height"))
   .map((i) => i.currentSrc || i.src)"""
@@ -181,6 +188,8 @@ def main():
                     if sideways > 0:
                         failures.append(f"{path or '/'} {name} {scheme}: scrolls sideways by {sideways}px")
                     page.wait_for_load_state("load")
+                    if any(abs(d) > 0.5 for d in page.evaluate(VIA_OFFSETS)):
+                        failures.append(f"{path or '/'} {name} {scheme}: a stack via is off its track's centre")
                     for e in errors:
                         # the missing page's own 404 is expected; the 404 page is the server's (static hosting)
                         if want == 404 and "404" in e:

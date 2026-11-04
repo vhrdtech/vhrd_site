@@ -1,7 +1,7 @@
 {%- if page %}{% set here = page.path %}{% elif section %}{% set here = section.path %}{% else %}{% set here = "" %}{% endif -%}
 <header class="site-header">
   <div class="frame header-row">
-    <a class="brand" href="{{ get_url(path='/') }}" aria-label="VHRD.TECH, home">{% include "partials/wordmark.html" %}</a>
+    <a class="brand" href="{{ get_url(path='/') }}" aria-label="VHRD, home">{% include "partials/wordmark.html" %}</a>
     <nav class="nav" aria-label="Main">
       <ul>
       {%- for item in config.extra.nav %}

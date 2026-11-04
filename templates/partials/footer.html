@@ -13,7 +13,7 @@
 <footer class="site-footer">
   <div class="frame footer-grid">
     <div class="footer-brand">
-      <a class="brand" href="{{ get_url(path='/') }}" aria-label="VHRD.TECH, home">{% include "partials/wordmark.html" %}</a>
+      <a class="brand" href="{{ get_url(path='/') }}" aria-label="VHRD, home">{% include "partials/wordmark.html" %}</a>
       <p>{{ config.extra.company }}<br>{{ config.extra.address }}<br><a href="mailto:{{ config.extra.email }}">{{ config.extra.email }}</a></p>
     </div>
     <nav class="footer-col" aria-label="Products">
@@ -44,7 +44,7 @@
     </nav>
   </div>
   <div class="frame footer-stamp">
-    <span>© {{ now() | date(format="%Y") }} {{ config.extra.company }}</span>
+    <span>© {{ now() | date(format="%Y") }} {{ config.extra.company }} · vhrd.tech</span>
     <span class="stamp">built from <code>{% if git %}{{ git }}{% else %}an unstamped tree{% endif %}</code>{% if built %} · {{ built }}{% endif %}</span>
   </div>
 </footer>

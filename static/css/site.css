@@ -498,11 +498,11 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 }
 .stack-products { font: 500 0.875rem/1.4 var(--font-mono); }
 .layer { position: relative; padding: 1.75rem 0 0 1.75rem; }
-/* The track: down the left edge from the layer above, into this layer's via. */
+/* The track: down the left edge from the layer above, through the centre of this layer's via (both centred 8px in). */
 .layer::before { content: ""; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: var(--sig); }
 .layer:last-child::before { bottom: auto; height: 2.4rem; }
 .layer-head { position: relative; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1rem; margin-bottom: 0.75rem; }
-.layer-head .via { position: absolute; left: calc(-1.75rem + 2px); top: 0.15rem; width: 12px; height: 12px; border: 3px solid var(--sig); border-radius: 50%; background: var(--bg); }
+.layer-head .via { position: absolute; left: calc(-1.75rem + 2px); top: 0.15rem; width: 12px; height: 12px; margin-left: 0; border: 3px solid var(--sig); border-radius: 50%; background: var(--bg); }
 .layer-head h3 { margin: 0; color: var(--text); }
 .layer-head p { margin: 0; font-size: 0.875rem; }
 .crate-ver { font: 500 0.6875rem/1.4 var(--font-mono); letter-spacing: 0.04em; color: var(--muted); }

@@ -1,6 +1,6 @@
 +++
 title = "Lab"
-description = "Selected work from our own bench: optics, power, motor control and precision analog."
+description = "Selected work from our own bench: digital, power, communications and motors."
 
 [extra]
 label = "Lab"

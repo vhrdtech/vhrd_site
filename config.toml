@@ -1,6 +1,6 @@
 # vhrd.tech, built with Zola (version pinned in AGENTS.md). The preview build overrides base_url on the command line.
 base_url = "https://vhrd.tech"
-title = "VHRD Tech"
+title = "VHRD"
 description = "Tools for people who build hardware: boards, Rust firmware and the open-source software that ties them together, from Norway."
 default_language = "en"
 
@@ -22,7 +22,7 @@ light_theme = "github-light"
 dark_theme = "github-dark"
 
 [extra]
-company = "Vhrd.tech AS"
+company = "VHRD"
 address = "Asker, Norway"
 email = "hello@vhrd.tech"
 github = "https://github.com/vhrdtech"

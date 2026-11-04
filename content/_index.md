@@ -1,3 +1,3 @@
 +++
-title = "VHRD Tech"
+title = "VHRD"
 +++

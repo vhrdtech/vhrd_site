@@ -52,6 +52,7 @@ just renders --variants  # only the missing web widths, from the PNG sources (no
 - **Dark first, light equal.** Every change is checked in both themes. The theme follows `prefers-color-scheme`; the toggle stores an override in localStorage, and choosing the system's own theme clears it.
 - **Almost no JavaScript, no framework.** Animation is CSS (scroll-driven for the traces), off under `prefers-reduced-motion`. The page must work without `site.js`. The front page's intro has a small inline script; without it the intro never shows.
 - **Links through `get_url`**, so the preview under a sub-path works. Internal Markdown links use `@/page.md`.
+- **The name is VHRD; the address is vhrd.tech.** VHRD in titles, copy, product names and the footer; vhrd.tech always lowercase, for URLs and mail. Never "Vhrd.tech AS", "VHRD Tech", "VHRD.tech" or "Vhrd.Tech" (Roman, 4 Nov 2026). The wordmark is drawn, not text.
 - **Draft copy is marked** (`<span class="v-badge">draft</span>` or `extra.stub = true`) until Marketing and PM have read it.
 - **Nothing private on the site or the preview.** A share link is public to anyone who has it. No employer work in the lab pages (decided 4 Nov 2026).
 - **Write for reading:** short complete sentences, one fact per list item, open with what it is about.

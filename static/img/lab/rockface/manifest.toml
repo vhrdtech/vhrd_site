@@ -22,3 +22,8 @@ alt = "RockFace window: timeline view, log view and defmt counters"
 file = "rockface-log"
 widths = [560]
 alt = "RockFace log view: timestamps, levels and defmt messages"
+
+[[images]]
+file = "rockface-timeline"
+widths = [484]
+alt = "RockFace timeline view: sleep spans and events of a running firmware over time"
