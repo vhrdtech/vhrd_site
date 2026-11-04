@@ -11,7 +11,8 @@ Without BASE_URL it builds the site with zola into target/check for a local port
 
 For every page in the site map, at phone (390), tablet (820) and desktop (1440) widths, in dark and light:
 no console errors or failed requests, no sideways scroll, the open-source stack's track through every via's centre.
-A crate card marked `fits` in data/stack.toml shows its code without a sideways scroll from 320 px up.
+A crate card marked `fits` in data/stack.toml shows its code without a sideways scroll from 320 px up. /open-source
+lists every repository of data/repos.toml, a public one linked, a private one marked as coming and not linked.
 On the front page: the theme toggle switches and the choice survives a reload, the code tabs work by keyboard
 (arrow keys), the skip link is the first tab stop.
 First-view budget: what a phone loads for the front page before scrolling (HTML, CSS, script, fonts, images)
@@ -34,6 +35,7 @@ import socket
 import subprocess
 import sys
 import threading
+import tomllib
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -133,6 +135,29 @@ def check_code_fits(browser, base):
                 if px > 0:
                     failures.append(f"{path or '/'} {w}px: the {crate} card's code scrolls sideways by {px}px")
         ctx.close()
+    return failures
+
+
+def check_repos(browser, base):
+    """/open-source lists every repository of data/repos.toml: a public one links to it on GitHub, a private one
+    says it is coming and has no link."""
+    want = {r["name"]: r for r in tomllib.loads(Path("data/repos.toml").read_text())["repo"]}
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
+    page = ctx.new_page()
+    page.goto(base + "open-source/")
+    seen = page.evaluate("""() => [...document.querySelectorAll('.repo')].map((r) => [r.id,
+      r.querySelector('h4 a')?.href ?? null, !!r.querySelector('.v-badge')])""")
+    ctx.close()
+    failures = []
+    for name, href, badge in seen:
+        r = want.pop(name, None)
+        if r is None:
+            failures.append(f"/open-source: {name} is not in data/repos.toml")
+        elif r.get("private") and (href or not badge):
+            failures.append(f"/open-source: private {name} has a link or no 'coming in the future' badge")
+        elif not r.get("private") and href != f"https://github.com/{r['owner']}/{name}":
+            failures.append(f"/open-source: {name} links to {href}")
+    failures += [f"/open-source: {name} is missing" for name in want]
     return failures
 
 
@@ -334,6 +359,7 @@ def main():
         ctx.close()
 
         failures += check_code_fits(browser, base)
+        failures += check_repos(browser, base)
         failures += check_intro(browser, base)
         failures += check_placeholders(browser, base)
 

@@ -511,6 +511,23 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .crate-code pre { margin: 0; font-size: 0.75rem; line-height: 1.5; padding: 0.75rem 0.9rem; overflow-x: auto; border-radius: var(--radius); }
 .crate-links { font: 500 0.75rem/1.4 var(--font-mono); }
 
+/* /open-source after the stack: the other repositories by area, small cards in a grid, the area's signal colour
+   on top. A private one is muted and has no link. */
+.repos { margin-top: 3rem; }
+.repo-area { margin-top: 1.75rem; }
+.repo-area > .v-label { margin: 0 0 0.75rem; }
+.repo-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 40rem) { .repo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 68rem) { .repo-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.repo { margin: 0; padding: 0.85rem 1rem 0.95rem; border: 1px solid var(--line); box-shadow: inset 0 2px 0 var(--sig); background: var(--bg); min-width: 0; }
+.repo h4 { margin: 0; font: 500 0.9375rem/1.3 var(--font-mono); overflow-wrap: anywhere; }
+.repo h4 a { text-decoration: none; }
+.repo h4 a:hover { text-decoration: underline; text-decoration-color: var(--sig); }
+.repo-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.5rem; margin: 0.25rem 0 0; font: 500 0.6875rem/1.4 var(--font-mono); letter-spacing: 0.04em; color: var(--muted); }
+.repo-pitch { margin: 0.4rem 0 0; font-size: 0.875rem; color: var(--muted); }
+.repo-private { box-shadow: inset 0 2px 0 var(--line-strong); }
+.repo-private h4 { color: var(--muted); }
+
 /* Notify and contact. */
 .contact { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: start; }
 @media (max-width: 52rem) { .contact { grid-template-columns: minmax(0, 1fr); } }

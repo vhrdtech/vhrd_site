@@ -23,7 +23,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 - `static/css/site.css`: the site's own layer. `base.html` inlines all the CSS (fonts.css, the brand files and site.css) into each page with `load_data`, so there is no render-blocking request. `static/js/site.js`: theme toggle, tabs and the image placeholders' marking, nothing else.
 - `static/fonts/`: IBM Plex woff2 subsets and `fonts.css`. `static/img/boards/` holds board renders (`just renders`, README "Board renders") and `static/img/lab/` lab photos.
 - `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check, `tools/perf.py` measures the first screen on a slow phone, `tools/fonts.py` cuts the Core font subsets.
-- `data/stack.toml`: the open-source crates in their /open-source order (layer, logos per theme, code sample, which are on crates.io); `front = true` puts one on the front page too. `partials/crate-stack.html` draws them for both pages, `templates/open-source.html` is the /open-source page.
+- `data/stack.toml`: the open-source crates in their /open-source order (layer, logos per theme, code sample, which are on crates.io); `front = true` puts one on the front page too. `partials/crate-stack.html` draws them for both pages, `templates/open-source.html` is the /open-source page. `data/repos.toml`: every other repository on /open-source, by area (`partials/repo-list.html`); its head names the repos left off and why.
 
 ## Commands
 

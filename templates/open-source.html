@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{#- /open-source: every public crate from data/stack.toml, in its order, wired like the front page's stack. -#}
+{#- /open-source: the crates from data/stack.toml in their order, wired like the front page's stack, then every other
+    repository by area (data/repos.toml). -#}
 {% block content %}
 <article class="section page">
   {{ <vh.label text={page.extra.label | default(value=page.title)} /> }}
@@ -8,6 +9,7 @@
   <div class="prose">{{ page.content | safe }}</div>
   {%- set stack_front = false %}
   {% include "partials/crate-stack.html" %}
+  {% include "partials/repo-list.html" %}
 </article>
 {{ <vh.trace sig={page.extra.sig or "bus"} from={8} to={50} /> }}
 {% endblock content %}

@@ -1,0 +1,321 @@
+# The other repositories on /open-source, after the stack (data/stack.toml), grouped by area in the order below.
+# Facts come from each repo's README (or its files where there is none); the pitch is one plain sentence.
+#
+# - `private = true`: not public yet. The card says "coming in the future" and has no link.
+# - Left off for now, until Roman confirms (4 Nov 2026): romixlab/dot (personal dotfiles), vhrdtech/mx3 (internal
+#   server), romixlab/shrink_wrap (an old private copy; shrink_wrap lives in wire_weaver), vhrdtech/io_weaver and
+#   romixlab/rockface (paid products, on /software), vhrdtech/usb_io_fw (closed source, its README says so), and
+#   vhrdtech/can_bus and romixlab/power_meter (private, no README or description to write a pitch from yet).
+
+[[area]]
+id = "wire"
+title = "Wire format and APIs"
+sig = "usb"
+
+[[area]]
+id = "firmware"
+title = "Firmware and embedded"
+sig = "can"
+
+[[area]]
+id = "drivers"
+title = "Drivers and HALs"
+sig = "bus"
+
+[[area]]
+id = "host"
+title = "Host tools and instruments"
+sig = "analog"
+
+[[area]]
+id = "eda"
+title = "EDA and hardware tools"
+sig = "power"
+
+# Wire format and APIs
+
+[[repo]]
+name = "wire_weaver_template"
+owner = "vhrdtech"
+area = "wire"
+lang = "Rust"
+pitch = "WireWeaver over USB as a template: a shared API, example firmware and a Rust host driver with a REPL."
+
+[[repo]]
+name = "can_bus_ww"
+owner = "vhrdtech"
+area = "wire"
+lang = "Rust"
+pitch = "WireWeaver API and data structures for CAN bus bridges."
+
+[[repo]]
+name = "ww_lsp"
+owner = "romixlab"
+area = "wire"
+lang = "Rust"
+pitch = "Language server for WireWeaver APIs: units as inlay hints, beside rust-analyzer. A prototype."
+
+[[repo]]
+name = "napier"
+owner = "romixlab"
+area = "wire"
+lang = "Rust"
+pitch = "Parses SI values and units from text at run time, schematic shorthand like 4k7 included."
+
+[[repo]]
+name = "bitfield_introspect"
+owner = "romixlab"
+area = "wire"
+lang = "Rust"
+pitch = "Value descriptions on bitfield-struct fields, turned into structured data for decoding."
+
+# Firmware and embedded
+
+[[repo]]
+name = "typec_dongle"
+owner = "vhrdtech"
+area = "firmware"
+lang = "Rust"
+pitch = "Donguru: a USB-C dongle with a USB hub, UART, I2C, GPIO and ADC, a power switch and a power meter."
+
+[[repo]]
+name = "logring"
+owner = "vhrdtech"
+area = "firmware"
+lang = "Rust"
+pitch = "Power-cut-safe multi-track log store for embedded Rust, with USB disk access and MF4, MCAP and CSV export."
+
+[[repo]]
+name = "exfat_lite"
+owner = "vhrdtech"
+area = "firmware"
+lang = "Rust"
+pitch = "Minimal exFAT for SD cards, no_std and no alloc: format, mount, contiguous files, read-only volumes."
+
+[[repo]]
+name = "usb_msc_device"
+owner = "vhrdtech"
+area = "firmware"
+lang = "Rust"
+pitch = "USB Mass Storage device class for embassy-usb, async, with several LUNs."
+
+[[repo]]
+name = "motor_sim"
+owner = "vhrdtech"
+area = "firmware"
+lang = "Rust"
+pitch = "Deterministic no_std electric motor simulator, for testing motor controllers in software."
+
+[[repo]]
+name = "nucleo_g0b1re_template"
+owner = "romixlab"
+area = "firmware"
+lang = "Rust"
+pitch = "Firmware template for the ST Nucleo-G0B1RE: firmware, API, client library, CLI and Python module."
+
+[[repo]]
+name = "cannify_micro_template"
+owner = "romixlab"
+area = "firmware"
+lang = "Rust"
+pitch = "Firmware template for the B129A CANnify Micro board (STM32G0): API, client library, CLI and Python module."
+
+[[repo]]
+name = "donguru_template"
+owner = "romixlab"
+private = true
+area = "firmware"
+lang = "Rust"
+pitch = "Firmware template for Donguru: a typed API, Rust client, CLI and Python module from one spec."
+
+[[repo]]
+name = "report_template"
+owner = "romixlab"
+private = true
+area = "firmware"
+lang = "Rust"
+pitch = "Firmware template for rePort: a typed API, Rust client, CLI and Python module from one spec."
+
+[[repo]]
+name = "b135_template"
+owner = "romixlab"
+private = true
+area = "firmware"
+lang = "Rust"
+pitch = "Firmware template for the B135B FDCAN-ISO-USB board: WireWeaver API, firmware, Rust client and CLI."
+
+[[repo]]
+name = "pico_template"
+owner = "romixlab"
+private = true
+area = "firmware"
+lang = "Rust"
+pitch = "Firmware template for the Raspberry Pi Pico: a typed API, Rust client, CLI and Python module from one spec."
+
+[[repo]]
+name = "pico2_template"
+owner = "romixlab"
+private = true
+area = "firmware"
+lang = "Rust"
+pitch = "Firmware template for the Raspberry Pi Pico 2: a typed API, Rust client, CLI and Python module from one spec."
+
+# Drivers and HALs
+
+[[repo]]
+name = "slg4682x"
+owner = "romixlab"
+area = "drivers"
+lang = "Rust"
+pitch = "HAL for the SLG46824 and SLG46826 mixed-signal matrix: read, program and rewire it over I2C."
+
+[[repo]]
+name = "bq769x2"
+owner = "romixlab"
+area = "drivers"
+lang = "Rust"
+pitch = "Register definitions for the BQ76952, BQ76942 and BQ769142 battery monitor AFEs."
+
+[[repo]]
+name = "usb4604"
+owner = "romixlab"
+area = "drivers"
+lang = "Rust"
+pitch = "HAL for the GPIO and I2C of the USB4604 USB hub."
+
+[[repo]]
+name = "otm8009a"
+owner = "romixlab"
+area = "drivers"
+lang = "Rust"
+pitch = "Bare-metal driver for the OTM8009A LCD controller."
+
+[[repo]]
+name = "i2c_periph"
+owner = "romixlab"
+private = true
+area = "drivers"
+lang = "Rust"
+pitch = "Async no_std I2C driver with one API across microcontrollers and I2C IPs."
+
+[[repo]]
+name = "pd_bench"
+owner = "romixlab"
+private = true
+area = "drivers"
+lang = "Rust"
+pitch = "A no_std FUSB302 USB PD driver, and a PC tool that acts as a sink to test PD sources."
+
+# Host tools and instruments
+
+[[repo]]
+name = "io_bridge"
+owner = "vhrdtech"
+area = "host"
+lang = "Rust"
+pitch = "Client library that reads and drives GPIO, I2C, USART, SPI and ADC on a device over USB, Ethernet or CAN."
+
+[[repo]]
+name = "picoboot_host"
+owner = "vhrdtech"
+area = "host"
+lang = "Rust"
+pitch = "The RP2040 and RP2350 USB boot ROM from a PC: flash, erase, verify and reboot a device in BOOTSEL mode."
+
+[[repo]]
+name = "m2k"
+owner = "romixlab"
+area = "host"
+lang = "Rust"
+pitch = "The ADALM2000 from Rust, Python or the shell: scope, generator, supplies and voltmeter."
+
+[[repo]]
+name = "saleae_rs"
+owner = "romixlab"
+area = "host"
+lang = "Rust"
+pitch = "Drive a Saleae logic analyzer from Rust, Python or the command line."
+
+[[repo]]
+name = "gw121"
+owner = "romixlab"
+area = "host"
+lang = "Rust"
+pitch = "The EEVblog 121GW multimeter over Bluetooth LE: a Rust library, CLI, Python module and agent skill."
+
+[[repo]]
+name = "rvariant"
+owner = "romixlab"
+area = "host"
+lang = "Rust"
+pitch = "A dynamically typed value like Qt's QVariant, with SI units: table cells, CSV import, BOM parsing."
+
+[[repo]]
+name = "vhrd_cli"
+owner = "vhrdtech"
+area = "host"
+lang = "Rust"
+pitch = "A UX guide for Rust command-line tools. The shared crates it describes are still planned."
+
+[[repo]]
+name = "can_bus_cli"
+owner = "vhrdtech"
+private = true
+area = "host"
+lang = "Rust"
+pitch = "Command line for CAN bus bridges."
+
+[[repo]]
+name = "fpga_tools"
+owner = "vhrdtech"
+private = true
+area = "host"
+lang = "Rust"
+pitch = "FPGA lab tools on an Efinix board: a signal glitcher and a cycle-exact bus, UART and PWM generator."
+
+[[repo]]
+name = "popov"
+owner = "romixlab"
+private = true
+area = "host"
+lang = "Rust"
+pitch = "SDR and DSP toolkit: FIR filters, NCOs, a seeded test channel simulator and a command line."
+
+[[repo]]
+name = "mdcheck"
+owner = "romixlab"
+private = true
+area = "host"
+lang = "Rust"
+pitch = "Compile-checks the Rust code blocks in Markdown files, each against its own inferred Cargo.toml."
+
+# EDA and hardware tools
+
+[[repo]]
+name = "better_erc"
+owner = "romixlab"
+area = "eda"
+lang = "Rust"
+pitch = "Finds schematic mistakes beyond KiCad's own ERC, and turns KiCad files into readable git diffs."
+
+[[repo]]
+name = "kicad-library"
+owner = "vhrdtech"
+area = "eda"
+lang = "KiCad"
+pitch = "VHRD's KiCad library: symbols, footprints, 3D models, drawing sheets and a project template."
+
+[[repo]]
+name = "radiated-immunity-tester"
+owner = "romixlab"
+area = "eda"
+lang = "Python"
+pitch = "EN 61000-4-3 radiated immunity test bench with GNU Radio, a USRP SDR and a TEM cell."
+
+[[repo]]
+name = "eda_lens"
+owner = "romixlab"
+private = true
+area = "eda"
+lang = "Rust"
+pitch = "Reads schematic PDFs, images and scans into structured netlist data; Gerbers and PCB photos next."

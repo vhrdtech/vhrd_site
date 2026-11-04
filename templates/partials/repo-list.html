@@ -1,0 +1,20 @@
+{#- /open-source after the stack: every other repository from data/repos.toml, one block per area in its order.
+    A public repo links to GitHub; a private one says it is coming in the future and has no link. -#}
+{%- set repos = load_data(path="data/repos.toml") -%}
+<section class="repos" aria-labelledby="repos-title">
+<h2 id="repos-title">More repositories</h2>
+{%- for a in repos.area %}
+<section class="repo-area" id="{{ a.id }}" style="--sig: var(--signal-{{ a.sig }})" aria-labelledby="{{ a.id }}-title">
+<h3 class="v-label" id="{{ a.id }}-title">{{ a.title }}</h3>
+<ul class="repo-grid">
+{%- for r in repos.repo %}{% if r.area == a.id %}
+<li class="repo{% if r.private %} repo-private{% endif %}" id="{{ r.name }}">
+<h4>{% if r.private %}{{ r.name }}{% else %}<a href="https://github.com/{{ r.owner }}/{{ r.name }}" rel="noopener">{{ r.name }}</a>{% endif %}</h4>
+<p class="repo-meta"><span class="repo-lang">{{ r.lang }}</span>{% if r.private %} <span class="v-badge">coming in the future</span>{% endif %}</p>
+<p class="repo-pitch">{{ r.pitch }}</p>
+</li>
+{%- endif %}{% endfor %}
+</ul>
+</section>
+{%- endfor %}
+</section>
