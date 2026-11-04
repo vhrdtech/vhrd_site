@@ -105,6 +105,14 @@
 - `scripts/render_boards.py` reads VHRD's own and vendor 3D models from `~/sync/hw_tracking/vhrd-packages3D` (own/ and vendor/ subfolders), matching where they moved out of the kicad-library repo.
 - The board and lab manifests and the `.gitkeep` placeholders no longer ship with the site. The manifests named paths in the private hardware repository; the templates still read them from the source tree.
 
+### Added
+
+- `deploy/golden-links.txt`: links we have printed or sent. A build that breaks one stops before upload, and `just check-live` fetches each from the live site.
+
+### Changed
+
+- The post-deploy check takes a sample: the stamp, two pages, a stylesheet and a script, one old path per redirect rule and the 404 page. It took 45 s for about 75 requests that mostly repeated each other. `just check-live` keeps the full sweep (`--full`).
+
 ### Fixed
 
 - The deploy job checks out `deploy/redirects.map` and `deploy/old-urls.txt`. The post-deploy check reads them and stopped with FileNotFoundError after a good upload.

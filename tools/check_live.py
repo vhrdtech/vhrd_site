@@ -2,7 +2,7 @@
 
 Usage: python3 tools/check_live.py built DIR [--stamp HASH]
        python3 tools/check_live.py redirects DIR
-       python3 tools/check_live.py site URL --built DIR [--stamp HASH]
+       python3 tools/check_live.py site URL --built DIR [--stamp HASH] [--full]
 
 Standard library only: the deploy workflow runs it with the runner's python3, without uv.
 
@@ -16,11 +16,14 @@ Standard library only: the deploy workflow runs it with the runner's python3, wi
 - with --stamp, the front page's footer stamp is that hash.
 
 `redirects` checks deploy/redirects.map against a build: every target is a page of it, no redirect hides one of its
-pages, and every old WordPress path in deploy/old-urls.txt is a page or redirected.
+pages, every old WordPress path in deploy/old-urls.txt is a page or redirected, and every link in
+deploy/golden-links.txt (what we have printed or sent) is a page, a file or redirected.
 
-`site` checks a deployed site against that folder: every page of its sitemap answers 200 at URL without a
-redirect, the front page carries the stamp, every old path answers its 301 (or 200 for a page), and a missing
-path gets the site's own 404 page.
+`site` checks a deployed site against that folder: the front page answers 200 and carries the stamp, a second page
+and a stylesheet and script answer 200, one old path per redirect rule answers its 301 (the server's copy of the map
+is installed by hand, so it can differ from the repo's), and a missing path gets the site's own 404 page. `built` has
+already checked the rest against the map, and rsync sets the same modes on every file. With --full, every page of
+the sitemap, every old path and every golden link too.
 """
 
 import argparse
@@ -41,6 +44,7 @@ LIVE = "https://vhrd.tech/"
 ROOT = Path(__file__).resolve().parent.parent
 MAP = ROOT / "deploy/redirects.map"
 OLD = ROOT / "deploy/old-urls.txt"
+GOLDEN = ROOT / "deploy/golden-links.txt"
 NOT_FOUND = "No trace here"  # the 404 page's headline
 
 
@@ -97,8 +101,16 @@ def redirect_for(path, rules):
     return None
 
 
+def paths_in(file):
+    return [l.strip() for l in file.read_text().splitlines() if l.strip() and not l.startswith("#")]
+
+
 def old_paths():
-    return [l.strip() for l in OLD.read_text().splitlines() if l.strip() and not l.startswith("#")]
+    return paths_in(OLD)
+
+
+def golden_paths():
+    return paths_in(GOLDEN)
 
 
 def page_at(folder, path):
@@ -121,6 +133,9 @@ def redirects(folder):
     for path in old_paths():
         if not page_at(folder, path) and not redirect_for(path, rules):
             problems.append(f"{OLD.name}: {path} is neither a page nor redirected")
+    for path in golden_paths():
+        if not page_at(folder, path) and not (folder / path.lstrip("/")).is_file() and not redirect_for(path, rules):
+            problems.append(f"{GOLDEN.name}: {path} is a link we promised, and this build breaks it")
     return problems
 
 
@@ -147,13 +162,26 @@ def fetch(url, location=False):
     return out if location else out[:2]
 
 
-def site(base, folder, stamp):
+def one_per_rule(paths, rules):
+    """The first old path each redirect rule answers."""
+    seen, out = set(), []
+    for path in paths:
+        rule = next((pattern for pattern, _ in rules if pattern.search(path)), None)
+        if rule is not None and rule not in seen:
+            seen.add(rule)
+            out.append(path)
+    return out
+
+
+def site(base, folder, stamp, full=False):
     """The problems of the deployed site at base, one line each."""
     problems = []
     base = base.rstrip("/") + "/"
     locs = sitemap(folder)
     if not locs:
         return [f"{folder}/sitemap.xml: no pages"]
+    if not full:
+        locs = [loc for loc in locs if loc == LIVE] + [loc for loc in locs if loc != LIVE][:1]
     for loc in locs:
         url = base + loc.removeprefix(LIVE)
         status, body = fetch(url)
@@ -162,8 +190,15 @@ def site(base, folder, stamp):
         elif stamp and url == base and f"<code>{stamp}</code>" not in body:
             problems.append(f"{url}: the footer stamp is not {stamp}")
         print(f"{status} {url}")
+    for pattern in ("css/*.css", "js/*.js"):
+        for asset in sorted(folder.glob(pattern))[:1]:
+            url = base + asset.relative_to(folder).as_posix()
+            status, _ = fetch(url)
+            print(f"{status} {url}")
+            if status != 200:
+                problems.append(f"{url}: {status}")
     rules = redirect_map()
-    for path in old_paths():
+    for path in old_paths() + golden_paths() if full else one_per_rule(old_paths(), rules):
         url, target = base + path.lstrip("/"), redirect_for(path, rules)
         status, _, location = fetch(url, location=True)
         print(f"{status} {url}{' -> ' + location if location else ''}")
@@ -191,13 +226,14 @@ def main():
     two.add_argument("url")
     two.add_argument("--built", type=Path, required=True)
     two.add_argument("--stamp", help="the git hash the front page's footer must show")
+    two.add_argument("--full", action="store_true", help="every page and every old path, not a sample")
     args = parser.parse_args()
     if args.what == "built":
         problems = built(args.dir, args.stamp)
     elif args.what == "redirects":
         problems = redirects(args.dir)
     else:
-        problems = site(args.url, args.built, args.stamp)
+        problems = site(args.url, args.built, args.stamp, args.full)
     for line in problems:
         print(f"FAIL {line}", file=sys.stderr)
     if problems:

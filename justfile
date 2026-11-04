@@ -94,7 +94,7 @@ deploy:
 # Check the deployed site against target/live (from `just live` at the same commit): every page 200, the footer
 # stamp, every old WordPress path's 301, the site's own 404 page
 check-live url="https://vhrd.tech":
-    python3 tools/check_live.py site "{{ url }}" --built target/live --stamp "$VHRD_GIT"
+    python3 tools/check_live.py site "{{ url }}" --built target/live --stamp "$VHRD_GIT" --full
 
 # Build a noindex preview for https://shadow.vhrd.tech/TOKEN/ into target/preview/TOKEN. TOKEN is the share link's
 # token, a fresh one per preview; the site is built for that base path, so it only works under that link. The

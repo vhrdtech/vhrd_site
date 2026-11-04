@@ -1,0 +1,14 @@
+# Links we have promised will keep working: anything printed, mailed or posted. One path per line.
+# Each must stay a page or file of the site, or redirect to a page through deploy/redirects.map. A build that breaks
+# one stops before it is uploaded (tools/check_live.py built), and `just check-live` fetches each from the live site.
+# /report/ is left out on purpose until the rename to Pinsmith lands: add the new path then.
+/
+/about/
+/can/
+/donguru/
+/lab/
+/open-source/
+/services/
+/shop/
+/software/
+/work/
