@@ -23,7 +23,7 @@ You are still welcome to get in touch. I answer every message, even if it is "no
 - **Power and motors.** BMS, power stages, 6-step and FOC motor controllers.
 - **Design review.** A second look at your schematic, layout or firmware architecture before you order boards.
 
-Examples of this work are in [the lab](@/lab.md).
+Examples of this work are on [the work page](@/work.md).
 
 ## How I work
 

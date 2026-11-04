@@ -870,11 +870,17 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
   .img-in img { transition: none; }
 }
 
-/* /lab: boards and bench projects in the card grid, photos of different shapes cut to one. */
-.lab-group { margin-top: 3rem; }
-.lab-page .cards { grid-template-columns: minmax(0, 1fr); }
-@media (min-width: 36rem) { .lab-page .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 68rem) { .lab-page .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.lab-page .card .fig-frame img { aspect-ratio: 4 / 3; object-fit: cover; }
-.lab-facts { margin: 0.75rem 0 0; padding-left: 1.1rem; font-size: 0.875rem; color: var(--muted); }
-.lab-facts li + li { margin-top: 0.25rem; }
+/* /work: boards and bench projects in the card grid, photos of different shapes cut to one. */
+.work-group { margin-top: 3rem; }
+.work-page .cards { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 36rem) { .work-page .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 68rem) { .work-page .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.work-page .card .fig-frame img { aspect-ratio: 4 / 3; object-fit: cover; }
+.work-facts { margin: 0.75rem 0 0; padding-left: 1.1rem; font-size: 0.875rem; color: var(--muted); }
+.work-facts li + li { margin-top: 0.25rem; }
+
+/* /lab: the desk across the column, then the other photos two by two. */
+.lab-hero { margin-top: 2rem; }
+.lab-photos { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); margin-top: 2rem; }
+@media (min-width: 52rem) { .lab-photos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.lab-photos .fig-frame img { aspect-ratio: 4 / 3; object-fit: cover; }

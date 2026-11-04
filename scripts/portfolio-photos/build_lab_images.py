@@ -50,6 +50,8 @@ ITEMS = {
     "lab": [
         ("p13_img01_1867x1400.jpeg", None, "lab-1"),
         ("p13_img02_1951x1463.jpeg", None, "lab-2"),
+        # the main desk, the bare wall above the window cut off
+        ("p13_img00_2144x1608.jpeg", (0, 470, 2144, 1608), "lab-3"),
     ],
     "laser-scanner-aoi": [
         ("p14_img04_1117x1004.png", None, "laser-scanner-aoi-1"),

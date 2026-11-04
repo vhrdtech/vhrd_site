@@ -19,3 +19,8 @@ alt = "Workbench with screwdriver rack, hand tools and a stereo microscope"
 file = "lab-2"
 widths = [640, 1280, 1920]
 alt = "Desktop pick-and-place machine next to shelves of component bins"
+
+[[images]]
+file = "lab-3"
+widths = [640, 1280, 1920]
+alt = "Main desk with two monitors, bench power supplies, an oscilloscope and a multimeter"

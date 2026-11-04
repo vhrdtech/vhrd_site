@@ -12,7 +12,7 @@ VHRD makes instruments for embedded development: debug and IO tools, the softwar
 
 ## Who makes it
 
-I am Roman Isaikin, the founder of VHRD. I design the boards, write the firmware and build the software around them. You can see some of that work in [the lab](@/lab.md) and on [the open-source page](@/open-source.md).
+I am Roman Isaikin, the founder of VHRD. I design the boards, write the firmware and build the software around them. You can see some of that work on [the work page](@/work.md), in [the lab](@/lab.md) and on [the open-source page](@/open-source.md).
 
 ## What we make
 

@@ -1,48 +1,24 @@
 {% extends "base.html" %}
-{#- /lab: the board renders, then every bench project from static/img/lab/*/manifest.toml (photo, facts, tools).
-    Only what the manifests say; the order and the signal colours are in content/lab.md. -#}
+{#- /lab: the workshop itself. The text is in content/lab.md; the photos are the three lab photos and the laser scanner
+    on its bench (static/img/lab/lab and laser-scanner-aoi). -#}
 {% block content %}
 <article class="section page lab-page">
   {{ <vh.label text={page.extra.label | default(value=page.title)} /> }}
   <h1 class="v-hero">{{ page.title }}</h1>
   <p class="v-lead">{{ page.description }}</p>
-
-  <section class="lab-group" id="boards">
-    {{ <vh.label text="Boards" n="01" /> }}
-    <h2>Our own boards</h2>
-    {% <vh.cards> %}
-    {%- for b in page.extra.boards %}
-    {%- set m = load_data(path="static/img/boards/" ~ b.dir ~ "/manifest.toml") %}
-    {{ <vh.card title={m.product} href={b.href} sig={b.sig} n={loop.index ~ ""} caption={m.board}
-       stem={"img/boards/" ~ b.dir ~ "/" ~ b.view} widths={[480, 640, 1280]} alt={m.views[0].alt}
-       specs={["Board: " ~ m.board, "Revision: " ~ m.revision]} /> }}
-    {%- endfor %}
-    {% </vh.cards> %}
-  </section>
-
-  <section class="lab-group" id="projects">
-    {{ <vh.label text="Projects" n="02" /> }}
-    <h2>From the bench</h2>
-    <div class="cards">
-    {%- set nb = page.extra.boards | length %}
-    {%- for it in page.extra.items %}
-    {%- set m = load_data(path="static/img/lab/" ~ it.dir ~ "/manifest.toml") %}
-    {%- set img = m.images[0] %}
-    <article class="card" id="{{ it.dir }}" style="--sig: var(--signal-{{ it.sig }})">
-      {{ <vh.fig stem={"img/lab/" ~ it.dir ~ "/" ~ img.file} widths={img.widths} sizes="(max-width: 36rem) 100vw, (max-width: 68rem) 50vw, 25rem" alt={img.alt} n={(nb + loop.index) ~ ""} /> }}
-      <div class="card-body">
-        <h3>{{ m.title }}</h3>
-        {%- if m.facts %}
-        <ul class="lab-facts">{% for f in m.facts %}<li>{{ f }}</li>{% endfor %}</ul>
-        {%- endif %}
-        {%- if m.tools %}
-        {{ <vh.specs items={["Tools: " ~ (m.tools | join(sep=", "))]} /> }}
-        {%- endif %}
-      </div>
-    </article>
-    {%- endfor %}
-    </div>
-  </section>
+  {%- set lab = load_data(path="static/img/lab/lab/manifest.toml") %}
+  {%- set aoi = load_data(path="static/img/lab/laser-scanner-aoi/manifest.toml") %}
+  {%- set desk = lab.images[2] %}
+  {{ <vh.fig stem={"img/lab/lab/" ~ desk.file} widths={desk.widths} sizes="(max-width: 75rem) 100vw, 72rem" alt={desk.alt} n="1" caption="The main desk" eager={true} cls="lab-hero" /> }}
+  <div class="prose">{{ page.content | safe }}</div>
+  <div class="lab-photos">
+  {%- set captions = ["The workbench", "Pick and place and the parts store"] %}
+  {%- for img in lab.images[:2] %}
+  {{ <vh.fig stem={"img/lab/lab/" ~ img.file} widths={img.widths} sizes="(max-width: 52rem) 100vw, 36rem" alt={img.alt} n={(loop.index + 1) ~ ""} caption={captions[loop.index0]} /> }}
+  {%- endfor %}
+  {%- set scan = aoi.images[1] %}
+  {{ <vh.fig stem={"img/lab/laser-scanner-aoi/" ~ scan.file} widths={scan.widths} sizes="(max-width: 52rem) 100vw, 36rem" alt={scan.alt} n="4" caption="The 3D laser scanner, built in the lab" /> }}
+  </div>
 </article>
 {{ <vh.trace sig={page.extra.sig or "analog"} from={8} to={50} /> }}
 {% endblock content %}
