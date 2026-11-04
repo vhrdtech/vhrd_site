@@ -1,42 +1,75 @@
 {% extends "base.html" %}
-{#- The landing page. Skeleton copy (marked draft) until the landing-page step fills the sections. -#}
+{#- The landing page, top to bottom as in the P2633 plan: hero, products, the Donguru spotlight, software, the lab,
+    the open-source stack, notify and contact. Facts come from the project and crate READMEs; anything not yet
+    confirmed carries a draft badge. Board renders and lab photos are taken by path and show once the files exist. -#}
 {% block content %}
+{%- set draft = '<span class="v-badge">draft</span>' -%}
 <section class="section hero">
   <div class="hero-text">
     {{ <vh.label text="Boards · Rust firmware · Open source" /> }}
-    <h1 class="v-hero">Tools for people who build hardware</h1>
+    <h1 class="v-hero">Tools for people who build <span class="hl">hardware</span></h1>
     <p class="v-lead">Boards, Rust firmware and the open-source software that ties them together, from Norway.</p>
     <div class="ctas">
-      <a class="v-btn v-primary" href="{{ get_url(path='/donguru/#notify') }}">Get notified about Donguru</a>
+      <a class="v-btn v-primary" href="#notify">Get notified about Donguru</a>
       <a class="v-btn" href="#products">See the products</a>
     </div>
-    <p class="draft-note"><span class="v-badge">draft</span> Skeleton copy, filled in the landing-page step.</p>
+    <p class="draft-note"><span class="v-badge">draft</span> Copy not yet read by Marketing and PM. Board renders follow.</p>
   </div>
-  {{ <vh.fig alt="Donguru render to come" n="1" caption="B153 Donguru · rev B" cls="hero-fig" /> }}
+  {{ <vh.fig stem="img/boards/b153-donguru/b153_hero" widths={[640, 1280, 1920]} sizes="(max-width: 52rem) calc(100vw - 2rem), 34rem" alt="Donguru, the B153 board, three-quarter view" n="1" caption="B153 Donguru" cls="hero-fig" eager={true} /> }}
 </section>
 
-{{ <vh.trace sig="usb" from={72} to={8} label="USB 2.0" /> }}
+{{ <vh.trace sig="usb" from={74} to={16} label="USB 2.0" /> }}
 
-{% <vh.section label="Products" n="01" id="products" title="What we make"> %}
+{% <vh.section label="Products" n="01" id="products" title="Hardware for the bench"> %}
+<p class="v-muted section-lead">Three tools for bring-up, debugging and test, each with a Rust driver, a CLI and a GUI.</p>
 {% <vh.cards> %}
-{{ <vh.card title="Donguru" href="/donguru/" badge="Coming Q1–Q2 2027" sig="usb" n="2"
-   pitch="One cable to your board: a USB-C hub with a serial port, flips TX and RX for you."
-   specs={["Host: USB-C, USB 2.0", "Device: USB-C + serial", "Power: switched VBUS"]} /> }}
-{{ <vh.card title="rePort" href="/report/" sig="bus" n="3"
+{{ <vh.card title="Donguru" href="#donguru" badge="Coming Q1–Q2 2027" sig="usb" n="2"
+   stem="img/boards/b153-donguru/b153_top" alt="Donguru board, top view" caption="B153 Donguru"
+   pitch="A USB-C dongle with a USB hub, a serial port, a power switch and a power meter."
+   specs={["Hub: USB, on board", "Serial: TX/RX flip", "Power: switch + meter"]} /> }}
+{{ <vh.card title="rePort" href="/report/" badge="In development" badge_cls="" sig="bus" n="3"
+   stem="img/boards/b200-re-port/b200_hero" alt="rePort board, three-quarter view" caption="B200 rePort"
    pitch="Digital and analog I/O over USB. No programming needed."
-   specs={["Link: USB", "I/O: digital + analog", "Software: IOWeaver"]} /> }}
-{{ <vh.card title="CAN line" href="/can/" sig="can" n="4"
-   pitch="USB and Ethernet bridges to isolated CAN FD, and the adapters around them."
-   specs={["Bus: CAN FD, isolated", "Host: USB / Ethernet", "Extras: PoE, SD logging"]} /> }}
+   specs={["Link: USB", "Digital: USART, SPI, I2C, 1-Wire", "Levels: selectable"]} /> }}
+{{ <vh.card title="CAN line" href="/can/" badge="In development" badge_cls="" sig="can" n="4"
+   stem="img/boards/b135-usb-fdcan/b135_hero" alt="USB to isolated CAN FD bridge, three-quarter view" caption="B135 USB to CAN FD"
+   pitch="USB and Ethernet bridges to isolated CAN FD, with SD card logging, and the adapters around them."
+   specs={["Bus: CAN FD, isolated", "Host: USB or Ethernet", "Connector: DB-9"]} /> }}
 {% </vh.cards> %}
 {% </vh.section> %}
 
-{{ <vh.trace sig="power" from={8} to={50} label="VBUS 5 V" /> }}
+{{ <vh.trace sig="usb" from={16} to={84} label="D+ / D−" /> }}
 
-{% <vh.section label="Software" n="02" id="software" title="From register to GUI"> %}
-<p class="v-muted">IOWeaver plots what your device says. RockFace debugs the firmware that says it. WireWeaver keeps both sides speaking the same API.</p>
-{% <vh.code_tabs id="ww" labels={["API", "Device"]} label="FIG. 5 · WireWeaver, ww_uart"> %}
+{% <vh.section label="Donguru · B153" n="02" id="donguru" title="One cable to your board"> %}
+<div class="spotlight">
+<div class="spotlight-text">
+<p class="v-lead">Donguru sits between your computer and a board with a USB-C port. One cable carries USB, a serial console and power you can switch and measure.</p>
+<ol class="features">
+<li><h3>Hub and serial in one plug</h3><p>A USB hub and a UART on the same cable. TX and RX are flipped for you.</p></li>
+<li><h3>Power under control</h3><p>Electronic switches on VBUS and the USB data lines, a power meter, and a mechanical switch for the boot mode.</p></li>
+<li><h3>Scriptable</h3><p>A fast CLI, <code>donguru</code> or <code>dg</code>, with a Rust driver and Python behind it.</p></li>
+</ol>
+<p class="v-muted">For development, debugging and production flashing of devices with a USB-C port.</p>
+<div class="ctas">
+<a class="v-btn v-primary" href="#notify">Get notified</a>
+<a class="v-btn" href="{{ get_url(path='/donguru/') }}">More about Donguru</a>
+</div>
+</div>
+<figure class="fig spotlight-fig"><div class="fig-frame"><div class="bd-scroll" tabindex="0" role="group" aria-label="Block diagram, scrolls sideways on small screens">{% include "partials/donguru-diagram.html" %}</div></div><figcaption><span class="fig-no">FIG. 5</span>Donguru block diagram {{ draft | safe }}</figcaption></figure>
+</div>
+{% </vh.section> %}
+
+{{ <vh.trace sig="ctrl" from={84} to={30} label="SWD" /> }}
+
+{% <vh.section label="Software" n="03" id="software" title="See what your device says"> %}
+<p class="v-muted section-lead">IOWeaver plots what your device says. RockFace debugs the firmware that says it. WireWeaver keeps both sides speaking the same API.</p>
+{% <vh.code_tabs id="sw" labels={["GUI", "Debugger", "Code"]} label="FIG. 6 · Software"> %}
+{{ <vh.fig stem="img/screens/ioweaver" widths={[1280]} sizes="(max-width: 75rem) 100vw, 72rem" alt="IOWeaver screenshot" caption="IOWeaver: protocol analyzer and grapher" cls="tab-fig" /> }}
+=== tab ===
+{{ <vh.fig stem="img/screens/rockface" widths={[1280]} sizes="(max-width: 75rem) 100vw, 72rem" alt="RockFace screenshot" caption="RockFace: firmware debugger" cls="tab-fig" /> }}
+=== tab ===
 ```rust
+// The API, once, for both sides (ww_uart):
 #[ww_trait]
 #[claim(exclusive)]
 pub trait Uart {
@@ -46,32 +79,90 @@ pub trait Uart {
     #[credit]
     sink!(tx: MaxLen<RefVec<'i, u8>, UART_TX_MAX>);
 
-    fn configure(config: UartConfig) -> Result<UartConfig, UartError<'i>>;
-    fn send_break(duration: Second) -> Result<(), UartError<'i>>;
+    fn capabilities() -> Capabilities<'i>;
 }
-```
-=== tab ===
-```rust
-// A device with several ports is one array, monitoring included:
+
+// A device with several ports lists them as one array:
 ww_impl!(uart[]: ww_uart::Uart)
 ```
 {% </vh.code_tabs> %}
+<div class="cols">
+<div class="col" style="--sig: var(--signal-usb)"><h3>IOWeaver</h3><p>Protocol analyzer and grapher. Record, decode, plot and send. It ships with rePort and Donguru.</p></div>
+<div class="col" style="--sig: var(--signal-ctrl)"><h3>RockFace {{ draft | safe }}</h3><p>Firmware debugger: logs, stack and CPU use, zero-cost profiling, logs from a fleet. First paid release planned for January 2027.</p></div>
+<div class="col" style="--sig: var(--signal-bus)"><h3>WireWeaver</h3><p>One API definition for device and host: RPC, streams and properties, backwards and forwards compatible. Open source.</p></div>
+</div>
 {% </vh.section> %}
 
-{{ <vh.trace sig="can" from={50} to={88} label="CAN_H / CAN_L" /> }}
+{{ <vh.trace sig="analog" from={30} to={70} label="AIN" /> }}
 
-{% <vh.section label="From the lab" n="03" id="lab" title="Work we are proud of"> %}
+{% <vh.section label="From the lab" n="04" id="lab" title="Work I am proud of"> %}
+<p class="v-muted section-lead">Selected boards and machines from my own work: optics, power, motor control and precision analog.</p>
 {% <vh.cards> %}
-{{ <vh.card title="3D laser scanner" href="/lab/" sig="analog" n="6" pitch="Optical inspection at 15 μm." /> }}
-{{ <vh.card title="Motor controller" href="/lab/" sig="power" n="7" pitch="6-step and FOC, CAN servo." /> }}
-{{ <vh.card title="BMS" href="/lab/" sig="power" n="8" pitch="6–10S, 50 A nominal, 100 A peak." /> }}
+{{ <vh.card title="3D laser scanner" href="/lab/" sig="analog" n="7" badge="" widths={[640]}
+   stem="img/lab/laser-scanner-aoi/laser-scanner-aoi-2" alt="Assembled laser scanner machine on a workbench"
+   pitch="Optical inspection of solder paste and placed parts with a scanning green laser line."
+   specs={["Resolution: 15 µm", "Optics: F-Theta, telecentric", "Stage: 2× CoreXY"]} /> }}
+{{ <vh.card title="Motor controller" href="/lab/" sig="power" n="8" badge="" widths={[588]}
+   stem="img/lab/motor-controller-6step-foc/motor-controller-6step-foc" alt="6-step and FOC motor controller board, top view"
+   pitch="6-step and FOC control for brushless motors."
+   specs={["MCU: STM32F4", "Bus: CAN"]} /> }}
+{{ <vh.card title="BMS" href="/lab/" sig="power" n="9" badge="" widths={[640]}
+   stem="img/lab/bms-50a-100a/bms-50a-100a" alt="6-10S BMS board, 50A nominal / 100A peak, top view with copper bus bars"
+   pitch="Battery management for 6 to 10 cells in series."
+   specs={["Current: 50 A, 100 A peak", "AFE: BQ76930", "Gauge: BQ34Z100"]} /> }}
+{{ <vh.card title="Torque sensor AFE" href="/lab/" sig="analog" n="10" badge="" widths={[640]}
+   stem="img/lab/torque-sensor-afe/torque-sensor-afe" alt="Round torque sensor AFE board, held to show its small size"
+   pitch="Analog front end that rides on the shaft and talks through a slip ring."
+   specs={["Mount: shaft", "Link: slip ring"]} /> }}
 {% </vh.cards> %}
+<p class="more"><a class="go" href="{{ get_url(path='/lab/') }}">More from the lab</a></p>
 {% </vh.section> %}
 
-{{ <vh.trace sig="bus" from={88} to={12} label="I/O" /> }}
+{{ <vh.trace sig="can" from={70} to={8} label="CAN_H / CAN_L" /> }}
 
-{% <vh.section label="Stay in the loop" n="04" id="notify" title="Hear when Donguru launches"> %}
-<p class="v-muted">Launch news goes out through CrowdSupply. Questions: <a href="mailto:{{ config.extra.email }}">{{ config.extra.email }}</a>.</p>
-<a class="v-btn v-primary" href="{{ get_url(path='/donguru/#notify') }}">Get notified</a>
+{%- set stack = load_data(path="data/stack.toml") %}
+{% <vh.section label="Open source" n="05" id="open-source" title="From register to GUI"> %}
+<p class="v-muted section-lead">The products stand on open crates, all Rust. Each layer works on its own, and together they reach from the M_CAN registers to the table on your screen.</p>
+<ol class="stack" aria-label="The open-source stack, top layer first">
+<li class="stack-top"><span class="v-label">Products</span><span class="stack-products">Donguru · rePort · CAN line · IOWeaver · RockFace</span></li>
+{%- for layer in stack.layer %}
+<li class="layer" style="--sig: var(--signal-{{ layer.sig }})">
+<div class="layer-head"><span class="via" aria-hidden="true"></span><h3 class="v-label">{{ layer.name }}</h3><p class="v-muted">{{ layer.what }}</p></div>
+<div class="crates">
+{%- for c in layer.crates %}
+{%- if c.crate %}{% set meta = load_data(url="https://crates.io/api/v1/crates/" ~ c.crate, format="json", required=false, headers=["User-Agent=vhrd_site build (https://vhrd.tech, hello@vhrd.tech)"]) %}{% else %}{% set meta = "" %}{% endif %}
+<article class="crate">
+<header class="crate-head"><h4><a href="{{ c.repo }}" rel="noopener">{{ c.name }}</a></h4>
+{%- if meta and meta.crate %}<a class="crate-ver" href="https://crates.io/crates/{{ c.crate }}" rel="noopener" title="crates.io, at build time">v{{ meta.crate.max_stable_version or meta.crate.max_version }} · {{ meta.crate.downloads | num_format }} downloads</a>
+{%- elif c.crate %}<span class="crate-ver">on crates.io</span>
+{%- else %}<span class="crate-ver crate-git">{{ c.note }}</span>{% endif %}</header>
+<p>{{ c.pitch }}</p>
+<div class="crate-code">{{ ("```" ~ c.lang ~ "\n" ~ c.code | trim ~ "\n```") | markdown | safe }}</div>
+<p class="crate-links"><a href="{{ c.repo }}" rel="noopener">Source</a>{% if c.docs %} · <a href="{{ c.docs }}" rel="noopener">Docs</a>{% endif %}{% if c.crate %} · <a href="https://docs.rs/{{ c.crate }}" rel="noopener">docs.rs</a>{% endif %}</p>
+</article>
+{%- endfor %}
+</div>
+</li>
+{%- endfor %}
+</ol>
+<p class="more"><a class="go" href="{{ get_url(path='/open-source/') }}">All open-source projects</a></p>
+{% </vh.section> %}
+
+{{ <vh.trace sig="power" from={8} to={50} label="VBUS 5 V" /> }}
+
+{% <vh.section label="Stay in the loop" n="06" id="notify" title="Hear when Donguru launches"> %}
+<div class="contact">
+<div>
+<p class="v-lead">Donguru launches on Crowd Supply. Its sign-up list opens with the pre-launch page; until then, send a line and you hear first. {{ draft | safe }}</p>
+<div class="ctas">
+<a class="v-btn v-primary" href="mailto:{{ config.extra.email }}?subject=Donguru%20launch%20news">Notify me by mail</a>
+</div>
+</div>
+<div class="contact-card">
+<p class="v-label">Contact</p>
+<p>Questions about the boards, the software or a project of your own: <a href="mailto:{{ config.extra.email }}">{{ config.extra.email }}</a>.</p>
+<p class="v-muted">Engineering services are rare right now. <a class="go" href="{{ get_url(path='/services/') }}">What I do and how I work</a></p>
+</div>
+</div>
 {% </vh.section> %}
 {% endblock content %}

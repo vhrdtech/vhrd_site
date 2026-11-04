@@ -19,13 +19,15 @@
 </section>
 {% endcomponent vh.section %}
 
-{#- A PCB trace between two sections, drawn in on scroll. `from` and `to` are where it leaves the section above
-    and enters the one below, in percent of the frame width; `label` names the net in mono beside it:
+{#- A PCB trace between two sections, routed like a real track: down from a via at `from`, a 45° corner, a
+    horizontal run, another 45° corner and down into a via at `to` (both in percent of the frame width). `label` is
+    the net name, printed on the run like a silkscreen label. Drawn in on scroll:
     {{ <vh.trace sig="usb" from={72} to={8} label="USB 2.0" /> }} -#}
 {% component vh.trace(sig: string = "usb", from: integer = 12, to: integer = 12, label: string = "") %}
-<div class="trace" style="--sig: var(--signal-{{ sig }}); --from: {{ from }}%; --to: {{ to }}%" aria-hidden="true">
-<svg viewBox="0 0 100 96" preserveAspectRatio="none" focusable="false"><path class="trace-line" d="M{{ from }} 0 V28 L{{ to }} 68 V96"/></svg>
-<span class="pad pad-top"></span><span class="pad pad-bottom"></span>{% if label %}<span class="trace-label">{{ label }}</span>{% endif %}
+{%- if to > from %}{% set dir = "r" %}{% set lo = from %}{% set hi = to %}{% elif to < from %}{% set dir = "l" %}{% set lo = to %}{% set hi = from %}{% else %}{% set dir = "s" %}{% set lo = from %}{% set hi = to %}{% endif -%}
+<div class="trace trace-{{ dir }}" style="--sig: var(--signal-{{ sig }}); --from: {{ from }}%; --to: {{ to }}%; --lo: {{ lo }}%; --hi: {{ hi }}%" aria-hidden="true">
+<div class="trace-wire"><span class="tr tr-a"></span>{% if dir != "s" %}<span class="tr tr-c1"></span><span class="tr tr-run"></span><span class="tr tr-c2"></span>{% endif %}<span class="tr tr-b"></span></div>
+<span class="via via-top"></span><span class="via via-bottom"></span>{% if label %}<span class="trace-label">{{ label }}</span>{% endif %}
 </div>
 {% endcomponent vh.trace %}
 
@@ -34,20 +36,35 @@
 <dl class="specs">{% for item in items %}{% set kv = item | split(pat=": ") %}<div><dt>{{ kv[0] }}</dt><dd>{{ kv[1:] | join(sep=": ") }}</dd></div>{% endfor %}</dl>
 {% endcomponent vh.specs %}
 
-{#- A figure with the datasheet's corner marks and a "FIG. n · caption" line. No src: a hatched placeholder that says
-    what goes there, so a missing render shows and is never a broken image. `src` is a path under static/:
-    {{ <vh.fig src="img/boards/b153.webp" alt="..." n="1" caption="B153 Donguru · rev B" width="1200" height="800" /> }} -#}
-{% component vh.fig(src: string = "", alt: string = "", n: string = "", caption: string = "", width: string = "", height: string = "", cls: string = "") %}
-<figure class="fig {{ cls }}"><div class="fig-frame">{% if src %}<img src="{{ get_url(path=src) }}" alt="{{ alt }}"{% if width %} width="{{ width }}"{% endif %}{% if height %} height="{{ height }}"{% endif %} loading="lazy" decoding="async">{% else %}<div class="fig-placeholder" role="img" aria-label="{{ alt or 'Image to come' }}"><span>{{ alt or "Image to come" }}</span></div>{% endif %}</div>{% if n or caption %}<figcaption>{% if n %}<span class="fig-no">FIG. {{ n }}</span>{% endif %}{{ caption }}</figcaption>{% endif %}</figure>
+{#- A figure with the datasheet's corner marks and a "FIG. n · caption" line. The image is taken by path and shows
+    once the file exists; until then a hatched placeholder says what goes there, never a broken image.
+    - `src`: one file under static/, e.g. "img/lab/x.webp".
+    - `stem` and `widths`: AVIF and WebP in several widths, files `<stem>-<width>.avif` and `.webp`, e.g.
+      stem="img/boards/b153-donguru/b153_hero" widths={[640, 1280]}; `sizes` tells the browser the shown width.
+    Width and height come from the file, so the page never jumps. `eager` for the first view (the hero):
+    {{ <vh.fig stem="img/boards/b153-donguru/b153_hero" widths={[640, 1280]} alt="..." n="1" caption="B153 Donguru" /> }} -#}
+{% component vh.fig(src: string = "", stem: string = "", widths: array = [], sizes: string = "(max-width: 52rem) 100vw, 40vw", alt: string = "", n: string = "", caption: string = "", cls: string = "", eager: bool = false) %}
+{%- if stem and widths %}{% set probe = stem ~ "-" ~ widths[0] ~ ".webp" %}{% elif src %}{% set probe = src %}{% else %}{% set probe = "" %}{% endif -%}
+{%- if probe %}{% set meta = get_image_metadata(path=probe, allow_missing=true) %}{% else %}{% set meta = "" %}{% endif -%}
+{%- set load = "eager" if eager else "lazy" -%}
+<figure class="fig {{ cls }}"><div class="fig-frame">
+{%- if meta and stem -%}
+<picture><source type="image/avif" srcset="{% for w in widths %}{{ get_url(path=stem ~ '-' ~ w ~ '.avif') }} {{ w }}w{% if not loop.last %}, {% endif %}{% endfor %}" sizes="{{ sizes }}"><img src="{{ get_url(path=stem ~ '-' ~ widths[0] ~ '.webp') }}" srcset="{% for w in widths %}{{ get_url(path=stem ~ '-' ~ w ~ '.webp') }} {{ w }}w{% if not loop.last %}, {% endif %}{% endfor %}" sizes="{{ sizes }}" alt="{{ alt }}" width="{{ meta.width }}" height="{{ meta.height }}" loading="{{ load }}" decoding="async"{% if eager %} fetchpriority="high"{% endif %}></picture>
+{%- elif meta -%}
+<img src="{{ get_url(path=src) }}" alt="{{ alt }}" width="{{ meta.width }}" height="{{ meta.height }}" loading="{{ load }}" decoding="async">
+{%- else -%}
+<div class="fig-placeholder" role="img" aria-label="{{ alt or 'Image' }}, to come"><span>{{ alt or "Image" }} · to come</span></div>
+{%- endif -%}
+</div>{% if n or caption %}<figcaption>{% if n %}<span class="fig-no">FIG. {{ n }}</span>{% endif %}{{ caption }}</figcaption>{% endif %}</figure>
 {% endcomponent vh.fig %}
 
 {#- Product card: render, name, badge, one-line pitch, a few specs, a link; the top edge is wired in `sig`.
     Put cards in {% <vh.cards> %} ... {% </vh.cards> %} for the ruled grid. -#}
-{% component vh.card(title: string, href: string, pitch: string = "", specs: array = [], img: string = "", alt: string = "", badge: string = "", sig: string = "usb", n: string = "") %}
+{% component vh.card(title: string, href: string, pitch: string = "", specs: array = [], img: string = "", stem: string = "", widths: array = [640, 1280], alt: string = "", badge: string = "", badge_cls: string = "v-accent", sig: string = "usb", n: string = "", caption: string = "") %}
 <article class="card" style="--sig: var(--signal-{{ sig }})">
-{{ <vh.fig src={img} alt={alt or title ~ " render to come"} n={n} /> }}
+{{ <vh.fig src={img} stem={stem} widths={widths} sizes="(max-width: 40rem) 100vw, (max-width: 75rem) 50vw, 25rem" alt={alt or title ~ " render"} n={n} caption={caption} /> }}
 <div class="card-body">
-<h3><a href="{{ get_url(path=href) }}">{{ title }}</a>{% if badge %} <span class="v-badge v-accent">{{ badge }}</span>{% endif %}</h3>
+<h3><a href="{{ get_url(path=href) }}">{{ title }}</a>{% if badge %} <span class="v-badge {{ badge_cls }}">{{ badge }}</span>{% endif %}</h3>
 {% if pitch %}<p class="v-muted">{{ pitch }}</p>{% endif %}
 {% if specs %}{{ <vh.specs items={specs} /> }}{% endif %}
 </div>

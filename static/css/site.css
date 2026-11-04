@@ -9,6 +9,9 @@
   --frame-line: var(--line);
   --mark: color-mix(in oklch, var(--text) 35%, transparent);
   --header-h: 3.5rem;
+  /* Arrows drawn as masks, not characters: an arrow glyph would pull in a whole extra font subset per face. */
+  --arrow-go: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 10'%3E%3Cpath d='M0 4.25h11.2L7.9 1 9 0l5 5-5 5-1.1-1 3.3-3.25H0z'/%3E%3C/svg%3E");
+  --arrow-ext: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 0h8v8H8.5V2.6L1 10 0 9l7.4-7.5H2z'/%3E%3C/svg%3E");
   scroll-padding-top: calc(var(--header-h) + 1rem);
 }
 
@@ -45,7 +48,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, [tabindex]:focus-v
   padding: 0.5rem 1rem;
   background: var(--accent);
   color: var(--on-accent);
-  font-weight: 600;
+  font-weight: 500;
 }
 .skip:focus { top: 0.5rem; }
 
@@ -179,7 +182,9 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 
 /* Hero: text left, FIG. 1 right; stacked on a phone. */
 .hero { display: grid; gap: 2.5rem; align-items: center; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
-.hero h1 { font-size: clamp(2.5rem, 6.5vw, 4.5rem); }
+/* The headline in the text colour; red only on the one word that carries it, as an accent. */
+.hero h1 { font-size: clamp(2.5rem, 6.5vw, 4.5rem); color: var(--text); }
+.hero h1 .hl { color: var(--accent); }
 .ctas { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.75rem; }
 @media (max-width: 52rem) { .hero { grid-template-columns: minmax(0, 1fr); } }
 
@@ -243,7 +248,7 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 .card-body { padding: 1rem 1.25rem 1.25rem; }
 .card h3 { font-size: 1.25rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
 .card h3 a { text-decoration: none; }
-.card h3 a::after { content: " →"; color: var(--sig); }
+.card h3 a::after { background-color: var(--sig); }
 .card h3 a:hover { text-decoration: underline; text-decoration-color: var(--sig); }
 
 /* Spec list: mono, hairline rows, the key muted. */
@@ -282,10 +287,68 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 .tabpanel-title { margin: 0; padding: 0.75rem 1.25rem 0; }
 .code-tabs.js-tabs .tabpanel-title { display: none; }
 
-/* Traces between sections: a track leaves the section above at --from and enters the one below at --to, with a
-   pad (via) at each end. The SVG stretches to the frame width; the stroke keeps its width. */
-.trace { position: relative; height: 96px; color: var(--sig); }
-.trace svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+/* Traces between sections, routed like PCB tracks: only vertical and horizontal runs, 45° corners, a via at each
+   end and the net name on the run. Built from plain boxes positioned in percent of the frame width (an SVG
+   stretched to the width would skew the corners); --y is the height of the run, --c the corner's leg. */
+.trace {
+  --y: 46px;
+  --c: 14px;
+  --w: 2px;
+  position: relative;
+  height: 96px;
+  color: var(--sig);
+}
+.trace-wire { position: absolute; inset: 0; }
+.tr { position: absolute; background: var(--sig); }
+.tr-a { left: var(--from); top: 0; width: var(--w); margin-left: calc(var(--w) / -2); height: calc(var(--y) - var(--c)); }
+.tr-b { left: var(--to); top: calc(var(--y) + var(--c)); bottom: 0; width: var(--w); margin-left: calc(var(--w) / -2); }
+.trace-s .tr-a { height: 100%; }
+.trace-s .tr-b { display: none; }
+.tr-run { top: var(--y); height: var(--w); margin-top: calc(var(--w) / -2); left: calc(var(--lo) + var(--c)); right: calc(100% - var(--hi) + var(--c)); }
+/* A corner is a bar the length of the diagonal, a little longer so its ends overlap the runs it joins, turned 45°
+   about its start. */
+.tr-c1, .tr-c2 {
+  width: calc(var(--c) * 1.4142 + var(--w));
+  height: var(--w);
+  margin: calc(var(--w) / -2) 0 0 calc(var(--w) / -2);
+  transform-origin: calc(var(--w) / 2) 50%;
+}
+.tr-c1 { left: var(--from); top: calc(var(--y) - var(--c)); }
+.trace-r .tr-c1 { transform: rotate(45deg); }
+.trace-l .tr-c1 { transform: rotate(135deg); }
+.trace-r .tr-c2 { left: calc(var(--to) - var(--c)); top: var(--y); transform: rotate(45deg); }
+.trace-l .tr-c2 { left: calc(var(--to) + var(--c)); top: var(--y); transform: rotate(135deg); }
+/* Vias: a copper ring with the drill hole showing the page through it. */
+.via {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border: 3px solid var(--sig);
+  border-radius: 50%;
+  background: var(--bg);
+}
+.via-top { left: var(--from); top: -6px; }
+.via-bottom { left: var(--to); bottom: -6px; }
+/* The net name sits on the run, the track broken under it like silkscreen beside copper. */
+.trace-label {
+  position: absolute;
+  top: var(--y);
+  left: calc((var(--lo) + var(--hi)) / 2);
+  transform: translate(-50%, -50%);
+  padding: 0.2em 0.6em;
+  background: var(--bg);
+  border: 1px solid var(--sig);
+  border-radius: 2px;
+  font: 500 0.625rem/1 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted); /* the signal colours are too light for small text on the light background */
+  white-space: nowrap;
+}
+.trace-s .trace-label { left: var(--from); transform: translate(1rem, -50%); }
+.trace + .section { border-top-color: transparent; }
+.trace + .section::before, .trace + .section::after { display: none; }
 .trace-line {
   fill: none;
   stroke: var(--sig, currentColor);
@@ -293,32 +356,6 @@ main > .section:first-child::before, main > .section:first-child::after { displa
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
-.pad {
-  position: absolute;
-  width: 9px;
-  height: 9px;
-  margin-left: -4.5px;
-  border: 2px solid var(--sig);
-  border-radius: 50%;
-  background: var(--bg);
-}
-.pad-top { left: var(--from); top: -4.5px; }
-.pad-bottom { left: var(--to); bottom: -4.5px; }
-.trace-label {
-  position: absolute;
-  top: 50%;
-  left: calc((var(--from) + var(--to)) / 2);
-  transform: translate(0.9rem, -50%);
-  font: 500 0.625rem/1 var(--font-mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted); /* the signal colours are too light for small text on the light background */
-  white-space: nowrap;
-  padding-left: 0.5em;
-  border-left: 2px solid var(--sig);
-}
-.trace + .section { border-top-color: transparent; }
-.trace + .section::before, .trace + .section::after { display: none; }
 
 /* The bus over the footer: the four signal colours side by side. */
 .bus { position: relative; height: 48px; border-top: 1px solid var(--line); }
@@ -328,13 +365,13 @@ main > .section:first-child::before, main > .section:first-child::after { displa
    its top pad down. Browsers without them, and everyone who asks for reduced motion, see the traces already drawn. */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .trace svg, .bus-lines {
+    .trace-wire, .bus-lines {
       animation: draw linear both;
       animation-timeline: view();
       animation-range: entry 20% cover 50%;
     }
     .bus-lines { animation-name: draw-across; }
-    .pad-bottom, .trace-label { animation: fade linear both; animation-timeline: view(); animation-range: cover 40% cover 50%; }
+    .via-bottom, .trace-label { animation: fade linear both; animation-timeline: view(); animation-range: cover 40% cover 50%; }
   }
 }
 @keyframes draw { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
@@ -346,7 +383,7 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 }
 
 /* Pages and prose. */
-.page h1 { font-size: clamp(2.25rem, 6vw, 3.75rem); }
+.page h1 { font-size: clamp(2.25rem, 6vw, 3.75rem); color: var(--text); }
 .prose { max-width: 42rem; margin-top: 1.5rem; }
 .prose h2 { margin-top: 2.5rem; }
 .prose ul { padding-left: 1.25rem; }
@@ -384,3 +421,107 @@ main > .section:first-child::before, main > .section:first-child::after { displa
    page's own surface. */
 pre.giallo { color-scheme: inherit !important; background-color: var(--surface) !important; }
 .tabpanel pre.giallo { background-color: transparent !important; }
+
+/* Links with an arrow after them: "go" leads on within the site, "ext" leaves it. */
+.go::after, .ext::after, .card h3 a::after {
+  content: "";
+  display: inline-block;
+  width: 0.85em;
+  height: 0.6em;
+  margin-left: 0.35em;
+  background-color: currentColor;
+  -webkit-mask: var(--arrow-go) center / contain no-repeat;
+  mask: var(--arrow-go) center / contain no-repeat;
+}
+.ext::after { width: 0.6em; -webkit-mask-image: var(--arrow-ext); mask-image: var(--arrow-ext); }
+
+/* Landing page sections. */
+.section-lead { max-width: 42rem; }
+.more { margin-top: 1.5rem; font: 500 0.8125rem/1.4 var(--font-mono); letter-spacing: 0.04em; }
+.hero-fig .fig-placeholder { aspect-ratio: 3 / 2; }
+
+/* Donguru spotlight: the pitch and features beside the block diagram. */
+.spotlight { display: grid; gap: 2.5rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: start; }
+@media (max-width: 60rem) { .spotlight { grid-template-columns: minmax(0, 1fr); } }
+.features { list-style: none; padding: 0; margin: 1.75rem 0; counter-reset: f; }
+.features li { counter-increment: f; position: relative; padding: 0.9rem 0 0.9rem 2.75rem; border-top: 1px solid var(--line); }
+.features li::before {
+  content: counter(f, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 1rem;
+  font: 500 0.75rem/1 var(--font-mono);
+  color: var(--signal-usb);
+}
+.features h3 { font-size: 1rem; margin: 0 0 0.25rem; }
+.features p { margin: 0; color: var(--muted); }
+
+/* Block diagram: hairline blocks, the MCU in red, nets in their signal colours. */
+.bd { display: block; width: 100%; height: auto; font-family: var(--font-mono); }
+.bd-box rect { fill: var(--raised); stroke: var(--line-strong); stroke-width: 1.25; }
+.bd-mcu { fill: color-mix(in oklch, var(--accent) 10%, var(--raised)); stroke: var(--accent); stroke-width: 1.5; }
+.bd-net path { fill: none; stroke: var(--sig); stroke-width: 2.5; stroke-linejoin: round; }
+.bd-ctrl path { stroke-width: 1.5; stroke-dasharray: 5 4; }
+.bd-text text { fill: var(--text); font-size: 13px; font-weight: 500; letter-spacing: 0.06em; }
+.bd-text .bd-sub { fill: var(--muted); font-size: 10px; }
+.bd-text .bd-mcu-t { fill: var(--accent); }
+.bd-text .bd-net-t { fill: var(--muted); font-size: 9.5px; letter-spacing: 0.1em; }
+.spotlight-fig figcaption .v-badge { margin-left: auto; }
+
+/* Software: a figure inside a tab, and three short columns under the panel. */
+.tab-fig { padding: 1rem; }
+.tab-fig .fig-placeholder { aspect-ratio: 16 / 9; }
+.cols { display: grid; gap: 1px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); margin-top: 2rem; background: var(--line); border: 1px solid var(--line); }
+.col { background: var(--bg); padding: 1.25rem; box-shadow: inset 0 2px 0 var(--sig); }
+.col h3 { font-size: 1.125rem; display: flex; align-items: center; gap: 0.5rem; }
+.col p { margin: 0.5rem 0 0; color: var(--muted); }
+
+/* Lab cards: four in a row, two on a tablet, one on a phone; photos of different shapes cut to one. */
+#lab .cards { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 36rem) { #lab .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 68rem) { #lab .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+#lab .card .fig-frame img { aspect-ratio: 4 / 3; object-fit: cover; }
+
+/* The open-source stack: layers top to bottom, wired down the left side in each layer's signal colour. */
+.stack { list-style: none; margin: 2rem 0 0; padding: 0; }
+.stack-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  padding: 0.9rem 1.25rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--raised);
+}
+.stack-products { font: 500 0.875rem/1.4 var(--font-mono); }
+.layer { position: relative; padding: 1.75rem 0 0 1.75rem; }
+/* The track: down the left edge from the layer above, into this layer's via. */
+.layer::before { content: ""; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: var(--sig); }
+.layer:last-child::before { bottom: auto; height: 2.4rem; }
+.layer-head { position: relative; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1rem; margin-bottom: 0.75rem; }
+.layer-head .via { position: absolute; left: calc(-1.75rem + 2px); top: 0.15rem; width: 12px; height: 12px; border: 3px solid var(--sig); border-radius: 50%; background: var(--bg); }
+.layer-head h3 { margin: 0; color: var(--text); }
+.layer-head p { margin: 0; font-size: 0.875rem; }
+.crates { display: grid; gap: 1px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); background: var(--line); border: 1px solid var(--line); }
+.crate { background: var(--bg); padding: 1rem 1.25rem 1.1rem; box-shadow: inset 0 2px 0 var(--sig); display: flex; flex-direction: column; min-width: 0; }
+.crate-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.25rem 1rem; }
+.crate h4 { margin: 0; font: 500 1rem/1.3 var(--font-mono); }
+.crate h4 a { text-decoration: none; }
+.crate h4 a:hover { text-decoration: underline; text-decoration-color: var(--sig); }
+.crate-ver { font: 500 0.6875rem/1.4 var(--font-mono); letter-spacing: 0.04em; color: var(--muted); }
+.crate-git { font-style: italic; }
+.crate > p { margin: 0.5rem 0 0; font-size: 0.9375rem; color: var(--muted); }
+.crate-code { margin-top: 0.75rem; flex: 1; min-width: 0; }
+.crate-code pre { margin: 0; font-size: 0.75rem; line-height: 1.5; padding: 0.75rem 0.9rem; overflow-x: auto; border-radius: var(--radius); }
+.crate-links { font: 500 0.75rem/1.4 var(--font-mono); }
+
+/* Notify and contact. */
+.contact { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 52rem) { .contact { grid-template-columns: minmax(0, 1fr); } }
+.contact-card { padding: 1.25rem; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--raised); }
+.contact-card p { margin: 0.5rem 0 0; }
+.contact-card .v-label { margin: 0; }
+/* On a phone the diagram keeps a readable size and scrolls sideways inside its frame. */
+.bd-scroll { overflow-x: auto; }
+.bd-scroll .bd { min-width: 34rem; }

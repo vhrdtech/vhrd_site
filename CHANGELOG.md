@@ -33,4 +33,13 @@
   fonts each board names are checked against `fc-list` first, failing loudly on a missing one
   instead of silently falling back. Covers the front-page boards: Donguru (B153), rePort
   (B200), B125, B135; the rest of `~/git/hw`'s boards are a later task. (P2633#4nov-0919d)
+- The front page, every section filled (draft copy, facts from the project and crate READMEs): hero, the three products (Donguru, rePort, the CAN line), the Donguru spotlight with its block diagram, the software panel (GUI, debugger, code tabs) with IOWeaver, RockFace and WireWeaver, four pieces from the lab, the open-source stack "from register to GUI" (eight crates in four layers, each with a code sample and, where published, its crates.io version and downloads fetched at build time from `data/stack.toml`), notify and contact.
+- `vh.fig` takes images by path: `stem` and `widths` give AVIF and WebP in several widths with `sizes`; width and height come from the file; the placeholder shows until the file exists, so board renders appear when they land in `static/img/boards/`.
+- The browser check holds the first view on a phone to 200 KB on the wire and fails on an image without alt, width or height.
+
+### Changed
+
+- Traces between sections are routed like PCB tracks: vertical and horizontal runs, 45° corners, a via at each end and the net name on the run (they used to be stretched diagonals).
+- Headlines are in the text colour; the brand red marks one word of the hero and stays for accents.
+- Arrows after links are CSS masks instead of arrow characters, so no page loads the Pi font subsets for them; the skip link uses the medium weight, so the semibold face is not loaded either.
 

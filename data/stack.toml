@@ -1,0 +1,169 @@
+# The open-source stack on the front page, "from register to GUI", top layer first. Facts come from each crate's
+# README; code samples are taken from the crate's README, book or examples, shortened only.
+#
+# - `crate`: the crates.io name. The page fetches its version and downloads at build time (templates/index.html);
+#   leave it out while the crate is not published, and `note` says so instead.
+# - `sig`: the signal colour that wires the layer (power, usb, can, bus, analog, ctrl).
+# - `lang`: the code fence language of `code`.
+
+[[layer]]
+name = "GUI"
+sig = "analog"
+what = "The desktop side: IOWeaver and RockFace are built from these."
+
+[[layer.crates]]
+name = "vhrd_egui"
+pitch = "egui building blocks: the widget frame every panel sits in, a dock that moves widgets between windows, an HDR phosphor scope."
+repo = "https://github.com/vhrdtech/vhrd_egui"
+note = "not on crates.io yet"
+lang = "rust"
+code = '''
+let hints = SizeHints::new([90.0, 30.0], [200.0, 80.0], [360.0, 80.0]).tall(200.0);
+WidgetFrame::new("log")
+    .sizes(hints)
+    .show_area(ui, &mut state, |ui, area| {
+        let rows = match area.height {
+            Height::Min => 1,
+            Height::Nom => 5,
+            Height::Tall => 15,
+        };
+    });
+'''
+
+[[layer.crates]]
+name = "egui_tabular"
+crate = "egui_tabular"
+pitch = "Fast table viewer and editor that only draws the visible rows. Data from vectors, files, databases or live bus traces."
+repo = "https://github.com/romixlab/egui_tabular"
+lang = "rust"
+code = '''
+let mut table = VariantTable::new([ColumnDef::new("Name", VariantTy::Str)]);
+let mut view = TableView::new(TableViewOptions::default());
+let mut config = TableViewConfig::default();
+
+// Every frame:
+let output = view.show(ui, &mut table, &mut VariantCellUi, &mut config);
+'''
+
+[[layer]]
+name = "Test bench"
+sig = "ctrl"
+what = "Runs the jobs that use the boards."
+
+[[layer.crates]]
+name = "choreograph"
+pitch = "Plans and runs jobs over shared instruments and resources, with priorities and deadlines. Says why each waiting job waits."
+repo = "https://github.com/romixlab/choreograph"
+note = "not on crates.io yet"
+lang = "toml"
+code = '''
+[[resource]]
+name = "supply"
+kind = "supply"
+states = ["off", "3V0", "3V3", "3V6"]
+safe = "off"
+
+[[job]]
+name = "a-3V3"
+needs = [{ kind = "probe", state = "fw-a" }, { kind = "supply", state = "3V3" }]
+run = "10s"
+'''
+
+[[layer]]
+name = "API"
+sig = "usb"
+what = "One definition for the device and the host, and the bytes between them."
+
+[[layer.crates]]
+name = "wire_weaver"
+crate = "wire_weaver"
+pitch = "API description language and code generator: RPC, streams and properties, backwards and forwards compatible, no_std and no alloc."
+repo = "https://github.com/vhrdtech/wire_weaver"
+docs = "https://vhrdtech.github.io/wire_weaver/"
+lang = "rust"
+code = '''
+#[ww_trait]
+#[claim(exclusive)]
+pub trait Uart {
+    #[counted]
+    stream!(rx: RxChunk<'i>);
+
+    #[credit]
+    sink!(tx: MaxLen<RefVec<'i, u8>, UART_TX_MAX>);
+
+    fn capabilities() -> Capabilities<'i>;
+}
+'''
+
+[[layer.crates]]
+name = "shrink_wrap"
+crate = "shrink_wrap"
+pitch = "Compact zero-copy wire format for microcontrollers. No allocator, dynamic types, packed down to the bit."
+repo = "https://github.com/vhrdtech/wire_weaver/tree/master/shrink_wrap"
+lang = "rust"
+code = '''
+let mut buf = [0u8; 256];
+let mut wr = BufWriter::new(&mut buf);
+wr.write_bool(true).unwrap();
+wr.write_u8(0xaa).unwrap();
+let bytes = wr.finish().unwrap();
+assert_eq!(bytes, &[0x80, 0xaa]); // the bool takes one bit
+'''
+
+[[layer.crates]]
+name = "exact_units"
+pitch = "Units of measure checked at compile time, with exact scales. The same bytes as the plain integer, no_std and no alloc."
+repo = "https://github.com/romixlab/exact_units"
+docs = "https://exact.vhrd.tech/"
+note = "not on crates.io yet"
+lang = "rust"
+code = '''
+// exact or refused, never rounded through a float
+let t: Micros<u32> = Fixed::new(1500);
+assert_eq!(t.to::<Milli, u16>(), None); // 1500 µs is not a whole number of ms
+
+// zero cost: the type is the integer
+assert_eq!(size_of::<Micros<u32>>(), size_of::<u32>());
+'''
+
+[[layer]]
+name = "Firmware"
+sig = "can"
+what = "Bare metal, next to the registers."
+
+[[layer.crates]]
+name = "embedded_bedrock"
+pitch = "Bare-metal firmware template with ruggedizing, debugging and logging built in. Optional embassy, RTIC and HAL support."
+repo = "https://github.com/romixlab/embedded_bedrock"
+note = "not on crates.io yet"
+lang = "rust"
+code = '''
+use bedrock_led::code::{blink, Code};
+
+// A firmware that won't start says why on its status LED,
+// then waits in the ROM bootloader to be flashed.
+if !guard.runs_board() {
+    blink(Code::UnknownRework, |on| led_pin_set(on), |ms| cortex_m::asm::delay(ms * BOOT_CLOCK_KHZ));
+    reboot_into_rom_bootloader();
+}
+'''
+
+[[layer.crates]]
+name = "canzone"
+pitch = "Stand-alone Rust driver for the Bosch M_CAN controller on STM32 G0, G4, H5, H7 and L5. No panics, no blocking waits without a timeout."
+repo = "https://github.com/romixlab/canzone"
+note = "renamed from mcan, not on crates.io yet"
+lang = "rust"
+code = '''
+let mut can = unwrap!(can.into_config_mode());
+can.set_nominal_bit_timing(unwrap!(NominalBitTiming::new(1, 55, 8, 1)));
+unwrap!(can.set_layout(layout_fdcan1));
+can.set_automatic_bus_off_recovery(true);
+let mut can = unwrap!(can.into_normal());
+
+can.write_tx_buffer_pend(
+    tx_buffers.idx1,
+    TxFrameHeader::fd_brs(Id::Standard(unwrap!(StandardId::new(0x123)))),
+    &[0xAA, 0xBB, 0xCC],
+);
+'''

@@ -12,11 +12,16 @@ Without BASE_URL it builds the site with zola into target/check for a local port
 For every page in the site map, at phone (390), tablet (820) and desktop (1440) widths, in dark and light:
 no console errors or failed requests, no sideways scroll. On the front page: the theme toggle switches and the
 choice survives a reload, the code tabs work by keyboard (arrow keys), the skip link is the first tab stop.
+First-view budget: what a phone loads for the front page before scrolling (HTML, CSS, script, fonts, images)
+stays under BUDGET_KB as sent over the wire: text gzipped (as the local build would be served by a server that
+compresses), fonts and images as they are; against a deployed site, the transfer sizes the browser saw. Every image
+has alt text and its width and height.
 With --shots, writes a full-page screenshot per width in dark (traces shown drawn: reduced motion).
 """
 
 import argparse
 import functools
+import gzip
 import http.server
 import shutil
 import socket
@@ -24,12 +29,40 @@ import subprocess
 import sys
 import threading
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from playwright.sync_api import sync_playwright
 
 PAGES = ["", "donguru/", "report/", "can/", "software/", "open-source/", "lab/", "services/", "about/",
          "blog/", "shop/", "no-such-page/"]
 WIDTHS = {"phone": 390, "tablet": 820, "desktop": 1440}
+BUDGET_KB = 200
+
+# Everything the page fetched so far, the document first: URL, body size, transfer size.
+FETCHED = """() => [performance.getEntriesByType("navigation")[0], ...performance.getEntriesByType("resource")]
+  .map((e) => [e.name, e.decodedBodySize || 0, e.transferSize || 0])"""
+TEXT = (".html", ".css", ".js", ".svg", ".json", ".xml", ".txt")
+IMAGES_WITHOUT = """() => [...document.images]
+  .filter((i) => !i.hasAttribute("alt") || !i.getAttribute("width") || !i.getAttribute("height"))
+  .map((i) => i.currentSrc || i.src)"""
+
+
+def wire_bytes(fetched, base, out):
+    """Bytes as sent: for the local build, text files gzipped and the rest as they are; else the transfer sizes."""
+    if out is None:
+        return sum(t for _, _, t in fetched)
+    total = 0
+    for url, size, _ in fetched:
+        path = urlsplit(url).path[len(urlsplit(base).path):]
+        f = out / path
+        if f.is_dir() or not path:
+            f = f / "index.html"
+        if f.is_file():
+            data = f.read_bytes()
+            total += len(gzip.compress(data, 6)) if f.suffix in TEXT else len(data)
+        else:
+            total += size
+    return total
 
 
 def serve_build():
@@ -45,7 +78,7 @@ def serve_build():
     handler = functools.partial(Quiet, directory=str(out))
     server = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    return base
+    return base, out
 
 
 class Quiet(http.server.SimpleHTTPRequestHandler):
@@ -59,7 +92,8 @@ def main():
     ap.add_argument("--chromium", default=shutil.which("chromium") or shutil.which("chromium-browser"))
     ap.add_argument("--shots")
     a = ap.parse_args()
-    base = (a.base or serve_build()).rstrip("/") + "/"
+    base, out = (a.base, None) if a.base else serve_build()
+    base = base.rstrip("/") + "/"
     failures = []
 
     with sync_playwright() as p:
@@ -94,6 +128,19 @@ def main():
                     Path(a.shots).mkdir(parents=True, exist_ok=True)
                     page.screenshot(path=f"{a.shots}/home-{scheme}-{w}.png", full_page=True)
                 ctx.close()
+
+        # First view on a phone: the budget, and images that say what they show and how big they are
+        ctx = browser.new_context(viewport={"width": 390, "height": 844}, color_scheme="dark")
+        page = ctx.new_page()
+        page.goto(base)
+        page.wait_for_load_state("networkidle")
+        kb = wire_bytes(page.evaluate(FETCHED), base, out) / 1024
+        print(f"first view on a phone: {kb:.0f} KB of {BUDGET_KB} KB")
+        if kb > BUDGET_KB:
+            failures.append(f"first view: {kb:.0f} KB, budget {BUDGET_KB} KB")
+        for src in page.evaluate(IMAGES_WITHOUT):
+            failures.append(f"image without alt, width or height: {src}")
+        ctx.close()
 
         # Interactions, on a desktop page in the dark scheme
         ctx = browser.new_context(viewport={"width": 1440, "height": 900}, color_scheme="dark")
