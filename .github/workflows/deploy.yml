@@ -109,6 +109,8 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             .github/deploy
+            deploy/old-urls.txt
+            deploy/redirects.map
             tools/check_live.py
           sparse-checkout-cone-mode: false
 
