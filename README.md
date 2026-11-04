@@ -9,7 +9,7 @@ just install         # Zola (the version pinned in AGENTS.md) into ~/.local/bin,
 just serve           # http://127.0.0.1:1111 with live reload
 just test            # zola check + build, every page in headless Chromium, brand files match vhrd_brand
 just lint            # whitespace, the tools parse
-just deploy-preview  # noindex build to https://static.vhrd.tech/vhrd-site-preview/
+just preview TOKEN   # noindex build for https://shadow.vhrd.tech/TOKEN/ (README "Preview")
 ```
 
 `just test` needs `chromium` and `uv` (the browser check is `tools/check_pages.py`, run with uv).
@@ -86,9 +86,13 @@ On gpd-omarchy, `~/.config/fontconfig/conf.d/60-sync-design-fonts.conf` includes
 
 ## Preview
 
-`just deploy-preview` builds with `VHRD_NOINDEX=1`, which adds `<meta name="robots" content="noindex, nofollow">` to every page and a robots.txt that disallows everything. It builds for the base URL `https://static.vhrd.tech/vhrd-site-preview/`. It then uploads with rsync to the deploy user's inbox on vhrd.tech and runs the server's mover. The last step checks that the live footer shows this build's git hash.
+A preview is a noindex build behind a share link, `https://shadow.vhrd.tech/<token>/`, with a fresh token for every preview:
 
-- static.vhrd.tech is public and lists its directories. Nothing private goes there.
+1. Get a token from the share tool (`mx3 share token`).
+2. `just preview TOKEN` builds with `VHRD_NOINDEX=1` for the base path `/<token>/` into `target/preview/<token>`. Every page gets `<meta name="robots" content="noindex, nofollow">`, and robots.txt disallows everything.
+3. Upload the folder as it is with the share tool; the recipe prints the command: `tpm share target/preview/<token> --token <token> -e 3m`.
+4. `just check-preview https://shadow.vhrd.tech/<token>/` runs the browser check against it.
+
+- A build only works under the link it was built for, because every URL carries the token.
+- The link is public to anyone who has it. Nothing private goes into the site.
 - The robots.txt sits in a subdirectory, where crawlers don't read it. The meta tag on each page is what keeps the preview out of search results.
-- The upload needs a PC whose ssh key the deploy user accepts.
-- **Re-deploys:** the server's mover only creates new dirs. When `vhrd-site-preview` already exists, it prints `mv: cannot overwrite`, exits 0, and leaves the upload in the inbox owned by www-data. Before a re-deploy, Roman moves the old dir away on the server: the live `/usr/share/nginx/static.vhrd.tech/vhrd-site-preview` and any leftover `/home/deploy/to_static/vhrd-site-preview`. A helper that does this safely is drafted in `deploy/static/` and is not installed (see its README).

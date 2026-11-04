@@ -18,12 +18,12 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 - `content/`: one Markdown file per page (`donguru.md` is `/donguru/`), `blog/` is a section. Stubs carry `extra.stub = true`.
 - `templates/base.html`: the page frame. `partials/header.html`, `partials/footer.html` (build stamp from `VHRD_GIT` and `VHRD_BUILT`, which the justfile sets) and `partials/wordmark.html` (generated).
 - `templates/components.html`: the `vh.*` components, usable in templates and Markdown (README "Components").
-- `templates/index.html`: the landing page. `page.html` is a plain page, `section.html` is the blog list, and there are `404.html` and `robots.txt`.
+- `templates/index.html`: the landing page; `partials/donguru-diagram.html` is its block diagram. `page.html` is a plain page, `section.html` is the blog list, and there are `404.html` and `robots.txt`.
 - `static/css/brand/`: `tokens.css` and `vhrd.css` from vhrd_brand (`just brand`). Never edit these here; change vhrd_brand and pull.
 - `static/css/site.css`: the site's own layer. `static/js/site.js`: theme toggle and tabs, nothing else.
 - `static/fonts/`: IBM Plex woff2 subsets and `fonts.css`. `static/img/boards/` holds board renders (`just renders`, README "Board renders") and `static/img/lab/` lab photos.
 - `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check.
-- `deploy/static/`: a draft server helper for re-deploys, not installed (its README).
+- `data/stack.toml`: the open-source stack on the front page (layers, crates, code samples, which crates are on crates.io).
 
 ## Commands
 
@@ -35,8 +35,8 @@ just lint             # git diff --check, the tools parse
 just brand            # pull tokens.css and vhrd.css from ~/git/vhrd_brand ($VHRD_BRAND)
 just wordmark         # redraw the wordmark and favicon from vhrd_brand's Audiowide
 just check-browser    # the browser check alone
-just check-preview    # the browser check against the live preview, screenshots into target/shots
-just deploy-preview   # noindex build to https://static.vhrd.tech/vhrd-site-preview/ (README "Preview")
+just preview TOKEN    # noindex build for https://shadow.vhrd.tech/TOKEN/, uploaded with tpm share (README "Preview")
+just check-preview URL  # the browser check against a deployed preview, screenshots into target/shots
 just renders          # rebuild static/img/boards/ from ~/git/hw (KiCad); needs a machine-local 3D model
                        # library and the silkscreen fonts in fc-list (README "Board renders")
 ```
@@ -45,12 +45,12 @@ just renders          # rebuild static/img/boards/ from ~/git/hw (KiCad); needs 
 
 ## Conventions
 
-- **Colours only through tokens** (`var(--accent)`, `var(--signal-usb)`), never hex values in templates or `site.css`. The brand red is used sparingly: the headline, the main button, the wordmark and figure corner marks. Power is orange, never red.
+- **Colours only through tokens** (`var(--accent)`, `var(--signal-usb)`), never hex values in templates or `site.css`. The brand red is used sparingly: one word of the hero headline, the main button, the wordmark, the MCU in diagrams and figure corner marks. Headlines are in the text colour. Power is orange, never red.
 - **Dark first, light equal.** Every change is checked in both themes. The theme follows `prefers-color-scheme`; the toggle stores an override in localStorage, and choosing the system's own theme clears it.
 - **Almost no JavaScript, no framework.** Animation is CSS (scroll-driven for the traces), off under `prefers-reduced-motion`. The page must work without `site.js`.
 - **Links through `get_url`**, so the preview under a sub-path works. Internal Markdown links use `@/page.md`.
 - **Draft copy is marked** (`<span class="v-badge">draft</span>` or `extra.stub = true`) until Marketing and PM have read it.
-- **Nothing private on the site or the preview.** static.vhrd.tech is public and lists directories. No employer work in the lab pages (decided 4 Nov 2026).
+- **Nothing private on the site or the preview.** A share link is public to anyone who has it. No employer work in the lab pages (decided 4 Nov 2026).
 - **Write for reading:** short complete sentences, one fact per list item, open with what it is about.
 - Planning and review notes don't belong in this repo. They live in the tpm project folder (P2633 `design/`).
 

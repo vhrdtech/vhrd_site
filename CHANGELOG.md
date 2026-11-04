@@ -11,8 +11,6 @@
 - Components for templates and Markdown: `vh.section`, `vh.label`, `vh.trace`, `vh.card`, `vh.cards`, `vh.specs`, `vh.fig`, `vh.code_tabs`.
 - Page stubs for the site map: /, /donguru, /report, /can, /software, /open-source, /lab, /services, /about, /blog, /shop.
 - `tools/check_pages.py`: every page in headless Chromium at phone, tablet and desktop widths in both themes, part of `just test`.
-- just recipes: `test`, `lint`, `install` (Zola into ~/.local/bin), `brand`, `wordmark`, `serve`, `build`, `check-browser`, `check-preview`, `deploy-preview` (noindex build to https://static.vhrd.tech/vhrd-site-preview/; a re-deploy needs the old dir moved away on the server first).
-- `deploy/static/`: draft of a root helper for re-deploys to static.vhrd.tech, not installed (waits for a security review).
 - `scripts/portfolio-photos/`: `extract_pages.py` (dump a PDF's pages and embedded
   images for review) and `build_lab_images.py` (crop/encode the picked images into
   `static/img/lab/`), so the selection can be reproduced or extended later.
@@ -36,6 +34,7 @@
 - The front page, every section filled (draft copy, facts from the project and crate READMEs): hero, the three products (Donguru, rePort, the CAN line), the Donguru spotlight with its block diagram, the software panel (GUI, debugger, code tabs) with IOWeaver, RockFace and WireWeaver, four pieces from the lab, the open-source stack "from register to GUI" (eight crates in four layers, each with a code sample and, where published, its crates.io version and downloads fetched at build time from `data/stack.toml`), notify and contact.
 - `vh.fig` takes images by path: `stem` and `widths` give AVIF and WebP in several widths with `sizes`; width and height come from the file; the placeholder shows until the file exists, so board renders appear when they land in `static/img/boards/`.
 - The browser check holds the first view on a phone to 200 KB on the wire and fails on an image without alt, width or height.
+- just recipes: `test`, `lint`, `install` (Zola into ~/.local/bin), `brand`, `wordmark`, `serve`, `build`, `check-browser`, `check-preview URL`, `preview TOKEN` (noindex build for a share link, https://shadow.vhrd.tech/TOKEN/, uploaded with `tpm share`).
 
 ### Changed
 

@@ -1,9 +1,9 @@
 # vhrd.tech, a Zola site: test builds and checks it, lint checks the sources, install puts the pinned Zola on this
-# PC, brand pulls the stylesheets from vhrd_brand, deploy-preview publishes a noindex build to static.vhrd.tech.
+# PC, brand pulls the stylesheets from vhrd_brand, preview builds a noindex copy for a share link.
 
 zola_version := "0.23.6"
 brand := env("VHRD_BRAND", home_directory() / "git/vhrd_brand")
-preview_url := "https://static.vhrd.tech/vhrd-site-preview/"
+preview_host := "https://shadow.vhrd.tech"
 
 export PATH := home_directory() / ".local/bin:" + env("PATH")
 # The footer's build stamp: short hash (with -dirty) and commit date, read by the templates through get_env
@@ -37,9 +37,9 @@ test *args:
 check-browser:
     uv run tools/check_pages.py
 
-# The same checks against the deployed preview, with full-page screenshots at 390 and 1440 px into DIR
-check-preview dir="target/shots":
-    uv run tools/check_pages.py "{{ preview_url }}" --shots "{{ dir }}"
+# The same checks against a deployed preview (its full URL), with full-page screenshots at 390 and 1440 px into DIR
+check-preview url dir="target/shots":
+    uv run tools/check_pages.py "{{ url }}" --shots "{{ dir }}"
 
 # No whitespace errors, the tools parse. Check only: the bytecode goes to a temp dir, never into the tree
 lint:
@@ -62,17 +62,16 @@ brand:
 wordmark:
     uv run tools/wordmark.py "{{ brand }}/typst/vhrd/fonts/Audiowide-Regular.ttf"
 
-# Publish a noindex build to https://static.vhrd.tech/vhrd-site-preview/ (public: nothing private goes there).
-# Needs a PC whose ssh key the deploy user accepts. The server's mover only creates dirs: before a re-deploy the old
-# vhrd-site-preview dir must be moved away on the server by hand (README "Preview"). The mover exits 0 even when it
-# could not move, so the last line checks that the live footer carries this build's hash.
-deploy-preview:
-    rm -rf target/preview
+# Build a noindex preview for https://shadow.vhrd.tech/TOKEN/ into target/preview/TOKEN. TOKEN is the share link's
+# token, a fresh one per preview; the site is built for that base path, so it only works under that link. The
+# folder is then uploaded as it is by the share tool, which the last line prints.
+preview token:
+    echo "{{ token }}" | grep -qE '^[A-Za-z0-9_-]+$' || { echo "token: letters, digits, - and _ only"; exit 1; }
+    rm -rf "target/preview/{{ token }}"
     zola check --skip-external-links
-    VHRD_NOINDEX=1 zola build --base-url "{{ preview_url }}" --output-dir target/preview/vhrd-site-preview
-    rsync -rlz --delete --chmod=D755,F644 --info=progress2 -e "ssh -p 7722" target/preview/vhrd-site-preview deploy@vhrd.tech:/home/deploy/to_static/
-    ssh -p 7722 deploy@vhrd.tech "sudo /root/move_to_www_fix_perms.sh"
-    curl -fsS "{{ preview_url }}" | grep -qF "built from <code>$VHRD_GIT</code>" && echo "live: {{ preview_url }} ($VHRD_GIT)"
+    VHRD_NOINDEX=1 zola build --base-url "{{ preview_host }}/{{ token }}/" --output-dir "target/preview/{{ token }}"
+    @echo "built {{ preview_host }}/{{ token }}/ ($VHRD_GIT) in target/preview/{{ token }}"
+    @echo "upload: tpm share target/preview/{{ token }} --token {{ token }} -e 3m -t 'vhrd.tech preview $VHRD_GIT'"
 
 # Rebuild board product renders in static/img/boards/ from ~/git/hw (KiCad)
 renders:
