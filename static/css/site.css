@@ -727,7 +727,8 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
   from { transform: none; opacity: 0.9; }
   to { transform: translateX(100%); opacity: 0.9; }
 }
-.intro-wait .scope-dot, .intro-wait .scope-line, .intro-wait .scope-head { visibility: hidden; }
+.intro-wait .scope-dot, .intro-wait .scope-line, .intro-wait .scope-head,
+.intro-draw .scope-dot, .intro-draw .scope-line, .intro-draw .scope-head { visibility: hidden; }
 .scope-crt { display: block; width: 100%; height: 100%; }
 .scope-grat, .scope-read, .scope-trig { animation: scope-grat 2.8s both; }
 @keyframes scope-grat {
@@ -783,6 +784,26 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .intro-slow .scope-hint { display: block; }
 .intro-trig .scope-hint { display: none; }
 @keyframes scope-blink { 50% { opacity: 0.35; } }
+/* The vector pass (the intro's script draws it): the beam traces the first screen as it lays out, over the whole
+   viewport, while the sine and the graticule dim. A fresh stroke is blue-white and settles into the phosphor (the
+   persistence); the spot rides the tip of the stroke being drawn. Then the layer fades and the page is underneath,
+   exactly where its traces were. */
+.scope-draw { display: none; position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.intro-draw .scope-draw { display: block; }
+.intro-draw .scope-crt { opacity: 0.3; transition: opacity 0.3s; }
+.intro-draw .scope-sigs, .intro-draw .scope-hint { opacity: 0; }
+.scope-draw [data-k] {
+  fill: none;
+  stroke: var(--beam);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 3px var(--trace));
+  transition: stroke 0.5s, opacity 0.5s;
+}
+.scope-draw text { stroke-width: 1; }
+.scope-draw .lit { stroke: color-mix(in oklch, var(--trace) 75%, var(--beam)); }
+.scope-spot { fill: var(--vhrd-grey-0); opacity: 0; filter: drop-shadow(0 0 4px var(--beam)) drop-shadow(0 0 10px var(--trace)); }
 @keyframes scope-failsafe { to { opacity: 0; visibility: hidden; } }
 .intro-out .scope { opacity: 0; transition: opacity 0.6s; }
 .intro-skip .scope { opacity: 0; transition: opacity 0.15s; }

@@ -1,0 +1,252 @@
+{#- The intro's script (LOOK-4 scope-intro; the layer and how it plays: partials/intro.html). It sits at the end of
+    the body, so it never holds up the page's own parsing and first paint; the layer shows and powers on by CSS
+    alone before it runs. -#}
+<script>
+// Runs the intro: the power-on is CSS (.intro); when it has settled, the layer fades out (.intro-out) if the first
+// screen is ready, else the scope waits (.intro-wait, LOADING), says how to skip after HINT ms (.intro-slow) and fires
+// (.intro-trig, TRIG'D) once ready, at most CAP ms after the start. A click, key, wheel, touch or scroll skips it
+// (.intro-skip). The footer's replay button plays it again as a demo of the slow path (about 10 s), from the top of
+// the page, and ignores skips for its first GRACE ms. site.css's
+// failsafe hides the layer a little after CAP.
+(() => {
+  const CAP = 20000;
+  const HINT = 5000;
+  // The replay is a demo of the slow path, whatever is cached: LOADING, the hint at 5.5 s, TRIG'D at 9 s, the page
+  // at about 10 s.
+  const DEMO_HINT = 5500;
+  const DEMO_TRIG = 9000;
+  // A replay ignores skips for its first GRACE ms: the click, tap or key that started it, a wheel's or a trackpad's
+  // scroll still running out, and its own jump to the top must not end it at once.
+  const GRACE = 400;
+  const root = document.documentElement;
+  const scope = document.querySelector(".scope");
+  const ray = scope.querySelector(".scope-ray");
+  const status = scope.querySelector(".scope-status");
+  const events = ["pointerdown", "keydown", "wheel", "touchstart", "scroll"];
+  const hero = () => document.querySelector(".hero-fig img");
+  const ready = () => hero() && hero().complete && document.fonts.status === "loaded";
+  let run = 0;
+
+  // The vector pass: the beam draws the first screen as it lays out now, in this order, then the page fades in
+  // under it. Kinds: box (its outline), edge (its bottom edge), under (a stroke under each line of its text), text
+  // (its words as stroked outlines, written left to right) and wire (a PCB trace's track as far as it is drawn,
+  // with its vias). Each stroke carries data-k, data-sel and data-i, so the browser check can hold it to its element.
+  const PLAN = [
+    [".site-header", "edge"], [".brand svg", "box"], [".nav a", "under"],
+    [".header-actions > :not(.menu), .menu summary", "box"], [".hero .v-label", "under"], [".hero h1", "text"],
+    [".hero .v-lead", "under"], [".ctas a", "box"], [".hero-fig .fig-frame", "box"], [".hero-fig img", "box"],
+    [".hero-fig figcaption", "under"], [".trace", "wire"], [".card", "box"],
+  ];
+  const DRAW = 1300; // ms for the whole pass
+  // The pass is behind config.toml's extra.intro_trace (off for the cutover, 4 Nov 2026: it costs the first paint
+  // about 100 ms on a slow phone, not yet explained); off, the screen fades straight to the page.
+  const TRACE = {{ config.extra.intro_trace }};
+  const svg = scope.querySelector(".scope-draw");
+  const spot = svg.querySelector(".scope-spot");
+  const NS = "http://www.w3.org/2000/svg";
+  let pen; // a 2D canvas for font metrics, made when the pass first needs it
+  const shown = (r) => r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight;
+  const lines = (el) => {
+    const g = document.createRange();
+    g.selectNodeContents(el);
+    const out = [];
+    for (const b of g.getClientRects()) {
+      if (!b.width) continue;
+      const l = out.find((o) => Math.abs(o.b - b.bottom) < b.height / 2);
+      if (l) { l.l = Math.min(l.l, b.left); l.r = Math.max(l.r, b.right); } else out.push({ l: b.left, r: b.right, b: b.bottom });
+    }
+    return out;
+  };
+  const words = (el) => {
+    const out = [];
+    const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let n; (n = walk.nextNode());) {
+      for (const m of n.data.matchAll(/\S+/g)) {
+        const g = document.createRange();
+        g.setStart(n, m.index);
+        g.setEnd(n, m.index + m[0].length);
+        out.push([m[0], g.getBoundingClientRect(), n.parentElement]);
+      }
+    }
+    return out;
+  };
+  const build = () => {
+    pen ||= document.createElement("canvas").getContext("2d");
+    svg.querySelectorAll("[data-k]").forEach((n) => n.remove());
+    const { width, height } = svg.getBoundingClientRect();
+    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    const items = [];
+    const add = (tag, attrs, k, sel, i) => {
+      const n = document.createElementNS(NS, tag);
+      for (const a in attrs) n.setAttribute(a, attrs[a]);
+      Object.assign(n.dataset, { k, sel, i });
+      svg.insertBefore(n, spot);
+      return n;
+    };
+    const stroke = (d, k, sel, i) => {
+      const n = add("path", { d }, k, sel, i);
+      const len = n.getTotalLength() || 1;
+      n.style.strokeDasharray = n.style.strokeDashoffset = len;
+      items.push({ n, w: len, set: (p) => (n.style.strokeDashoffset = len * (1 - p)), tip: (p) => n.getPointAtLength(len * p) });
+    };
+    const ring = (el, sel, i) => {
+      const r = el.getBoundingClientRect();
+      const h = r.width / 2;
+      if (shown(r) && getComputedStyle(el).opacity > 0.5) stroke(`M${r.left} ${r.top + h}a${h} ${h} 0 1 0 ${r.width} 0a${h} ${h} 0 1 0 ${-r.width} 0`, "box", sel, i);
+    };
+    for (const [sel, kind] of PLAN) {
+      document.querySelectorAll(sel).forEach((el, i) => {
+        const r = el.getBoundingClientRect();
+        if (!shown(r) || getComputedStyle(el).visibility === "hidden") return;
+        if (kind === "box") stroke(`M${r.left} ${r.top}h${r.width}v${r.height}h${-r.width}z`, kind, sel, i);
+        else if (kind === "edge") stroke(`M${r.left} ${r.bottom}H${r.right}`, kind, sel, i);
+        else if (kind === "under") lines(el).forEach((l) => stroke(`M${l.l} ${l.b}H${l.r}`, kind, sel, i));
+        else if (kind === "text") {
+          words(el).forEach(([word, b, owner], w) => {
+            const cs = getComputedStyle(owner);
+            pen.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+            const n = add("text", { x: b.left, y: b.bottom - pen.measureText(word).fontBoundingBoxDescent }, kind, sel, i);
+            n.dataset.w = w;
+            n.textContent = word;
+            Object.assign(n.style, { font: pen.font, letterSpacing: cs.letterSpacing });
+            const set = (p) => (n.style.clipPath = `inset(-50% ${100 - 100 * p}% -50% -10%)`);
+            set(0);
+            items.push({ n, w: b.width * 2, set, tip: (p) => ({ x: b.left + b.width * p, y: b.top + b.height * 0.6 }) });
+          });
+        } else {
+          // The track: the straight runs in order from the top via, joined where the corners are, cut where the
+          // scroll-driven reveal (a clip-path inset from the bottom) has got to.
+          const cut = r.top + r.height * (1 - parseFloat(getComputedStyle(el.querySelector(".trace-wire")).clipPath.split(" ")[2] || 0) / 100);
+          const c = (q) => { const b = q.getBoundingClientRect(); return [b.left + b.width / 2, b.top + b.height / 2]; };
+          let pts = [c(el.querySelector(".via-top"))];
+          for (const s of el.querySelectorAll(".tr-a, .tr-run, .tr-b")) {
+            const b = s.getBoundingClientRect();
+            if (!b.width || !b.height) continue;
+            const [x, y] = c(s);
+            const ends = b.width > b.height ? [[b.left, y], [b.right, y]] : [[x, b.top], [x, b.bottom]];
+            const last = pts[pts.length - 1];
+            if (Math.hypot(ends[1][0] - last[0], ends[1][1] - last[1]) < Math.hypot(ends[0][0] - last[0], ends[0][1] - last[1])) ends.reverse();
+            pts.push(...ends);
+          }
+          pts.push(c(el.querySelector(".via-bottom")));
+          const keep = [pts[0]];
+          for (let k = 1; k < pts.length; k++) {
+            const [a, b] = [pts[k - 1], pts[k]];
+            if (b[1] <= cut) { keep.push(b); continue; }
+            if (a[1] < cut) keep.push([a[0] + ((b[0] - a[0]) * (cut - a[1])) / (b[1] - a[1]), cut]);
+            break;
+          }
+          ring(el.querySelector(".via-top"), sel + " .via-top", i);
+          if (keep.length > 1) stroke("M" + keep.join("L"), kind, sel, i);
+          ring(el.querySelector(".via-bottom"), sel + " .via-bottom", i);
+        }
+      });
+    }
+    const sum = items.reduce((a, it) => a + it.w, 0) || 1;
+    let at = 0;
+    for (const it of items) {
+      it.at = at;
+      it.d = Math.max(16, (DRAW * it.w) / sum);
+      at += it.d;
+    }
+    return items;
+  };
+  // Draws the pass; resolves true when it is drawn, false when the intro ended first. A resize measures again.
+  const trace = (live) => !TRACE ? Promise.resolve(live()) : new Promise((resolve) => {
+    root.classList.add("intro-draw");
+    let items = build();
+    const again = () => (items = build());
+    addEventListener("resize", again);
+    const t0 = performance.now();
+    const frame = (now) => {
+      const t = now - t0;
+      let tip = null;
+      for (const it of items) {
+        const p = Math.min(1, Math.max(0, (t - it.at) / it.d));
+        it.set(p);
+        if (p > 0 && p < 1) tip = it.tip(p);
+        it.n.classList.toggle("lit", p === 1);
+      }
+      spot.style.opacity = tip ? 1 : 0;
+      if (tip) spot.setAttribute("transform", `translate(${tip.x} ${tip.y})`);
+      const end = items.length ? items[items.length - 1] : { at: 0, d: 0 };
+      if (live() && t < end.at + end.d + 120) return requestAnimationFrame(frame);
+      removeEventListener("resize", again);
+      resolve(live());
+    };
+    requestAnimationFrame(frame);
+  });
+
+  const play = (demo = false) => {
+    const me = ++run;
+    const live = () => me === run && root.classList.contains("intro");
+    // Times count from the navigation on a load (the script runs at the end of the body, the power-on may be well
+    // on by then), from the click on a replay.
+    const t0 = demo ? performance.now() : 0;
+    const timers = [];
+    const done = () => {
+      if (me !== run) return;
+      timers.forEach(clearTimeout);
+      root.classList.remove("intro", "intro-wait", "intro-slow", "intro-trig", "intro-draw", "intro-out", "intro-skip");
+      events.forEach((e) => removeEventListener(e, skip, true));
+    };
+    // A replay ends on the top of the page, whatever scrolled under the cover.
+    const top = () => demo && scrollTo({ top: 0, behavior: "instant" });
+    const skip = () => {
+      top();
+      root.classList.add("intro-skip");
+      timers.push(setTimeout(done, 200));
+    };
+    const out = () => {
+      // Done when the layer's own fade ends (a child's transition bubbles here too), or a little after it anyway.
+      const end = (e) => e.target === scope && (scope.removeEventListener("transitionend", end), done());
+      scope.addEventListener("transitionend", end);
+      timers.push(setTimeout(done, 900));
+      top();
+      root.classList.add("intro-out");
+    };
+    const listen = () => events.forEach((e) => addEventListener(e, skip, { capture: true, passive: true }));
+    if (demo) timers.push(setTimeout(listen, GRACE));
+    else listen();
+    status.textContent = "Loading";
+    // When the power-on has run: at once if it ended before this script ran (a slow page), never if it is cut off.
+    const power = ray.getAnimations()[0];
+    (power ? power.finished : Promise.resolve()).then(() => {
+      if (!live()) return;
+      if (!demo && ready()) return trace(live).then((ok) => ok && out());
+      root.classList.add("intro-wait");
+      const since = () => performance.now() - t0;
+      timers.push(setTimeout(() => root.classList.add("intro-slow"), (demo ? DEMO_HINT : HINT) - since()));
+      const loaded = demo ? new Promise((r) => timers.push(setTimeout(r, DEMO_TRIG - since()))) : new Promise((r) => (document.readyState === "loading" ? addEventListener("DOMContentLoaded", r) : r()))
+        .then(() => Promise.all([
+          hero() && !hero().complete && new Promise((r) => { hero().addEventListener("load", r); hero().addEventListener("error", r); }),
+          document.fonts.ready,
+        ]));
+      const capped = new Promise((r) => timers.push(setTimeout(r, CAP - (performance.now() - t0))));
+      Promise.race([loaded, capped]).then(() => {
+        if (!live()) return;
+        status.textContent = "Trig'd";
+        root.classList.add("intro-trig");
+        timers.push(setTimeout(() => trace(live).then((ok) => ok && out()), 250));
+      });
+    }, () => {});
+  };
+
+  // Replay: the footer's button shows only where the intro may play (JS on, no reduced motion).
+  addEventListener("DOMContentLoaded", () => {
+    const replay = document.querySelector(".replay");
+    if (!replay || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    replay.hidden = false;
+    replay.addEventListener("click", (e) => {
+      e.stopPropagation();
+      root.classList.remove("intro", "intro-wait", "intro-slow", "intro-trig", "intro-draw", "intro-out", "intro-skip");
+      void scope.offsetWidth; // restart the CSS animations
+      root.classList.add("intro");
+      // Under the cover (the dark screen shows at once), go to the top: the page comes back there.
+      scrollTo({ top: 0, behavior: "instant" });
+      play(true);
+    });
+  });
+  if (root.classList.contains("intro")) play();
+})();
+</script>

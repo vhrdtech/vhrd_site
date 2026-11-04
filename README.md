@@ -99,27 +99,28 @@ The front page is built to show fast on a slow phone. `just perf` (`tools/perf.p
 
 ## Intro
 
-The front page opens like an old CRT oscilloscope powering up (`templates/partials/intro.html`, styles under "Intro" in `site.css`):
+The front page opens like an old CRT oscilloscope powering up (`templates/partials/intro.html`, its script `templates/partials/intro-script.html` at the end of the body, styles under "Intro" in `site.css`):
 
 1. A dark screen. A phosphor dot with its glow fades in at the centre and holds a beat.
 2. The timebase starts: the dot spreads into a horizontal baseline, a little past the edges and back, with the beam's bright head sweeping it and the line persisting behind.
 3. The deflection comes up like a supply ramping: the baseline stretches into the screen, which overshoots, wobbles and settles with its corners on the four crosses of the view frame.
 4. A graticule of 10 × 8 divisions fades in, with the centre cross and its minor ticks, the readouts "CH1 1.00V/div" and "M 2.00ms" along the bottom edge and the trigger marker on the left edge.
-5. With the first screen ready (the hero render loaded or failed, the fonts ready), the screen fades to the page.
+5. With the first screen ready (the hero render loaded or failed, the fonts ready) and `extra.intro_trace` on in config.toml (off for now: on a slow phone it costs the first paint about 100 ms, not yet explained), the beam traces that screen like a vector display, in about 1.3 s, while the graticule dims and the baseline goes out. It draws what is really laid out at this viewport, measured at run time (and again on a resize): the header's edge, the wordmark and the header buttons as boxes, the nav, the label and the lead as strokes under their lines, the headline as stroked words written left to right, the buttons, the FIG. 1 frame and its render as boxes, the PCB trace as far as it is drawn, with its vias, and the cards in view. A bright spot rides the tip of the stroke being drawn; a fresh stroke is blue-white and settles into the phosphor.
+6. The screen fades to the page, which sits exactly under its traces: nothing moves.
 
 On a slow link the screen waits instead:
 
 - A sine takes the baseline's place, sweep after sweep, and "LOADING" blinks in its corner.
 - After 5 s of waiting, "SLOW LINK · CLICK TO SKIP" shows at its foot.
-- When the first screen is in, the status says "TRIG'D" and the screen fades to the page.
+- When the first screen is in, the status says "TRIG'D", the beam traces the screen and it fades to the page.
 - It waits at most 20 s.
 
 The view frame (`.view-frame` in `base.html`) is on every page: a cross at each corner of the visible screen, on the column's edges, just under the header and 10 px above the bottom. It stays as part of the page's frame.
 
 How it is built:
 
-- The power-on is CSS animations of 2.8 s, the fade 0.6 s: about 3.4 s in all on a fast link or from the cache (Roman, 4 Nov 2026: 2.5 times the first version, so it reads as a scope).
-- The inline script (about 3.7 KB with its comments, unchanged by the new sequence) decides between the fade and the wait, and clears the layer.
+- The power-on is CSS animations of 2.8 s, the vector pass about 1.3 s, the fade 0.6 s: about 4.8 s in all on a fast link or from the cache (Roman, 4 Nov 2026).
+- The inline script decides between the trace and the wait, draws the vector pass and clears the layer. The pass is one SVG over the viewport (`.scope-draw`): a path per box, edge and underline, animated with `stroke-dashoffset`, and an SVG `<text>` per headline word in the computed font, revealed left to right with a `clip-path` inset. One `requestAnimationFrame` loop runs it and moves the spot. Every stroke carries `data-k`, `data-sel` and `data-i`, so the browser check holds it to its element at 390 and 1440 px and after a resize.
 - The page is in the HTML and painted underneath from the start; the intro only covers it. The largest paint is the hero render either way, at the same time. The growth is a transform: no layout shift.
 - It plays on every load and refresh of the home page, but not when the URL has a #fragment (a link to a section goes straight there).
 - A click, key, wheel, touch or scroll skips it. The footer's "Replay intro" button plays it again as a demo of the slow path, even with everything cached: the power-on, LOADING, the slow-link line from 5.5 s, TRIG'D at 9 s and the page at about 10 s. The page comes back scrolled to the top (it jumps there under the dark screen), and the replay ignores skips for its first 0.4 s, so the click, tap or key that started it, or a scroll still running out, does not end it at once.

@@ -126,6 +126,38 @@ class Quiet(http.server.SimpleHTTPRequestHandler):
 
 INTRO_ON = "document.documentElement.classList.contains('intro')"
 SCOPE_SHOWN = "getComputedStyle(document.querySelector('.scope')).display !== 'none'"
+# The intro's vector pass: every stroke against the element it traces, measured here on its own. A box is the
+# element's box, an edge its bottom edge, an underline lies under a line of its text, a word is drawn where the word
+# is laid out, a wire runs from its top via. Answers the strokes per kind and what is off.
+TRACES_MATCH = r"""() => {
+  const near = (a, b, t = 1.5) => Math.abs(a - b) <= t;
+  const bad = [], kinds = {};
+  for (const n of document.querySelectorAll('.scope-draw [data-k]')) {
+    const k = n.dataset.k, el = document.querySelectorAll(n.dataset.sel)[+n.dataset.i];
+    kinds[k] = (kinds[k] || 0) + 1;
+    if (!el) { bad.push(`${k} ${n.dataset.sel} #${n.dataset.i}: no such element`); continue; }
+    const b = n.getBoundingClientRect(), r = el.getBoundingClientRect();
+    let ok = true;
+    if (k === 'box') ok = near(b.left, r.left) && near(b.top, r.top) && near(b.width, r.width) && near(b.height, r.height);
+    else if (k === 'edge') ok = near(b.left, r.left) && near(b.right, r.right) && near(b.top, r.bottom);
+    else if (k === 'under') ok = b.width > 0 && b.left >= r.left - 1.5 && b.right <= r.right + 1.5 && b.top >= r.top && b.top <= r.bottom + 1.5;
+    else if (k === 'wire') {
+      const v = el.querySelector('.via-top').getBoundingClientRect();
+      ok = near(b.left, Math.min(b.left, v.left + v.width / 2)) && near(b.top, v.top + v.height / 2) && b.bottom <= r.bottom + 1.5 && b.left >= r.left - 1.5 && b.right <= r.right + 1.5;
+    } else if (k === 'text') {
+      const words = [];
+      const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      for (let t; (t = walk.nextNode());) for (const m of t.data.matchAll(/\S+/g)) {
+        const g = document.createRange(); g.setStart(t, m.index); g.setEnd(t, m.index + m[0].length);
+        words.push(g.getBoundingClientRect());
+      }
+      const w = words[+n.dataset.w];
+      ok = !!w && near(b.left, w.left, 3) && near(b.right, w.right, Math.max(3, w.width * 0.04)) && b.top >= w.top - 3 && b.bottom <= w.bottom + 3;
+    }
+    if (!ok) bad.push(`${k} ${n.dataset.sel} #${n.dataset.i}${n.dataset.w ? ' word ' + n.dataset.w : ''}: drawn at ${[b.left, b.top, b.width, b.height].map(Math.round)}, the element at ${[r.left, r.top, r.width, r.height].map(Math.round)}`);
+  }
+  return [kinds, bad];
+}"""
 
 
 def check_code_fits(browser, base):
@@ -216,9 +248,9 @@ def check_intro(browser, base):
         if not page.locator("h1").is_visible():
             failures.append("intro: the headline is not rendered under the intro")
         try:
-            page.wait_for_function(f"!({INTRO_ON})", timeout=5000)
+            page.wait_for_function(f"!({INTRO_ON})", timeout=7000)
         except Exception:
-            failures.append(f"intro: still on 5 s after the {load}")
+            failures.append(f"intro: still on 7 s after the {load}")
         if page.evaluate("window.__waited"):
             failures.append(f"intro: waited (LOADING) on the {load} of a fast local site")
     replay = page.locator(".replay")
@@ -246,7 +278,7 @@ def check_intro(browser, base):
         except Exception:
             failures.append("intro: the replay does not fire (TRIG'D) by 10 s")
         try:
-            page.wait_for_function(f"!({INTRO_ON})", timeout=2000)
+            page.wait_for_function(f"!({INTRO_ON})", timeout=3500)
         except Exception:
             failures.append("intro: the replay does not clear")
         if page.evaluate("scrollY") != 0:
@@ -305,11 +337,45 @@ def check_intro(browser, base):
                 failures.append("intro: no slow-link hint after 5 s of waiting")
             page.mouse.click(10, 10)
         try:
-            page.wait_for_function(f"!({INTRO_ON})", timeout=1500)
+            page.wait_for_function(f"!({INTRO_ON})", timeout=3500)
         except Exception:
             failures.append(f"intro: not cleared after {why}")
         for r in held if not release else ():
             r.abort()
+        ctx.close()
+
+    # The vector pass: the beam traces the first screen where it lays out, at a phone's and a desktop's width and
+    # again after a resize in the middle of it; the headline is written word by word; the page does not move.
+    traced = tomllib.loads(Path("config.toml").read_text())["extra"].get("intro_trace", False)
+    for w, h in ((390, 844), (1440, 900)) if traced else ():
+        ctx = browser.new_context(viewport={"width": w, "height": h}, color_scheme="dark")
+        page = ctx.new_page()
+        page.goto(base)
+        h1 = page.evaluate("JSON.stringify(document.querySelector('h1').getBoundingClientRect())")
+        try:
+            page.wait_for_function("document.documentElement.classList.contains('intro-draw')", timeout=8000)
+        except Exception:
+            failures.append(f"intro {w}px: no vector pass")
+            ctx.close()
+            continue
+        sizes = [(w, h)] + ([(1200, 800)] if w == 1440 else [])
+        for vw, vh in sizes:
+            if (vw, vh) != (w, h):
+                page.set_viewport_size({"width": vw, "height": vh})
+                page.wait_for_timeout(150)
+            kinds, bad = page.evaluate(TRACES_MATCH)
+            failures += [f"intro {vw}px: a stroke off its element: {b}" for b in bad[:5]]
+            missing = [k for k in ("edge", "box", "under", "text") if not kinds.get(k)]
+            if missing:
+                failures.append(f"intro {vw}px: the vector pass draws no {', '.join(missing)}")
+            if kinds.get("text") != page.evaluate("document.querySelector('h1').textContent.trim().split(/\\s+/).length"):
+                failures.append(f"intro {vw}px: the headline is not written word by word ({kinds.get('text')} words)")
+        try:
+            page.wait_for_function(f"!({INTRO_ON})", timeout=3000)
+        except Exception:
+            failures.append(f"intro {w}px: does not clear after the vector pass")
+        if len(sizes) == 1 and page.evaluate("JSON.stringify(document.querySelector('h1').getBoundingClientRect())") != h1:
+            failures.append(f"intro {w}px: the headline moved under the intro")
         ctx.close()
 
     for opts, why in (({"reduced_motion": "reduce"}, "reduced motion"), ({"java_script_enabled": False}, "no JS")):

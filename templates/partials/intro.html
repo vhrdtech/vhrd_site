@@ -4,13 +4,15 @@
     overshoots and settles with its corners on the four crosses of the view frame (base.html, .view-frame). A 10 x 8
     graticule with the centre cross and minor ticks fades in, with the readouts at the bottom (CH1 1.00V/div,
     M 2.00ms) and the trigger marker on the left edge. With the first screen ready (the hero render loaded or failed,
-    the fonts ready) the screen fades to the page. On a slow link a sine runs on the same screen with "LOADING", then
-    "TRIG'D" when it fires; after 5 s "SLOW LINK · CLICK TO SKIP"; at most 20 s. The page is in the HTML and painted
+    the fonts ready) the beam traces that screen like a vector display (about 1.3 s): the header, the headline as
+    stroked words, the lead, the buttons, FIG. 1, the PCB trace and the cards, each where it lays out now (measured
+    at run time, again on a resize), and the screen fades to the page, which sits exactly under its traces. On a
+    slow link a sine runs on the same screen with "LOADING", then
+    "TRIG'D" when it fires, then the trace; after 5 s "SLOW LINK · CLICK TO SKIP"; at most 20 s. The page is in the HTML and painted
     underneath from the start; this layer only covers it. It plays on every load of the home page when the head
     script in index.html set `html.intro` (JS on, no reduced motion, no #fragment), and again from the footer's
     replay button, which shows the slow path as a demo (LOADING, the hint, TRIG'D; about 10 s) and ends on the top of
-    the page. Styles in site.css
-    ("Intro"). -#}
+    the page. Styles in site.css ("Intro"). -#}
 <div class="scope" aria-hidden="true">
 <div class="scope-box">
 <div class="scope-ray">
@@ -30,100 +32,5 @@
 </div>
 <span class="scope-dot"></span><span class="scope-line"></span><span class="scope-head"></span>
 </div>
+<svg class="scope-draw"><circle class="scope-spot" r="2.5"/></svg>
 </div>
-<script>
-// Runs the intro: the power-on is CSS (.intro); when it has settled, the layer fades out (.intro-out) if the first
-// screen is ready, else the scope waits (.intro-wait, LOADING), says how to skip after HINT ms (.intro-slow) and fires
-// (.intro-trig, TRIG'D) once ready, at most CAP ms after the start. A click, key, wheel, touch or scroll skips it
-// (.intro-skip). The footer's replay button plays it again as a demo of the slow path (about 10 s), from the top of
-// the page, and ignores skips for its first GRACE ms. site.css's
-// failsafe hides the layer a little after CAP.
-(() => {
-  const CAP = 20000;
-  const HINT = 5000;
-  // The replay is a demo of the slow path, whatever is cached: LOADING, the hint at 5.5 s, TRIG'D at 9 s, the page
-  // at about 10 s.
-  const DEMO_HINT = 5500;
-  const DEMO_TRIG = 9000;
-  // A replay ignores skips for its first GRACE ms: the click, tap or key that started it, a wheel's or a trackpad's
-  // scroll still running out, and its own jump to the top must not end it at once.
-  const GRACE = 400;
-  const root = document.documentElement;
-  const scope = document.querySelector(".scope");
-  const ray = scope.querySelector(".scope-ray");
-  const status = scope.querySelector(".scope-status");
-  const events = ["pointerdown", "keydown", "wheel", "touchstart", "scroll"];
-  const hero = () => document.querySelector(".hero-fig img");
-  const ready = () => hero() && hero().complete && document.fonts.status === "loaded";
-  let run = 0;
-
-  const play = (demo = false) => {
-    const me = ++run;
-    const live = () => me === run && root.classList.contains("intro");
-    const t0 = performance.now();
-    const timers = [];
-    const done = () => {
-      if (me !== run) return;
-      timers.forEach(clearTimeout);
-      root.classList.remove("intro", "intro-wait", "intro-slow", "intro-trig", "intro-out", "intro-skip");
-      events.forEach((e) => removeEventListener(e, skip, true));
-    };
-    // A replay ends on the top of the page, whatever scrolled under the cover.
-    const top = () => demo && scrollTo({ top: 0, behavior: "instant" });
-    const skip = () => {
-      top();
-      root.classList.add("intro-skip");
-      timers.push(setTimeout(done, 200));
-    };
-    const out = () => {
-      // Done when the layer's own fade ends (a child's transition bubbles here too), or a little after it anyway.
-      const end = (e) => e.target === scope && (scope.removeEventListener("transitionend", end), done());
-      scope.addEventListener("transitionend", end);
-      timers.push(setTimeout(done, 900));
-      top();
-      root.classList.add("intro-out");
-    };
-    const listen = () => events.forEach((e) => addEventListener(e, skip, { capture: true, passive: true }));
-    if (demo) timers.push(setTimeout(listen, GRACE));
-    else listen();
-    status.textContent = "Loading";
-    ray.addEventListener("animationend", (e) => {
-      if (e.target !== ray || !live()) return;
-      if (!demo && ready()) return out();
-      root.classList.add("intro-wait");
-      const since = () => performance.now() - t0;
-      timers.push(setTimeout(() => root.classList.add("intro-slow"), demo ? DEMO_HINT - since() : HINT));
-      const loaded = demo ? new Promise((r) => timers.push(setTimeout(r, DEMO_TRIG - since()))) : new Promise((r) => (document.readyState === "loading" ? addEventListener("DOMContentLoaded", r) : r()))
-        .then(() => Promise.all([
-          hero() && !hero().complete && new Promise((r) => { hero().addEventListener("load", r); hero().addEventListener("error", r); }),
-          document.fonts.ready,
-        ]));
-      const capped = new Promise((r) => timers.push(setTimeout(r, CAP - (performance.now() - t0))));
-      Promise.race([loaded, capped]).then(() => {
-        if (!live()) return;
-        status.textContent = "Trig'd";
-        root.classList.add("intro-trig");
-        timers.push(setTimeout(out, 250));
-      });
-    }, { once: true });
-  };
-
-  // Replay: the button (in the footer, parsed after this) shows only where the intro may play (JS on, no reduced
-  // motion).
-  addEventListener("DOMContentLoaded", () => {
-    const replay = document.querySelector(".replay");
-    if (!replay || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    replay.hidden = false;
-    replay.addEventListener("click", (e) => {
-      e.stopPropagation();
-      root.classList.remove("intro", "intro-wait", "intro-slow", "intro-trig", "intro-out", "intro-skip");
-      void scope.offsetWidth; // restart the CSS animations
-      root.classList.add("intro");
-      // Under the cover (the dark screen shows at once), go to the top: the page comes back there.
-      scrollTo({ top: 0, behavior: "instant" });
-      play(true);
-    });
-  });
-  if (root.classList.contains("intro")) play();
-})();
-</script>

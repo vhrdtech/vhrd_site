@@ -11,6 +11,7 @@
 <script>if(!location.hash&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("intro")</script>
 {%- endblock head %}
 {% block intro %}{% include "partials/intro.html" %}{% endblock intro %}
+{% block tail %}{% include "partials/intro-script.html" %}{% endblock tail %}
 {% block content %}
 {%- set draft = '<span class="v-badge">draft</span>' -%}
 <section class="section hero">
