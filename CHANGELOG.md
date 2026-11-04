@@ -56,6 +56,7 @@
 - Traces between sections are routed like PCB tracks: vertical and horizontal runs, 45° corners, a via at each end and the net name on the run (they used to be stretched diagonals).
 - Headlines are in the text colour; the brand red marks one word of the hero and stays for accents.
 - Arrows after links are CSS masks instead of arrow characters, so no page loads the Pi font subsets for them; the skip link uses the medium weight, so the semibold face is not loaded either.
+- The shrink_wrap card shows the bit-packing: an I2C write (a 7- or 10-bit address, two flags, a nibble, an optional 10-bit timeout and a payload) is 7 bytes on the wire, 20 as a repr(C) struct. The bytes come from running it against shrink_wrap 0.2.0.
 
 ### Fixed
 

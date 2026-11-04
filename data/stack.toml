@@ -53,12 +53,19 @@ pitch = "Compact zero-copy wire format for microcontrollers. No allocator, dynam
 repo = "https://github.com/vhrdtech/wire_weaver/tree/master/shrink_wrap"
 lang = "rust"
 code = '''
-let mut buf = [0u8; 256];
-let mut wr = BufWriter::new(&mut buf);
-wr.write_bool(true).unwrap();
-wr.write_u8(0xaa).unwrap();
-let bytes = wr.finish().unwrap();
-assert_eq!(bytes, &[0x80, 0xaa]); // the bool takes one bit
+#[derive_shrink_wrap(ww_repr = u1)]
+enum I2cAddress { Seven(U7), Ten(U10) }      // 1 + 7 or 1 + 10 bits
+
+#[derive_shrink_wrap]
+struct I2cWrite<'i> {
+    addr: I2cAddress,         // 0x50: 0 1010000
+    stop: bool,               // 1 bit
+    fast: bool,               // 1 bit
+    retries: Nibble,          // 3: 0011, on a nibble
+    timeout_ms: Option<U10>,  // Some(500): 1 0111110100
+    data: RefVec<'i, u8>,     // ab cd, the count at the back
+}
+// 50 83 be 80 ab cd 02: 7 bytes. As a repr(C) struct: 20.
 '''
 
 [[crate]]
