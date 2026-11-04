@@ -22,6 +22,7 @@ has alt text and its width and height.
 The front page's intro: on every load it shows and clears by itself without waiting on a fast site, waits (LOADING)
 for a late hero render and fires (TRIG'D), says after 5 s how to skip and a click skips it, a key skips it, the
 replay button plays the slow path as a demo; never with a #fragment, under reduced motion or without JavaScript.
+On every page the figures are numbered 1, 2, 3... in order, without a gap.
 Every text in a table cell is 4.5:1 on the cell's background, in dark and light.
 Links: every page in the site map is reached from the front page by links (no orphans), and every internal
 href on every page reached ends in '/' when it names a page and answers 200 without a redirect.
@@ -73,6 +74,9 @@ CODE_OVERFLOW = """() => [...document.querySelectorAll('.crate[data-fits] .crate
 # Cards with a wide version: whether it is the one shown.
 CODE_SHOWN = """() => [...document.querySelectorAll('.crate .code-wide')]
   .map((w) => [w.closest('.crate').id, getComputedStyle(w).display !== 'none'])"""
+# Figure numbers in page order (FIG. n captions and code panel labels): they must run 1, 2, 3... without a gap.
+FIG_NUMBERS = """() => [...document.querySelectorAll('.fig-no, .code-tabs-bar > .v-label')]
+  .map((e) => e.textContent.match(/^FIG\\. (\\d+)/)).filter(Boolean).map((m) => +m[1])"""
 IMAGES_WITHOUT = """() => [...document.images]
   .filter((i) => !i.hasAttribute("alt") || !i.getAttribute("width") || !i.getAttribute("height"))
   .map((i) => i.currentSrc || i.src)"""
@@ -719,6 +723,10 @@ def main():
                     if sideways > 0:
                         failures.append(f"{path or '/'} {name} {scheme}: scrolls sideways by {sideways}px")
                     page.wait_for_load_state("load")
+                    if name == "desktop" and scheme == "dark":
+                        figs = page.evaluate(FIG_NUMBERS)
+                        if figs != list(range(1, len(figs) + 1)):
+                            failures.append(f"{path or '/'}: figures numbered {figs}, expected 1 to {len(figs)} in order")
                     for src in page.evaluate(CROPPED):
                         failures.append(f"{path or '/'} {name} {scheme}: image cropped: {src}")
                     if any(abs(d) > 0.5 for d in page.evaluate(VIA_OFFSETS)):

@@ -458,9 +458,11 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .more { margin-top: 1.5rem; font: 500 0.8125rem/1.4 var(--font-mono); letter-spacing: 0.04em; }
 .hero-fig .fig-placeholder { aspect-ratio: 3 / 2; }
 
-/* Donguru spotlight: the pitch and features beside the block diagram. */
-.spotlight { display: grid; gap: 2.5rem; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); align-items: start; }
-@media (max-width: 60rem) { .spotlight { grid-template-columns: minmax(0, 1fr); } }
+/* Donguru spotlight: the pitch, then the three features side by side on a wide screen. The block diagram is on
+   /donguru only. */
+.spotlight-text > .v-lead { max-width: 48rem; }
+.ctas-link { align-self: center; margin-left: 0.5rem; }
+@media (min-width: 60rem) { .spotlight .features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 2rem; } }
 .features { list-style: none; padding: 0; margin: 1.75rem 0; counter-reset: f; }
 .features li { counter-increment: f; position: relative; padding: 0.9rem 0 0.9rem 2.75rem; border-top: 1px solid var(--line); }
 .features li::before {
@@ -484,7 +486,6 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .bd-text .bd-sub { fill: var(--muted); font-size: 10px; }
 .bd-text .bd-mcu-t { fill: var(--accent); }
 .bd-text .bd-net-t { fill: var(--muted); font-size: 9.5px; letter-spacing: 0.1em; }
-.spotlight-fig figcaption .v-badge { margin-left: auto; }
 
 /* Software: a figure inside a tab, and three short columns under the panel. */
 .tab-fig { padding: 1rem; }
