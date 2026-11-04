@@ -1,0 +1,50 @@
+{%- set git = get_env(name="VHRD_GIT", default="") -%}
+{%- set built = get_env(name="VHRD_BUILT", default="") -%}
+<div class="frame">
+  <div class="bus" aria-hidden="true">
+    <svg class="bus-lines" viewBox="0 0 1000 48" preserveAspectRatio="none" focusable="false">
+      <path class="trace-line" style="--sig: var(--signal-power)" d="M0 8 H1000" pathLength="1"/>
+      <path class="trace-line" style="--sig: var(--signal-usb)" d="M0 18 H1000" pathLength="1"/>
+      <path class="trace-line" style="--sig: var(--signal-can)" d="M0 28 H1000" pathLength="1"/>
+      <path class="trace-line" style="--sig: var(--signal-bus)" d="M0 38 H1000" pathLength="1"/>
+    </svg>
+  </div>
+</div>
+<footer class="site-footer">
+  <div class="frame footer-grid">
+    <div class="footer-brand">
+      <a class="brand" href="{{ get_url(path='/') }}" aria-label="VHRD.TECH, home">{% include "partials/wordmark.html" %}</a>
+      <p>{{ config.extra.company }}<br>{{ config.extra.address }}<br><a href="mailto:{{ config.extra.email }}">{{ config.extra.email }}</a></p>
+    </div>
+    <nav class="footer-col" aria-label="Products">
+      <p class="v-label">Products</p>
+      <ul>
+        <li><a href="{{ get_url(path='/donguru/') }}">Donguru</a></li>
+        <li><a href="{{ get_url(path='/report/') }}">rePort</a></li>
+        <li><a href="{{ get_url(path='/can/') }}">CAN line</a></li>
+        <li><a href="{{ get_url(path='/shop/') }}">Shop</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-col" aria-label="Software">
+      <p class="v-label">Software</p>
+      <ul>
+        <li><a href="{{ get_url(path='/software/') }}">IOWeaver and RockFace</a></li>
+        <li><a href="{{ get_url(path='/open-source/') }}">Open source</a></li>
+        <li><a href="{{ config.extra.github }}" rel="noopener">GitHub <span aria-hidden="true">↗</span></a></li>
+      </ul>
+    </nav>
+    <nav class="footer-col" aria-label="Company">
+      <p class="v-label">Company</p>
+      <ul>
+        <li><a href="{{ get_url(path='/about/') }}">About</a></li>
+        <li><a href="{{ get_url(path='/lab/') }}">Lab</a></li>
+        <li><a href="{{ get_url(path='/services/') }}">Services</a></li>
+        <li><a href="{{ get_url(path='/blog/') }}">Blog</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="frame footer-stamp">
+    <span>© {{ now() | date(format="%Y") }} {{ config.extra.company }}</span>
+    <span class="stamp">built from <code>{% if git %}{{ git }}{% else %}an unstamped tree{% endif %}</code>{% if built %} · {{ built }}{% endif %}</span>
+  </div>
+</footer>

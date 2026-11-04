@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  {{ <vh.label text={"Error 404"} /> }}
+  <h1 class="v-hero">No trace here</h1>
+  <p class="v-lead">This page does not exist, or it moved. Start again from the <a href="{{ get_url(path='/') }}">front page</a>.</p>
+</section>
+{% endblock content %}

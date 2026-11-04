@@ -1,0 +1,35 @@
+# vhrd.tech, built with Zola (version pinned in AGENTS.md). The preview build overrides base_url on the command line.
+base_url = "https://vhrd.tech"
+title = "VHRD Tech"
+description = "Tools for people who build hardware: boards, Rust firmware and the open-source software that ties them together, from Norway."
+default_language = "en"
+
+compile_sass = false
+minify_html = false
+build_search_index = false
+generate_feeds = true
+feed_filenames = ["atom.xml"]
+
+[markdown]
+external_links_target_blank = false
+smart_punctuation = true
+
+# Inline colours through light-dark(), which follows the theme toggle (site.css sets color-scheme per theme).
+[markdown.highlighting]
+light_theme = "github-light"
+dark_theme = "github-dark"
+
+[extra]
+company = "Vhrd.tech AS"
+address = "Asker, Norway"
+email = "hello@vhrd.tech"
+github = "https://github.com/vhrdtech"
+# Header links: name, path. The red button is extra.notify.
+nav = [
+  { name = "Products", path = "/#products" },
+  { name = "Software", path = "/software/" },
+  { name = "Open source", path = "/open-source/" },
+  { name = "Lab", path = "/lab/" },
+  { name = "Blog", path = "/blog/" },
+]
+notify = { name = "Get notified", path = "/donguru/#notify" }

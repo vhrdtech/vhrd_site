@@ -1,0 +1,8 @@
+{%- if get_env(name="VHRD_NOINDEX", default="") -%}
+User-agent: *
+Disallow: /
+{%- else -%}
+User-agent: *
+Allow: /
+Sitemap: {{ get_url(path="sitemap.xml") }}
+{%- endif %}

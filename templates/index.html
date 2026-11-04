@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{#- The landing page. Skeleton copy (marked draft) until the landing-page step fills the sections. -#}
+{% block content %}
+<section class="section hero">
+  <div class="hero-text">
+    {{ <vh.label text="Boards · Rust firmware · Open source" /> }}
+    <h1 class="v-hero">Tools for people who build hardware</h1>
+    <p class="v-lead">Boards, Rust firmware and the open-source software that ties them together, from Norway.</p>
+    <div class="ctas">
+      <a class="v-btn v-primary" href="{{ get_url(path='/donguru/#notify') }}">Get notified about Donguru</a>
+      <a class="v-btn" href="#products">See the products</a>
+    </div>
+    <p class="draft-note"><span class="v-badge">draft</span> Skeleton copy, filled in the landing-page step.</p>
+  </div>
+  {{ <vh.fig alt="Donguru render to come" n="1" caption="B153 Donguru · rev B" cls="hero-fig" /> }}
+</section>
+
+{{ <vh.trace sig="usb" from={72} to={8} label="USB 2.0" /> }}
+
+{% <vh.section label="Products" n="01" id="products" title="What we make"> %}
+{% <vh.cards> %}
+{{ <vh.card title="Donguru" href="/donguru/" badge="Coming Q1–Q2 2027" sig="usb" n="2"
+   pitch="One cable to your board: a USB-C hub with a serial port, flips TX and RX for you."
+   specs={["Host: USB-C, USB 2.0", "Device: USB-C + serial", "Power: switched VBUS"]} /> }}
+{{ <vh.card title="rePort" href="/report/" sig="bus" n="3"
+   pitch="Digital and analog I/O over USB. No programming needed."
+   specs={["Link: USB", "I/O: digital + analog", "Software: IOWeaver"]} /> }}
+{{ <vh.card title="CAN line" href="/can/" sig="can" n="4"
+   pitch="USB and Ethernet bridges to isolated CAN FD, and the adapters around them."
+   specs={["Bus: CAN FD, isolated", "Host: USB / Ethernet", "Extras: PoE, SD logging"]} /> }}
+{% </vh.cards> %}
+{% </vh.section> %}
+
+{{ <vh.trace sig="power" from={8} to={50} label="VBUS 5 V" /> }}
+
+{% <vh.section label="Software" n="02" id="software" title="From register to GUI"> %}
+<p class="v-muted">IOWeaver plots what your device says. RockFace debugs the firmware that says it. WireWeaver keeps both sides speaking the same API.</p>
+{% <vh.code_tabs id="ww" labels={["API", "Device"]} label="FIG. 5 · WireWeaver, ww_uart"> %}
+```rust
+#[ww_trait]
+#[claim(exclusive)]
+pub trait Uart {
+    #[counted]
+    stream!(rx: RxChunk<'i>);
+
+    #[credit]
+    sink!(tx: MaxLen<RefVec<'i, u8>, UART_TX_MAX>);
+
+    fn configure(config: UartConfig) -> Result<UartConfig, UartError<'i>>;
+    fn send_break(duration: Second) -> Result<(), UartError<'i>>;
+}
+```
+=== tab ===
+```rust
+// A device with several ports is one array, monitoring included:
+ww_impl!(uart[]: ww_uart::Uart)
+```
+{% </vh.code_tabs> %}
+{% </vh.section> %}
+
+{{ <vh.trace sig="can" from={50} to={88} label="CAN_H / CAN_L" /> }}
+
+{% <vh.section label="From the lab" n="03" id="lab" title="Work we are proud of"> %}
+{% <vh.cards> %}
+{{ <vh.card title="3D laser scanner" href="/lab/" sig="analog" n="6" pitch="Optical inspection at 15 μm." /> }}
+{{ <vh.card title="Motor controller" href="/lab/" sig="power" n="7" pitch="6-step and FOC, CAN servo." /> }}
+{{ <vh.card title="BMS" href="/lab/" sig="power" n="8" pitch="6–10S, 50 A nominal, 100 A peak." /> }}
+{% </vh.cards> %}
+{% </vh.section> %}
+
+{{ <vh.trace sig="bus" from={88} to={12} label="I/O" /> }}
+
+{% <vh.section label="Stay in the loop" n="04" id="notify" title="Hear when Donguru launches"> %}
+<p class="v-muted">Launch news goes out through CrowdSupply. Questions: <a href="mailto:{{ config.extra.email }}">{{ config.extra.email }}</a>.</p>
+<a class="v-btn v-primary" href="{{ get_url(path='/donguru/#notify') }}">Get notified</a>
+{% </vh.section> %}
+{% endblock content %}

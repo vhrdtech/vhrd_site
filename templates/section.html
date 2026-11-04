@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{#- A section with a list of its pages (the blog). -#}
+{% block content %}
+<section class="section">
+  {{ <vh.label text={section.extra.label | default(value=section.title)} /> }}
+  <h1 class="v-hero">{{ section.title }}</h1>
+  {%- if section.description %}
+  <p class="v-lead">{{ section.description }}</p>
+  {%- endif %}
+  <div class="prose">{{ section.content | safe }}</div>
+  {%- if section.pages %}
+  <ul class="post-list">
+  {%- for p in section.pages %}
+    <li><a href="{{ p.permalink | safe }}">{{ p.title }}</a>{% if p.date %} <time class="v-label" datetime="{{ p.date }}">{{ p.date | date(format="%-d %b %Y") }}</time>{% endif %}</li>
+  {%- endfor %}
+  </ul>
+  {%- else %}
+  <p class="draft-note"><span class="v-badge">draft</span> No posts yet: the posts move over from the old site in a later step.</p>
+  {%- endif %}
+</section>
+{% endblock content %}

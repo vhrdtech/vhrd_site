@@ -1,0 +1,81 @@
+{#- The site's building blocks, as Tera components: usable in templates and in Markdown content alike, no import.
+    Colours only through the brand tokens; `sig` is one of power, usb, can, bus, analog, ctrl (the vhrd_brand signal
+    kinds). In Markdown, a block component's body is Markdown; keep component tags at the start of a line. -#}
+
+{#- Mono caps label over a heading: {{ <vh.label text="Products" n="01" /> }} gives "01 · PRODUCTS". -#}
+{% component vh.label(text: string, n: string = "") %}
+<p class="v-label sec-label">{% if n %}<span class="sec-no">{{ n }}</span>{% endif %}{{ text }}</p>
+{% endcomponent vh.label %}
+
+{#- A titled section with its label and a hairline on top, crosshairs where it meets the frame:
+    {% <vh.section label="Products" n="01" id="products" title="What we make"> %} ... {% </vh.section> %} -#}
+{% component vh.section(label: string = "", n: string = "", id: string = "", title: string = "") %}
+<section class="section"{% if id %} id="{{ id }}"{% endif %}>
+{% if label %}{{ <vh.label text={label} n={n} /> }}{% endif %}
+{% if title %}<h2>{{ title }}</h2>{% endif %}
+
+{{ body }}
+
+</section>
+{% endcomponent vh.section %}
+
+{#- A PCB trace between two sections, drawn in on scroll. `from` and `to` are where it leaves the section above
+    and enters the one below, in percent of the frame width; `label` names the net in mono beside it:
+    {{ <vh.trace sig="usb" from={72} to={8} label="USB 2.0" /> }} -#}
+{% component vh.trace(sig: string = "usb", from: integer = 12, to: integer = 12, label: string = "") %}
+<div class="trace" style="--sig: var(--signal-{{ sig }}); --from: {{ from }}%; --to: {{ to }}%" aria-hidden="true">
+<svg viewBox="0 0 100 96" preserveAspectRatio="none" focusable="false"><path class="trace-line" d="M{{ from }} 0 V28 L{{ to }} 68 V96" pathLength="1"/></svg>
+<span class="pad pad-top"></span><span class="pad pad-bottom"></span>{% if label %}<span class="trace-label">{{ label }}</span>{% endif %}
+</div>
+{% endcomponent vh.trace %}
+
+{#- Key/value specs in mono, from "Key: value" strings: {{ <vh.specs items={["Host: USB-C", "MCU: STM32G0B1"]} /> }} -#}
+{% component vh.specs(items: array) %}
+<dl class="specs">{% for item in items %}{% set kv = item | split(pat=": ") %}<div><dt>{{ kv[0] }}</dt><dd>{{ kv[1:] | join(sep=": ") }}</dd></div>{% endfor %}</dl>
+{% endcomponent vh.specs %}
+
+{#- A figure with the datasheet's corner marks and a "FIG. n · caption" line. No src: a hatched placeholder that says
+    what goes there, so a missing render shows and is never a broken image. `src` is a path under static/:
+    {{ <vh.fig src="img/boards/b153.webp" alt="..." n="1" caption="B153 Donguru · rev B" width="1200" height="800" /> }} -#}
+{% component vh.fig(src: string = "", alt: string = "", n: string = "", caption: string = "", width: string = "", height: string = "", cls: string = "") %}
+<figure class="fig {{ cls }}"><div class="fig-frame">{% if src %}<img src="{{ get_url(path=src) }}" alt="{{ alt }}"{% if width %} width="{{ width }}"{% endif %}{% if height %} height="{{ height }}"{% endif %} loading="lazy" decoding="async">{% else %}<div class="fig-placeholder" role="img" aria-label="{{ alt or 'Image to come' }}"><span>{{ alt or "Image to come" }}</span></div>{% endif %}</div>{% if n or caption %}<figcaption>{% if n %}<span class="fig-no">FIG. {{ n }}</span>{% endif %}{{ caption }}</figcaption>{% endif %}</figure>
+{% endcomponent vh.fig %}
+
+{#- Product card: render, name, badge, one-line pitch, a few specs, a link; the top edge is wired in `sig`.
+    Put cards in {% <vh.cards> %} ... {% </vh.cards> %} for the ruled grid. -#}
+{% component vh.card(title: string, href: string, pitch: string = "", specs: array = [], img: string = "", alt: string = "", badge: string = "", sig: string = "usb", n: string = "") %}
+<article class="card" style="--sig: var(--signal-{{ sig }})">
+{{ <vh.fig src={img} alt={alt or title ~ " render to come"} n={n} /> }}
+<div class="card-body">
+<h3><a href="{{ get_url(path=href) }}">{{ title }}</a>{% if badge %} <span class="v-badge v-accent">{{ badge }}</span>{% endif %}</h3>
+{% if pitch %}<p class="v-muted">{{ pitch }}</p>{% endif %}
+{% if specs %}{{ <vh.specs items={specs} /> }}{% endif %}
+</div>
+</article>
+{% endcomponent vh.card %}
+
+{% component vh.cards() %}
+<div class="cards">
+{{ body }}
+</div>
+{% endcomponent vh.cards %}
+
+{#- Code panel with tabs: the body holds the panels, Markdown each (code fences), separated by a line "=== tab ===";
+    `labels` names them in order. Without the script every panel shows under its own title; static/js/site.js turns
+    them into tabs (arrow keys move between them):
+    {% <vh.code_tabs id="ww" labels={["API", "Device"]} label="FIG. 5 · WireWeaver"> %}
+    ```rust
+    ...
+    ```
+    === tab ===
+    ...
+    {% </vh.code_tabs> %} -#}
+{% component vh.code_tabs(id: string, labels: array, label: string = "") %}
+<div class="code-tabs" data-tabs id="{{ id }}">
+<div class="code-tabs-bar">{% if label %}<span class="v-label">{{ label }}</span>{% endif %}<div class="tablist" role="tablist" aria-label="{{ label or id }}" hidden>{% for l in labels %}<button type="button" role="tab" id="{{ id }}-tab-{{ loop.index }}" aria-controls="{{ id }}-panel-{{ loop.index }}" aria-selected="{{ 'true' if loop.first else 'false' }}"{% if not loop.first %} tabindex="-1"{% endif %}>{{ l }}</button>{% endfor %}</div></div>
+{% for part in body | split(pat="=== tab ===") %}<section class="tabpanel" role="tabpanel" id="{{ id }}-panel-{{ loop.index }}" aria-labelledby="{{ id }}-tab-{{ loop.index }}"><h4 class="v-label tabpanel-title">{{ labels[loop.index0] }}</h4>
+{{ part | trim | markdown | safe }}
+</section>
+{% endfor %}
+</div>
+{% endcomponent vh.code_tabs %}

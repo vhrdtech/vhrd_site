@@ -1,0 +1,170 @@
+/* VHRD Tech web style: product pages, shared reports, docs. Load tokens.css first (generated from palette.typ).
+   Ideas from zed.dev: serif headings, one accent used sparingly, hairline rules instead of cards and shadows,
+   small dense labels, buttons that look pressed in. Colours only through tokens, never hex here. */
+
+:root {
+  --font-serif: "IBM Plex Serif", Georgia, serif;
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-logo: "Audiowide", var(--font-sans);  /* wordmark only, until the outlined SVG logo exists */
+  --radius: 3px;
+  --page: 72rem;
+  --gutter: clamp(1rem, 4vw, 2rem);
+  /* the pressed-in look: a faint inset line at the bottom edge */
+  --press: inset 0 -2px 0 0 color-mix(in oklch, var(--text) 7%, transparent);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 400 1rem/1.55 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  margin: 0 0 0.5em;
+}
+h1 { font-size: clamp(2.25rem, 6vw, 3.75rem); }
+h2 { font-size: clamp(1.5rem, 3vw, 2rem); }
+h3 { font-size: 1.125rem; }
+p { margin: 0 0 1em; text-wrap: pretty; }
+a { color: inherit; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+a:hover { text-decoration-color: var(--accent); }
+code, kbd, pre { font-family: var(--font-mono); font-size: 0.875em; }
+pre {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+}
+
+/* Hero line: serif italic in the accent, the one big splash of red on a page. */
+.v-hero { font-style: italic; color: var(--accent); }
+.v-lead { font-size: 1.125rem; color: var(--muted); max-width: 38rem; }
+.v-muted { color: var(--muted); }
+
+/* Small mono label above headings and in cells: "SPEC", "B153 · REV B". */
+.v-label {
+  font: 500 0.6875rem/1.4 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Page frame: a centred column with hairline sides, sections separated by hairlines. */
+.v-page {
+  max-width: var(--page);
+  margin: 0 auto;
+  border-inline: 1px solid var(--line);
+  min-height: 100vh;
+}
+.v-section { padding: clamp(2rem, 6vw, 4rem) var(--gutter); border-top: 1px solid var(--line); }
+.v-section:first-child { border-top: 0; }
+
+/* Ruled grid: cells share 1px rules like a spec sheet or a schematic title block. */
+.v-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.v-grid > * { background: var(--bg); padding: 1.25rem; }
+.v-grid > a { text-decoration: none; transition: background-color 0.15s; }
+.v-grid > a:hover { background: var(--raised); }
+
+/* Nav bar: hairline below, small text. */
+.v-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem var(--gutter);
+  border-bottom: 1px solid var(--line);
+  font-size: 0.875rem;
+}
+.v-nav a { text-decoration: none; color: var(--muted); }
+.v-nav a:hover { color: var(--text); }
+.v-nav .v-brand { color: var(--text); margin-right: auto; }
+
+/* Wordmark set in the logo font: <span class="v-logo">VHRD <small>TECH</small></span> */
+.v-logo { font-family: var(--font-logo); font-size: 1.5rem; letter-spacing: 0.02em; }
+.v-logo small { font-size: 0.55em; letter-spacing: 0.2em; color: var(--muted); margin-left: 0.2em; }
+.v-footer .v-logo { font-size: 1em; color: var(--text); }
+
+/* Buttons: primary is the accent, secondary is a hairline box; both look pressed in. */
+.v-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5rem 1rem;
+  font: 500 0.875rem/1.2 var(--font-sans);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--raised);
+  color: var(--text);
+  box-shadow: var(--press);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.v-btn:hover { border-color: var(--accent); }
+.v-btn:active { box-shadow: none; transform: translateY(1px); }
+.v-btn.v-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.v-btn.v-primary:hover { background: color-mix(in oklch, var(--accent), var(--text) 15%); }
+.v-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Box with hairline border; the border turns accent on hover when it is a link. */
+.v-box {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--raised);
+  padding: 1.25rem;
+  box-shadow: var(--press);
+}
+a.v-box { display: block; text-decoration: none; transition: border-color 0.15s; }
+a.v-box:hover { border-color: var(--accent); }
+
+/* Tables: black header like the datasheet template, hairline rows, mono numbers. */
+.v-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.v-table th {
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 500;
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+}
+.v-table td { padding: 0.4rem 0.75rem; border-bottom: 1px solid var(--line); }
+.v-table td.v-num { font-family: var(--font-mono); white-space: nowrap; }
+.v-table-wrap { overflow-x: auto; }
+
+/* Badge: variant marks ("Plus"), status, versions. */
+.v-badge {
+  display: inline-block;
+  font: 500 0.6875rem/1 var(--font-mono);
+  padding: 0.25em 0.5em;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--muted);
+  vertical-align: middle;
+}
+.v-badge.v-accent { border-color: var(--accent); color: var(--accent); }
+
+/* Signal key, same colours as the block diagrams: <span class="v-sig" style="--sig: var(--signal-usb)">USB</span> */
+.v-sig { display: inline-flex; align-items: center; gap: 0.4em; font-size: 0.8125rem; }
+.v-sig::before { content: ""; width: 1.25em; height: 2px; background: var(--sig, var(--signal-ctrl)); }
+
+.v-footer {
+  padding: 2rem var(--gutter);
+  border-top: 1px solid var(--line);
+  font-size: 0.8125rem;
+  color: var(--muted);
+}

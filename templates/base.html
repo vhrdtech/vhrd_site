@@ -1,0 +1,44 @@
+{%- set noindex = get_env(name="VHRD_NOINDEX", default="") -%}
+{%- if page %}{% set this = page %}{% elif section %}{% set this = section %}{% endif -%}
+{%- if this and this.title and this.path != "/" %}{% set doc_title = this.title ~ " · " ~ config.title %}{% else %}{% set doc_title = config.title ~ " · Tools for people who build hardware" %}{% endif -%}
+{%- if this and this.description %}{% set doc_desc = this.description %}{% else %}{% set doc_desc = config.description %}{% endif -%}
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ doc_title }}</title>
+<meta name="description" content="{{ doc_desc }}">
+{%- if noindex %}
+<meta name="robots" content="noindex, nofollow">
+{%- else %}
+<link rel="canonical" href="{{ current_url | safe }}">
+{%- endif %}
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0f0f10" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f6f6" media="(prefers-color-scheme: light)">
+<meta property="og:title" content="{{ doc_title }}">
+<meta property="og:description" content="{{ doc_desc }}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ current_url | safe }}">
+<link rel="icon" href="{{ get_url(path='favicon.svg') }}" type="image/svg+xml">
+{#- The saved theme is applied before the first paint, so a light-theme visitor never sees a dark flash. #}
+<script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preload" href="{{ get_url(path='fonts/IBMPlexSans-Regular-Latin1.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ get_url(path='fonts/IBMPlexSerif-MediumItalic-Latin1.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{ get_url(path='fonts/fonts.css', cachebust=true) }}">
+<link rel="stylesheet" href="{{ get_url(path='css/brand/tokens.css', cachebust=true) }}">
+<link rel="stylesheet" href="{{ get_url(path='css/brand/vhrd.css', cachebust=true) }}">
+<link rel="stylesheet" href="{{ get_url(path='css/site.css', cachebust=true) }}">
+<link rel="alternate" type="application/atom+xml" title="VHRD Tech blog" href="{{ get_url(path='blog/atom.xml') }}">
+<script src="{{ get_url(path='js/site.js', cachebust=true) }}" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+{% include "partials/header.html" %}
+<main id="main" class="frame">
+{% block content %}{% endblock content %}
+</main>
+{% include "partials/footer.html" %}
+</body>
+</html>

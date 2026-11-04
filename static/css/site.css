@@ -1,0 +1,376 @@
+/* vhrd.tech site layer, on top of the brand's tokens.css and vhrd.css (both pulled from vhrd_brand by `just brand`,
+   never edited here). Colours only through tokens. The look: a faint drawing grid, a framed column with crosshair
+   marks where the section rules meet it, mono caps labels, FIG. captions with the datasheet's corner marks, and PCB
+   traces in the signal colours between sections. */
+
+:root {
+  --grid: 24px;
+  --grid-line: color-mix(in oklch, var(--text) 4%, transparent);
+  --frame-line: var(--line);
+  --mark: color-mix(in oklch, var(--text) 35%, transparent);
+  --header-h: 3.5rem;
+  scroll-padding-top: calc(var(--header-h) + 1rem);
+}
+
+html { -webkit-text-size-adjust: 100%; }
+/* The toggle's choice also steers light-dark(), which the code highlighting uses. */
+:root[data-theme="dark"] { color-scheme: dark; }
+:root[data-theme="light"] { color-scheme: light; }
+.giallo-l { display: inline-block; min-height: 1lh; width: 100%; }
+
+/* The drawing grid: a fine line every --grid, fixed to the page so sections slide over it. */
+body {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: var(--grid) var(--grid);
+  background-position: center top;
+  overflow-x: clip;
+}
+
+img, svg { max-width: 100%; }
+img { height: auto; }
+a:focus-visible, button:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+.skip {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+.skip:focus { top: 0.5rem; }
+
+/* The column: hairline sides like the brand's .v-page, on the page background so the grid stays behind. */
+.frame {
+  max-width: var(--page);
+  margin-inline: auto;
+  border-inline: 1px solid var(--frame-line);
+  position: relative;
+}
+main.frame { background: color-mix(in oklch, var(--bg) 70%, transparent); }
+
+/* Sections: hairline on top, a crosshair where it meets each side of the frame. */
+.section {
+  position: relative;
+  padding: clamp(2.5rem, 7vw, 5rem) var(--gutter);
+  border-top: 1px solid var(--line);
+}
+.section::before, .section::after, .bus::before, .bus::after {
+  content: "";
+  position: absolute;
+  top: -6px;
+  width: 11px;
+  height: 11px;
+  background:
+    linear-gradient(var(--mark), var(--mark)) center / 1px 100% no-repeat,
+    linear-gradient(var(--mark), var(--mark)) center / 100% 1px no-repeat;
+  pointer-events: none;
+}
+.section::before, .bus::before { left: -6px; }
+.section::after, .bus::after { right: -6px; }
+main > .section:first-child { border-top: 0; }
+main > .section:first-child::before, main > .section:first-child::after { display: none; }
+
+/* Labels: "01 · PRODUCTS" with the number boxed. */
+.sec-label { display: flex; align-items: center; gap: 0.6em; margin-bottom: 1rem; }
+.sec-no {
+  display: inline-block;
+  padding: 0.15em 0.4em;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  color: var(--text);
+}
+
+/* Header: sticky, hairline below, the frame continues through it. */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in oklch, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.header-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  min-height: var(--header-h);
+  padding-inline: var(--gutter);
+}
+.brand { display: inline-flex; align-items: center; color: var(--text); text-decoration: none; }
+.wordmark { height: 1rem; width: auto; display: block; }
+.wordmark .wm-word { fill: var(--accent); }
+.wordmark .wm-dot { fill: var(--muted); }
+.nav ul, .menu-panel ul, .footer-col ul { list-style: none; margin: 0; padding: 0; }
+.nav ul { display: flex; gap: 1.5rem; }
+.nav a, .menu-panel a {
+  font: 500 0.75rem/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-decoration: none;
+  padding-block: 0.5rem;
+}
+.nav a:hover, .menu-panel a:hover, .nav a[aria-current="page"], .menu-panel a[aria-current="page"] { color: var(--text); }
+.nav a[aria-current="page"] { box-shadow: inset 0 -1px 0 var(--accent); }
+.header-actions { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
+.theme-toggle, .menu summary {
+  display: inline-grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.theme-toggle:hover, .menu summary:hover { color: var(--text); border-color: var(--accent); }
+.notify-btn { white-space: nowrap; }
+
+/* Small screens: the links fold into a menu (a <details>, no script). */
+.menu { position: relative; display: none; }
+.menu summary { list-style: none; }
+.menu summary::-webkit-details-marker { display: none; }
+.menu-bars, .menu-bars::before, .menu-bars::after {
+  display: block;
+  width: 16px;
+  height: 1.5px;
+  background: currentColor;
+  position: relative;
+}
+.menu-bars::before, .menu-bars::after { content: ""; position: absolute; left: 0; }
+.menu-bars::before { top: -5px; }
+.menu-bars::after { top: 5px; }
+.menu[open] .menu-bars { background: transparent; }
+.menu[open] .menu-bars::before { top: 0; transform: rotate(45deg); }
+.menu[open] .menu-bars::after { top: 0; transform: rotate(-45deg); }
+.menu-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  min-width: 12rem;
+  padding: 0.5rem 1rem;
+  background: var(--raised);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+}
+.menu-panel a { display: block; padding-block: 0.75rem; }
+
+@media (max-width: 52rem) {
+  .nav { display: none; }
+  .menu { display: block; }
+}
+@media (max-width: 26rem) {
+  .header-row { gap: 0.75rem; }
+  .notify-btn { padding-inline: 0.65rem; }
+  .wordmark { height: 0.8rem; }
+}
+
+/* Hero: text left, FIG. 1 right; stacked on a phone. */
+.hero { display: grid; gap: 2.5rem; align-items: center; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+.hero h1 { font-size: clamp(2.5rem, 6.5vw, 4.5rem); }
+.ctas { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.75rem; }
+@media (max-width: 52rem) { .hero { grid-template-columns: minmax(0, 1fr); } }
+
+.draft-note { margin-top: 1.25rem; font-size: 0.8125rem; color: var(--muted); }
+
+/* Figures: corner marks in the brand red like the datasheet frame, the caption in mono caps. */
+.fig { margin: 0; }
+.fig-frame {
+  position: relative;
+  padding: 0.75rem;
+  --c: 14px;
+  background:
+    linear-gradient(var(--accent), var(--accent)) top left / var(--c) 1px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) top left / 1px var(--c) no-repeat,
+    linear-gradient(var(--accent), var(--accent)) top right / var(--c) 1px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) top right / 1px var(--c) no-repeat,
+    linear-gradient(var(--accent), var(--accent)) bottom left / var(--c) 1px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) bottom left / 1px var(--c) no-repeat,
+    linear-gradient(var(--accent), var(--accent)) bottom right / var(--c) 1px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) bottom right / 1px var(--c) no-repeat;
+}
+.fig-frame img { display: block; width: 100%; }
+.fig-placeholder {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  border: 1px dashed var(--line-strong);
+  background: repeating-linear-gradient(-45deg, transparent 0 9px, var(--line) 9px 10px);
+  color: var(--muted);
+  font: 500 0.75rem/1.4 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 1rem;
+}
+.fig-placeholder span { background: var(--bg); padding: 0.25em 0.5em; }
+.fig figcaption {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  margin-top: 0.6rem;
+  font: 500 0.6875rem/1.4 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fig-no { padding: 0.15em 0.45em; border: 1px solid var(--line-strong); color: var(--text); white-space: nowrap; }
+
+/* Cards in a ruled grid; each card's top edge is wired in its signal colour. */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  margin-top: 2rem;
+}
+.card { background: var(--bg); display: flex; flex-direction: column; box-shadow: inset 0 2px 0 var(--sig); }
+.card .fig { padding: 1rem 1rem 0; }
+.card .fig-placeholder { aspect-ratio: 16 / 10; }
+.card-body { padding: 1rem 1.25rem 1.25rem; }
+.card h3 { font-size: 1.25rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.card h3 a { text-decoration: none; }
+.card h3 a::after { content: " →"; color: var(--sig); }
+.card h3 a:hover { text-decoration: underline; text-decoration-color: var(--sig); }
+
+/* Spec list: mono, hairline rows, the key muted. */
+.specs { margin: 0.75rem 0 0; font: 400 0.8125rem/1.4 var(--font-mono); }
+.specs > div { display: flex; justify-content: space-between; gap: 1rem; padding: 0.4rem 0; border-top: 1px solid var(--line); }
+.specs dt { color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.6875rem; padding-top: 0.15em; }
+.specs dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+
+/* Code panel with tabs. Without the script every panel shows under its own title. */
+.code-tabs { margin-top: 2rem; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); }
+.code-tabs-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0 0.75rem;
+  border-bottom: 1px solid var(--line);
+  min-height: 2.75rem;
+}
+.tablist { display: flex; gap: 0.25rem; }
+.tablist [role="tab"] {
+  font: 500 0.75rem/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  padding: 0.9rem 0.6rem;
+  cursor: pointer;
+  box-shadow: inset 0 -2px 0 transparent;
+}
+.tablist [role="tab"]:hover { color: var(--text); }
+.tablist [role="tab"][aria-selected="true"] { color: var(--text); box-shadow: inset 0 -2px 0 var(--accent); }
+.tabpanel pre { margin: 0; border: 0; border-radius: 0; background: transparent; padding: 1rem 1.25rem; }
+.tabpanel-title { margin: 0; padding: 0.75rem 1.25rem 0; }
+.code-tabs.js-tabs .tabpanel-title { display: none; }
+
+/* Traces between sections: a track leaves the section above at --from and enters the one below at --to, with a
+   pad (via) at each end. The SVG stretches to the frame width; the stroke keeps its width. */
+.trace { position: relative; height: 96px; color: var(--sig); }
+.trace svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.trace-line {
+  fill: none;
+  stroke: var(--sig, currentColor);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.pad {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  margin-left: -4.5px;
+  border: 2px solid var(--sig);
+  border-radius: 50%;
+  background: var(--bg);
+}
+.pad-top { left: var(--from); top: -4.5px; }
+.pad-bottom { left: var(--to); bottom: -4.5px; }
+.trace-label {
+  position: absolute;
+  top: 50%;
+  left: calc((var(--from) + var(--to)) / 2);
+  transform: translate(0.9rem, -50%);
+  font: 500 0.625rem/1 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sig);
+  white-space: nowrap;
+}
+.trace + .section { border-top-color: transparent; }
+.trace + .section::before, .trace + .section::after { display: none; }
+
+/* The bus over the footer: the four signal colours side by side. */
+.bus { position: relative; height: 48px; border-top: 1px solid var(--line); }
+.bus-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Drawn in as they scroll into view, with CSS scroll-driven animations (no script); browsers without them, and
+   everyone who asks for reduced motion, see the traces already drawn. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .trace-line {
+      stroke-dasharray: 1;
+      animation: draw linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 45%;
+    }
+    .pad, .trace-label { animation: fade linear both; animation-timeline: view(); animation-range: entry 30% cover 45%; }
+  }
+}
+@keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}
+
+/* Pages and prose. */
+.page h1 { font-size: clamp(2.25rem, 6vw, 3.75rem); }
+.prose { max-width: 42rem; margin-top: 1.5rem; }
+.prose h2 { margin-top: 2.5rem; }
+.prose ul { padding-left: 1.25rem; }
+.post-list { list-style: none; padding: 0; margin-top: 2rem; }
+.post-list li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.75rem 0; border-top: 1px solid var(--line); }
+
+/* Footer: columns of links, the build stamp like the one on our PDFs. */
+.site-footer { border-top: 1px solid var(--line); font-size: 0.875rem; color: var(--muted); }
+.footer-grid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr));
+  padding: 2.5rem var(--gutter);
+}
+.footer-brand .wordmark { height: 0.9rem; margin-bottom: 1rem; }
+.footer-col .v-label { margin-bottom: 0.75rem; }
+.footer-col li { margin-bottom: 0.5rem; }
+.site-footer a { color: var(--muted); }
+.site-footer a:hover { color: var(--text); }
+.footer-stamp {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  padding: 1rem var(--gutter) 1.5rem;
+  border-top: 1px solid var(--line);
+  font: 400 0.75rem/1.4 var(--font-mono);
+}
+.footer-stamp code { font-size: 1em; color: var(--text); }
+@media (max-width: 52rem) { .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .footer-brand { grid-column: 1 / -1; } }
