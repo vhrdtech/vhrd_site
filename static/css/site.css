@@ -535,8 +535,16 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .crate h3 a { text-decoration: none; }
 .crate h3 a:hover { text-decoration: underline; text-decoration-color: var(--sig); }
 .crate .crate-code { margin-top: 0; }
-/* A 320px phone: less padding round the code, so a card written to 35 columns still fits without a sideways scroll. */
-@media (max-width: 22rem) { .layer > .crate { padding-inline: 0.75rem; } .crate-code pre { padding-inline: 0.6rem; } }
+/* On a phone the code runs to the card's edges in a smaller face, so a sample written to 44 columns fits without a
+   sideways scroll from 320px up (the browser check holds every card to it). */
+@media (max-width: 26rem) {
+  .layer > .crate { padding-inline: 0.9rem; }
+  .crate-code pre { margin-inline: -0.9rem; border-radius: 0; font-size: 0.6875rem; padding-inline: 0.75rem; }
+}
+@media (max-width: 22rem) {
+  .layer > .crate { padding-inline: 0.6rem; }
+  .crate-code pre { margin-inline: -0.6rem; font-size: 0.625rem; padding-inline: 0.5rem; }
+}
 .crate-logo { flex: none; display: grid; place-items: center; height: 56px; }
 .crate-logo img { height: 56px; width: auto; }
 .logo-light { display: none; }

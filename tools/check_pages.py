@@ -124,7 +124,7 @@ SCOPE_SHOWN = "getComputedStyle(document.querySelector('.scope')).display !== 'n
 def check_code_fits(browser, base):
     """The crate cards marked `fits` show their code without a sideways scroll, from a 320px phone up."""
     failures = []
-    for w in (320, 390, 820, 1440):
+    for w in (320, 360, 390, 430, 820, 960, 1440):
         ctx = browser.new_context(viewport={"width": w, "height": 900}, reduced_motion="reduce")
         page = ctx.new_page()
         for path in ("", "open-source/"):

@@ -48,6 +48,8 @@
 
 ### Changed
 
+- cnt joins the open-source stack after embedded_bedrock, on the front page and /open-source: a counter in an interrupt without a log or a critical section, read over the debug probe with `cnt tui`. The sample compiles for Cortex-M0+ and M4F.
+- Every code card fits a phone without a sideways scroll: the samples are written to 44 columns, and below 26rem the code runs to the card's edges in a smaller face. The browser check holds every card marked `fits` at seven widths from 320 to 1440 px.
 - The name is VHRD everywhere: page titles ("VHRD · Tools for people who build hardware"), the feed, the footer ("© 2026 VHRD · vhrd.tech") and the home links' labels. No more "VHRD Tech" or "Vhrd.tech AS".
 - Lab copy toned down: the lab page says "Selected work from our own bench: digital, power, communications and motors.", and the front page's lab lead names the four pieces instead of areas.
 - wire_weaver and shrink_wrap show their icon SVGs from wire_weaver's docs, the dark variant on the dark theme, instead of the PNG logos.
