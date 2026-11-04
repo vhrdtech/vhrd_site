@@ -1,0 +1,21 @@
+title = "The Lab"
+portfolio_page = 13
+alt = "Home electronics lab with a pick-and-place machine and a tool-filled workbench"
+
+facts = [
+    "Measurement, soldering and rework equipment",
+    "CNC router, pick and place machine, vapour reflow oven, stencil printer, spot welder",
+    "More than 1300 electronic parts collected over the years",
+]
+
+tools = []
+
+[[images]]
+file = "lab-1"
+widths = [640, 1280]
+alt = "Workbench with screwdriver rack, hand tools and a stereo microscope"
+
+[[images]]
+file = "lab-2"
+widths = [640, 1280, 1920]
+alt = "Desktop pick-and-place machine next to shelves of component bins"

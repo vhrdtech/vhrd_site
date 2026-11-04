@@ -1,0 +1,26 @@
+title = "Granite CNC"
+portfolio_page = 18
+alt = "SolidWorks render of a high-rigidity CNC mill built from a granite surface plate"
+
+facts = [
+    "High-rigidity CNC mill project built from a granite surface plate",
+    "All components and parts selected from what is available on the market",
+    "Modelled down to bolt level, ready to be built",
+]
+
+tools = ["SolidWorks"]
+
+[[images]]
+file = "granite-cnc-1"
+widths = [640, 1280, 1920]
+alt = "Granite CNC mill, front angle render showing the gantry and spindle"
+
+[[images]]
+file = "granite-cnc-2"
+widths = [640, 1280, 1920]
+alt = "Granite CNC mill, rear angle render showing the Z axis and cable carriers"
+
+[[images]]
+file = "granite-cnc-3"
+widths = [640]
+alt = "Close-up render of a linear rail and motor mount on the granite base"

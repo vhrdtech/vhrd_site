@@ -1,0 +1,15 @@
+title = "Torque Sensor AFE"
+portfolio_page = 8
+alt = "Small round PCB for a shaft-mounted torque sensor analog front-end"
+
+facts = [
+    "Shaft mount",
+    "Communication through slip-ring",
+]
+
+tools = []
+
+[[images]]
+file = "torque-sensor-afe"
+widths = [640]
+alt = "Round torque sensor AFE board, held to show its small size"

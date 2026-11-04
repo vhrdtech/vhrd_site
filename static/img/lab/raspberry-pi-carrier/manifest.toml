@@ -1,0 +1,15 @@
+title = "Raspberry Pi Carrier Board"
+portfolio_page = 3
+alt = "Green Raspberry Pi HAT-style carrier board with CAN and DC-DC circuitry"
+
+facts = [
+    "DC-DC",
+    "Serial to CAN",
+]
+
+tools = []
+
+[[images]]
+file = "raspberry-pi-carrier"
+widths = [606]
+alt = "Raspberry Pi carrier board, top view, with header and connectors"

@@ -1,0 +1,16 @@
+title = "BMS, 6-10S, 50A Nominal / 100A Peak"
+portfolio_page = 6
+alt = "Bare battery management system board with large copper bus bars and screw terminals"
+
+facts = [
+    "6-10S, 50A nominal, 100A peak",
+    "BQ76930 AFE",
+    "BQ34Z100 fuel gauge",
+]
+
+tools = []
+
+[[images]]
+file = "bms-50a-100a"
+widths = [640]
+alt = "6-10S BMS board, 50A nominal / 100A peak, top view with copper bus bars"

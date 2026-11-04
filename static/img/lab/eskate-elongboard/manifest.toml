@@ -1,0 +1,23 @@
+title = "eSkate (eLongboard)"
+portfolio_page = 17
+alt = "DIY electric longboard with a hand-painted sunset and palm tree deck"
+
+facts = [
+    "DIY electric longboard built from aviation grade plywood",
+    "Deck hand-made from individual plies, formed to a complex shape",
+    "Battery welded from high-performance Sony cells",
+    "Electronics: 10S BMS and VESC motor drivers",
+    "Art work painted by hand by a friend",
+]
+
+tools = []
+
+[[images]]
+file = "eskate-elongboard-1"
+widths = [640, 1280, 1920]
+alt = "eLongboard deck, underside view, hand-painted sunset and palm tree art"
+
+[[images]]
+file = "eskate-elongboard-2"
+widths = [640]
+alt = "Battery pack for the eLongboard, welded from cylindrical cells"

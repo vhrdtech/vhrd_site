@@ -1,0 +1,12 @@
+title = "Thermocouple AFE"
+portfolio_page = 3
+alt = "Small green PCB with a terminal block and a thermocouple analog front-end chip"
+
+facts = []
+
+tools = []
+
+[[images]]
+file = "thermocouple-afe"
+widths = [532]
+alt = "Thermocouple AFE board, top view, screw terminals for sensor wiring"

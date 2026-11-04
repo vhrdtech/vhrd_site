@@ -13,4 +13,16 @@
 - `tools/check_pages.py`: every page in headless Chromium at phone, tablet and desktop widths in both themes, part of `just test`.
 - just recipes: `test`, `lint`, `install` (Zola into ~/.local/bin), `brand`, `wordmark`, `serve`, `build`, `check-browser`, `check-preview`, `deploy-preview` (noindex build to https://static.vhrd.tech/vhrd-site-preview/; a re-deploy needs the old dir moved away on the server first).
 - `deploy/static/`: draft of a root helper for re-deploys to static.vhrd.tech, not installed (waits for a security review).
+- Own-work lab photos from Roman's portfolio, cropped and compressed to AVIF + WebP
+  (640/1280/1920px wide, never upscaled) under `static/img/lab/<slug>/`, one
+  `manifest.toml` per item (title, portfolio page, facts, alt text, tools). Covers
+  the 11 items cleared 4 Nov 2026: thermocouple AFE, CAN servo controller,
+  Raspberry Pi carrier board, BMS (6-10S, 50A/100A), torque sensor AFE, 6-step and
+  FOC motor controller, drone motor test stand, the lab, 3D laser scanner (AOI),
+  granite CNC, eSkate. No employer work included. (P2633#4nov-0920)
+- `scripts/portfolio-photos/`: `extract_pages.py` (dump a PDF's pages and embedded
+  images for review) and `build_lab_images.py` (crop/encode the picked images into
+  `static/img/lab/`), so the selection can be reproduced or extended later.
+
+## [Unreleased]
 

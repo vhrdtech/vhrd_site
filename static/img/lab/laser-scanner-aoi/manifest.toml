@@ -1,0 +1,30 @@
+title = "3D Laser Scanner (AOI)"
+portfolio_page = 14
+alt = "Automated optical inspection machine using a scanning green laser line"
+
+facts = [
+    "PCB solder paste printing inspection",
+    "PCB component inspection after reflow",
+    "Custom built line projector based on an F-Theta lens",
+    "Peltier-cooled green laser",
+    "Telecentric lens and GigE camera",
+    "2x CoreXY stage for board positioning",
+    "Resolution: 15 μm",
+]
+
+tools = ["SolidWorks", "Rust"]
+
+[[images]]
+file = "laser-scanner-aoi-1"
+widths = [640]
+alt = "SolidWorks render of the 3D laser scanner frame and CoreXY stages"
+
+[[images]]
+file = "laser-scanner-aoi-2"
+widths = [640]
+alt = "Assembled laser scanner machine on a workbench"
+
+[[images]]
+file = "laser-scanner-aoi-3"
+widths = [640]
+alt = "Close-up of the scanner's laser and optics head with the green line visible"

@@ -1,0 +1,16 @@
+title = "6-Step and FOC Motor Controller"
+portfolio_page = 8
+alt = "Green motor controller board with electrolytic capacitors and a bus bar connector"
+
+facts = [
+    "6-step and FOC motor controller",
+    "STM32F4",
+    "CAN bus",
+]
+
+tools = []
+
+[[images]]
+file = "motor-controller-6step-foc"
+widths = [588]
+alt = "6-step and FOC motor controller board, top view"
