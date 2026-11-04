@@ -30,7 +30,7 @@ TYPES = {".html", ".css", ".js", ".svg", ".xml", ".txt", ".woff2", ".avif", ".we
 NAMES = {"VERSION"}
 # Paths the WordPress site behind vhrd.tech answers. A static file at one of these would shadow it.
 WORDPRESS = re.compile(r"^(wp-.*|.*\.php|shop|product|product-category|cart|checkout|my-account|feed|comments"
-                       r"|category|tag|author|page|xmlrpc)$")
+                       r"|category|tag|author|page|xmlrpc|wc-api|\.well-known)$")
 LIVE = "https://vhrd.tech/"
 SHOP = "shop/"
 

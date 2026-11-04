@@ -94,6 +94,16 @@ jobs:
             *) echo "$ACTOR may not deploy (DEPLOY_ACTORS: '$ACTORS')"; exit 1 ;;
           esac
 
+      # A re-run of an old run would deploy an old commit: roll back with a revert commit on main instead.
+      - name: Still the head of main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          head="$(gh api "repos/$REPO/commits/main" --jq .sha)"
+          [ "$head" = "$SHA" ] || { echo "main is at $head now, this run built $SHA: start a new run"; exit 1; }
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false

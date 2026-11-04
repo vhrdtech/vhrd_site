@@ -159,11 +159,11 @@ https://vhrd.tech/ is deployed from GitHub Actions, by hand: the Deploy workflow
 
 1. **Build** (no secrets): Zola at the pinned version, checked by sha256, builds the live site as `just live` does. `tools/check_live.py built` stops it on a file type the site doesn't ship (PNG sources, manifests, PHP), a symlink, a top-level path the WordPress site owns, a noindex build or a wrong footer stamp.
 2. **Approval**: the deploy job runs in the `production` environment. It waits for a required reviewer where the GitHub plan has them, and its first step refuses anyone not listed in the repository variable `DEPLOY_ACTORS`.
-3. **Upload**: rsync over SSH to `ci-site@vhrd.tech` on port 7722, with the build's sha256 checked first. The key is the environment secret `DEPLOY_SSH_KEY`, and the host key is the one in `.github/deploy/known_hosts`. New files land beside the old ones and are renamed into place at the end, and removed pages go after that.
+3. **Upload**: only while the run's commit is still the head of main, so a re-run of an old run cannot roll the site back. Rollback is a revert commit. rsync over SSH to `ci-site@vhrd.tech` on port 7722, with the build's sha256 checked first. The key is the environment secret `DEPLOY_SSH_KEY`, and the host key is the one in `.github/deploy/known_hosts`. New files land beside the old ones and are renamed into place at the end, and removed pages go after that.
 4. **Check**: every page of the sitemap answers 200 without a redirect, the front page shows the new stamp and /shop/ still reaches WordPress (`tools/check_live.py site`, also `just check-live`).
 
 On the server, the `ci-site` user's key is forced into `rrsync -wo -munge /usr/share/nginx/vhrd.tech-site`. It can write into that folder and nothing else: no shell, no reads, no paths outside it, and no working symlinks. nginx serves that folder first and hands every other path to WordPress.
 
-- **Roll back**: run the workflow from an older commit of main (a revert commit), or empty the folder on the server, which hands every path back to WordPress.
+- **Roll back**: a revert commit on main and a new run, or empty the folder on the server, which hands every path back to WordPress.
 - **A new host key** is a reviewed commit to `.github/deploy/known_hosts`, after its fingerprint is checked on the server.
 - **The workflow** passes actionlint and zizmor (`just lint`). Actions are pinned to commit SHAs, and a version bump updates the SHA and its comment together.
