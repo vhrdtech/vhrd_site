@@ -7,7 +7,7 @@ default_language = "en"
 compile_sass = false
 minify_html = false
 build_search_index = false
-# No blog or shop here yet: the old WordPress site serves its posts, /feed/ and /shop/ behind this one.
+# No blog and no feed: the old WordPress site is gone, and its paths redirect (deploy/redirects.map).
 generate_feeds = false
 # The 2400 px PNG render sources stay in the repo for re-encoding but never ship: the site uses their AVIF/WebP variants.
 # The manifests are read by the templates (load_data) and name paths in the private hw repo: they never ship either,
@@ -42,7 +42,5 @@ nav = [
   { name = "Work", path = "/work/" },
   { name = "Lab", path = "/lab/" },
   { name = "Services", path = "/services/" },
-  # The shop is the old WordPress site's: on vhrd.tech every path this site does not have falls through to it.
-  { name = "Shop", path = "/shop/" },
 ]
 notify = { name = "Get notified", path = "/donguru/#notify" }

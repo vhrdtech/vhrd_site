@@ -52,7 +52,7 @@ from playwright.sync_api import sync_playwright
 
 import samples
 
-PAGES = ["", "donguru/", "report/", "can/", "software/", "open-source/", "lab/", "work/", "services/", "about/",
+PAGES = ["", "donguru/", "report/", "can/", "software/", "open-source/", "lab/", "work/", "services/", "about/", "shop/",
          "no-such-page/"]
 WIDTHS = {"phone": 390, "tablet": 820, "desktop": 1440}
 BUDGET_KB = 200
@@ -553,10 +553,6 @@ def check_table_contrast(browser, base):
         ctx.close()
     return failures
 
-
-# Paths this site never generates: on vhrd.tech the old WordPress site answers them (AGENTS.md).
-FALLTHROUGH = ("shop/", "feed/", "product/", "cart/", "checkout/")
-
 # No mail address is written into the site (vh.mail puts it together in the browser).
 ADDRESS = b"@vhrd.tech"
 MAIL_LINKS = """() => [...document.querySelectorAll('a[data-mail]')].map((a) =>
@@ -663,8 +659,6 @@ def check_links(base):
             if not u.path.startswith(root):
                 continue
             rel = u.path[len(root):]
-            if rel.startswith(FALLTHROUGH):
-                continue
             target = f"{u.scheme}://{u.netloc}{u.path}"
             named_page = is_page and "." not in rel.rsplit("/", 1)[-1]
             if named_page and not u.path.endswith("/"):

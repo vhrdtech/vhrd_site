@@ -170,7 +170,7 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 }
 .menu-panel a { display: block; padding-block: 0.75rem; }
 
-/* Seven links and the button need about 59rem on one line: below 64rem they fold into the menu, never wrap. */
+/* The links and the button need about 55rem on one line: below 64rem they fold into the menu, never wrap. */
 @media (max-width: 64rem) {
   .nav { display: none; }
   .menu { display: block; }
@@ -267,6 +267,9 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 .v-table th[scope="row"] { font-weight: 500; text-align: left; padding: 0.4rem 0.75rem; border-bottom: 1px solid var(--line); vertical-align: top; }
 .v-table tbody tr:nth-child(even) { background: var(--raised); }
 .v-table .v-badge { background: var(--bg); }
+
+/* The 404 page: where to go instead, one link a line. */
+.not-found { list-style: none; padding: 0; margin: 1.5rem 0 0; display: grid; gap: 0.6rem; }
 
 /* Mail links (vh.mail): a labelled one stays hidden until the script has made it a link, whatever its display. */
 .mail[hidden] { display: none; }

@@ -1,0 +1,33 @@
+# The old WordPress site's paths on vhrd.tech and where they now lead, as an nginx map (README "Deploy").
+# WordPress is gone (Roman, 4 Nov 2026): shop and product paths go to /shop/, feeds, the blog and its posts to the
+# front page for now, the contact page to /about/. Any other path gets the site's own 404 page.
+#
+# The server includes this file in its http block and redirects in the vhrd.tech server block:
+#
+#     include /etc/nginx/vhrd.tech-redirects.map;          # http { }
+#     if ($vhrd_redirect) { return 301 $vhrd_redirect; }    # server { }, before the locations
+#
+# Regexes with braces are quoted, as nginx needs. Targets are paths of this site only (never a host or a value taken
+# from the request), so nothing here can send a visitor elsewhere. tools/check_live.py checks the file: every target is a page of the build, no key hides a page,
+# and every old path in deploy/old-urls.txt is either a page or redirected. After a deploy it checks the live 301s.
+
+map $uri $vhrd_redirect {
+    default "";
+
+    # Shop, products and the WooCommerce pages
+    ~^/product(-category)?(/|$)             /shop/;
+    ~^/(cart|checkout|my-account)(/|$)      /shop/;
+    ~^/(refund_returns|shipping-policy|terms-of-service)/?$  /shop/;
+
+    # Feeds: the site has none
+    ~^/(.+/)?feed/?$                        /;
+
+    # The blog, its lists and its posts (/2019/07/27/bms/): to the front page until they have a home here
+    ~^/blog(/|$)                            /;
+    ~^/(author|category|tag|type)/          /;
+    "~^/[0-9]{4}/[0-9]{2}/[0-9]{2}/[^/]+/?$"  /;
+    "~^/[0-9]{4}(/[0-9]{2})?/?$"            /;
+
+    # Contact and privacy: the address and the company are on /about/
+    ~^/(contact|contact-form|privacy-policy)/?$  /about/;
+}

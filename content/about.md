@@ -20,6 +20,7 @@ I am Roman Isaikin, the founder of VHRD. I design the boards, write the firmware
 - [rePort](@/report.md): digital and analog I/O over USB, with no programming needed.
 - [The CAN line](@/can.md): USB and Ethernet to isolated CAN FD bridges.
 - [IOWeaver and RockFace](@/software.md): the desktop software for our instruments.
+- [FlexyRJ45 and our other boards](@/shop.md): the shop is moving, so they are ordered by mail for now.
 
 ## Where it ships from
 

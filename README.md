@@ -10,7 +10,7 @@ just serve           # http://127.0.0.1:1111 with live reload
 just test            # zola check + build, every page in headless Chromium, brand files match vhrd_brand
 just lint            # whitespace, the tools parse
 just perf            # the front page's first screen on a slow phone: requests, KB, FCP, LCP
-just live            # the live site for https://vhrd.tech/ into target/live: indexable, no blog or shop
+just live            # the live site for https://vhrd.tech/ into target/live: indexable, nothing of WordPress
 just preview TOKEN   # noindex build for https://shadow.vhrd.tech/TOKEN/ (README "Preview")
 ```
 
@@ -157,13 +157,23 @@ A preview is a noindex build behind a share link, `https://shadow.vhrd.tech/<tok
 
 https://vhrd.tech/ is deployed from GitHub Actions, by hand: the Deploy workflow (`.github/workflows/deploy.yml`) on main. `just deploy` starts it with `gh`, or Actions > Deploy vhrd.tech > Run workflow.
 
-1. **Build** (no secrets): Zola at the pinned version, checked by sha256, builds the live site as `just live` does. `tools/check_live.py built` stops it on a file type the site doesn't ship (PNG sources, manifests, PHP), a symlink, a top-level path the WordPress site owns, a noindex build or a wrong footer stamp.
+1. **Build** (no secrets): Zola at the pinned version, checked by sha256, builds the live site as `just live` does. `tools/check_live.py built` stops it on a file type the site doesn't ship (PNG sources, manifests, PHP), a symlink, a WordPress path (wp-*, /cart/, /product/, ...), a redirect in `deploy/redirects.map` that leads nowhere or hides a page, a noindex build or a wrong footer stamp.
 2. **Approval**: the deploy job runs in the `production` environment. It waits for a required reviewer where the GitHub plan has them, and its first step refuses anyone not listed in the repository variable `DEPLOY_ACTORS`.
 3. **Upload**: only while the run's commit is still the head of main, so a re-run of an old run cannot roll the site back. Rollback is a revert commit. rsync over SSH to `ci-site@vhrd.tech` on port 7722, with the build's sha256 checked first. The key is the environment secret `DEPLOY_SSH_KEY`, and the host key is the one in `.github/deploy/known_hosts`. New files land beside the old ones and are renamed into place at the end, and removed pages go after that.
-4. **Check**: every page of the sitemap answers 200 without a redirect, the front page shows the new stamp and /shop/ still reaches WordPress (`tools/check_live.py site`, also `just check-live`).
+4. **Check**: every page of the sitemap answers 200 without a redirect, the front page shows the new stamp, every old WordPress path in `deploy/old-urls.txt` answers its 301 and a missing path gets the site's 404 page (`tools/check_live.py site`, also `just check-live`).
 
-On the server, the `ci-site` user's key is forced into `rrsync -wo -munge /usr/share/nginx/vhrd.tech-site`. It can write into that folder and nothing else: no shell, no reads, no paths outside it, and no working symlinks. nginx serves that folder first and hands every other path to WordPress.
+On the server, the `ci-site` user's key is forced into `rrsync -wo -munge /usr/share/nginx/vhrd.tech-site`. It can write into that folder and nothing else: no shell, no reads, no paths outside it, and no working symlinks. nginx serves that folder and nothing else: WordPress is gone (4 Nov 2026). The old WordPress paths redirect with `deploy/redirects.map`, which the server has as `/etc/nginx/vhrd.tech-redirects.map`; a change to the map is copied there by hand, and the deploy's live check shows when it is missing. The server block needs:
 
-- **Roll back**: a revert commit on main and a new run, or empty the folder on the server, which hands every path back to WordPress.
+```nginx
+# in http { }
+include /etc/nginx/vhrd.tech-redirects.map;
+# in the vhrd.tech server { }
+absolute_redirect off;
+if ($vhrd_redirect) { return 301 $vhrd_redirect; }
+error_page 404 /404.html;
+location / { try_files $uri $uri/ =404; }
+```
+
+- **Roll back**: a revert commit on main and a new run, or put the previous build back into the folder on the server.
 - **A new host key** is a reviewed commit to `.github/deploy/known_hosts`, after its fingerprint is checked on the server.
 - **The workflow** passes actionlint and zizmor (`just lint`). Actions are pinned to commit SHAs, and a version bump updates the SHA and its comment together.

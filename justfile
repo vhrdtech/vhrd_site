@@ -24,12 +24,13 @@ build:
     zola check --skip-external-links
     zola build
 
-# The site builds, internal links resolve, every page passes the browser checks, the brand files match vhrd_brand
-# (when it is checked out here)
+# The site builds, internal links resolve, the old WordPress paths redirect to its pages (deploy/redirects.map), every
+# page passes the browser checks, the brand files match vhrd_brand (when it is checked out here)
 test *args:
     zola --version | grep -qF "{{ zola_version }}" || { echo "zola {{ zola_version }} expected: just install"; exit 1; }
     zola check --skip-external-links
     zola build --output-dir target/test --force
+    python3 tools/check_live.py redirects target/test
     uv run tools/check_pages.py
     if [ -d "{{ brand }}/web" ]; then diff -q "{{ brand }}/web/tokens.css" static/css/brand/tokens.css && diff -q "{{ brand }}/web/vhrd.css" static/css/brand/vhrd.css; else echo "note: {{ brand }} missing, brand files not compared"; fi
 
@@ -75,8 +76,8 @@ wordmark:
     uv run tools/wordmark.py "{{ brand }}/typst/vhrd/fonts/Audiowide-Regular.ttf"
 
 # Build the live site for https://vhrd.tech/ into target/live: indexable (robots.txt allows it and names the sitemap,
-# every page has its canonical URL). It has no blog or shop: on vhrd.tech every path it does not have falls through
-# to the old WordPress site (posts, /feed/, /shop/, /product/, /cart/, /checkout/).
+# every page has its canonical URL). WordPress is gone from vhrd.tech: its old paths (posts, /feed/, /product/,
+# /cart/, ...) redirect on the server (deploy/redirects.map), and nothing of WordPress may ship.
 live:
     rm -rf target/live
     zola check --skip-external-links
@@ -91,7 +92,7 @@ deploy:
     @echo "approve it in GitHub (Actions > Deploy vhrd.tech), then: gh run watch --repo vhrdtech/vhrd_site"
 
 # Check the deployed site against target/live (from `just live` at the same commit): every page 200, the footer
-# stamp, /shop/ still reaching WordPress
+# stamp, every old WordPress path's 301, the site's own 404 page
 check-live url="https://vhrd.tech":
     python3 tools/check_live.py site "{{ url }}" --built target/live --stamp "$VHRD_GIT"
 

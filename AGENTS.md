@@ -15,7 +15,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 ## Layout
 
 - `config.toml`: site settings; `[extra]` holds the company line, contact mail, header links and the notify button.
-- `content/`: one Markdown file per page (`donguru.md` is `/donguru/`). Stubs carry `extra.stub = true`. No blog or shop: on vhrd.tech every path this site does not have falls through to the old WordPress site (posts, /feed/, /shop/, /product/, /cart/, /checkout/), so none of those may be generated here.
+- `content/`: one Markdown file per page (`donguru.md` is `/donguru/`). Stubs carry `extra.stub = true`. No blog and no feed. WordPress is gone from vhrd.tech (4 Nov 2026): its old paths (posts, /feed/, /product/, /cart/, /checkout/, ...) redirect on the server with `deploy/redirects.map`, and nothing of WordPress (wp-*, PHP, those paths) may be generated here. `/shop/` is the site's own page; every other path gets the site's 404 page.
 - `templates/base.html`: the page frame, with the view frame's four crosses (`.view-frame`) and an `intro` block the home page fills. `partials/header.html`, `partials/footer.html` (build stamp from `VHRD_GIT` and `VHRD_BUILT`, which the justfile sets) and `partials/wordmark.html` (generated).
 - `templates/components.html`: the `vh.*` components, usable in templates and Markdown (README "Components").
 - `templates/index.html`: the landing page; `partials/donguru-diagram.html` is its block diagram and `partials/intro.html` its oscilloscope intro, with its script in `partials/intro-script.html` at the end of the body (README "Intro"). `page.html` is a plain page, `section.html` is the blog list, and there are `404.html` and `robots.txt`.
@@ -38,9 +38,9 @@ just wordmark         # redraw the wordmark and favicon from vhrd_brand's Audiow
 just check-browser    # the browser check alone
 just perf             # first screen on a slow phone: requests, KB, FCP, LCP (median of 3 runs)
 just fonts            # Core subsets of the IBM Plex Latin1 faces, and fonts.css
-just live             # the live site for https://vhrd.tech/ into target/live (indexable, no blog or shop), checked
+just live             # the live site for https://vhrd.tech/ into target/live (indexable, nothing of WordPress), checked
 just deploy           # start the Deploy workflow on GitHub; it waits for approval (README "Deploy")
-just check-live       # the deployed site against target/live: pages 200, the footer stamp, /shop/ reaches WordPress
+just check-live       # the deployed site against target/live: pages 200, the footer stamp, the old paths' 301s, the 404
 just preview TOKEN    # noindex build for https://shadow.vhrd.tech/TOKEN/, uploaded with tpm share (README "Preview")
 just check-preview URL  # the browser check against a deployed preview, screenshots into target/shots
 just renders          # rebuild static/img/boards/ from ~/git/hw (KiCad); needs a machine-local 3D model

@@ -3,6 +3,13 @@
 <section class="section">
   {{ <vh.label text={"Error 404"} /> }}
   <h1 class="v-hero">No trace here</h1>
-  <p class="v-lead">This page does not exist, or it moved. Start again from the <a href="{{ get_url(path='/', trailing_slash=true) }}">front page</a>.</p>
+  <p class="v-lead">This page does not exist, or it moved. The old blog and shop are gone; their links lead here or to the pages below.</p>
+  <ul class="not-found">
+    <li><a href="{{ get_url(path='/', trailing_slash=true) }}">The front page</a>: what VHRD makes</li>
+    <li><a href="{{ get_url(path='/donguru/', trailing_slash=true) }}">Donguru</a>: one cable from your PC to your board</li>
+    <li><a href="{{ get_url(path='/shop/', trailing_slash=true) }}">Shop</a>: FlexyRJ45 and other boards, ordered by mail for now</li>
+    <li><a href="{{ get_url(path='/work/', trailing_slash=true) }}">Work</a>: projects from the bench</li>
+    <li><a href="{{ get_url(path='/about/', trailing_slash=true) }}">About</a>: who we are and how to reach us</li>
+  </ul>
 </section>
 {% endblock content %}
