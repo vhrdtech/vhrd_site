@@ -844,3 +844,12 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
   .img-wait::after, .img-in::after { display: none; }
   .img-in img { transition: none; }
 }
+
+/* /lab: boards and bench projects in the card grid, photos of different shapes cut to one. */
+.lab-group { margin-top: 3rem; }
+.lab-page .cards { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 36rem) { .lab-page .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 68rem) { .lab-page .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.lab-page .card .fig-frame img { aspect-ratio: 4 / 3; object-fit: cover; }
+.lab-facts { margin: 0.75rem 0 0; padding-left: 1.1rem; font-size: 0.875rem; color: var(--muted); }
+.lab-facts li + li { margin-top: 0.25rem; }

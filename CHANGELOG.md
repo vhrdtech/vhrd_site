@@ -4,6 +4,7 @@
 
 ### Added
 
+- /lab, /services and /about filled (SITE-10 lab-about-services). /lab shows our four boards and twelve bench projects as cards, with the facts and tools from each photo's manifest. /services is the engineering services page; /about says who makes VHRD and where it ships from.
 - Fast first load (SITE-8 fast-first-load). On a phone the front page's first view went from 187 KB to 143 KB and from 14 to 10 requests; on a slow 4G phone the first paint came at 484 ms instead of 724 ms and the largest paint at 1400 ms instead of 1592 ms. All CSS is inline, the hero render is preloaded with high priority, three Core font subsets are preloaded, and the PNG render sources no longer ship with the site (54 MB to 17 MB built).
 - `just perf` (`tools/perf.py`): the front page's first screen on a slow phone, as Lighthouse's mobile run measures it, and when the intro clears.
 - `just fonts` (`tools/fonts.py`): Core subsets of the IBM Plex Latin1 faces, about 30 % smaller.
