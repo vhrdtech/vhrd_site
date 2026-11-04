@@ -42,8 +42,8 @@ SRC_WIDTH = 2400
 WEB_WIDTHS = (640, 1280, 1920)
 RENDER_CANVAS = 3600
 CROP_PAD_FRAC = 0.04
-AVIF_QUALITY = 62
-WEBP_QUALITY = 70
+AVIF_QUALITY = 50
+WEBP_QUALITY = 38
 
 
 @dataclass
@@ -54,6 +54,8 @@ class Board:
     slug: str
 
 
+# Front-page boards only (Roman, 4 Nov 2026); the rest of ~/git/hw's boards
+# are a separate later task.
 BOARDS = [
     Board("b153", "b153_typec_serial", "Donguru (Type-C Serial)", "donguru"),
     Board("b200", "b200_re_port", "rePort (RePort Lite)", "re-port"),
@@ -61,8 +63,6 @@ BOARDS = [
           "Ethernet to 2x ISO FDCAN bridge (DB-9, SD logging, optional PoE/BP)", "eth-2fdcan"),
     Board("b135", "b135_fdcan_iso_usb",
           "USB HS to ISO FDCAN bridge (DB-9, SD logging, optional BP)", "usb-fdcan"),
-    Board("b146", "b146_db9_nanofit", "DB-9 to Nano-Fit adapter", "db9-nanofit"),
-    Board("b129", "b129_cannify_micro", "CANnify Micro HV Pico-Lock", "cannify-micro"),
 ]
 
 VIEWS = {
@@ -150,7 +150,7 @@ def write_web_variants(master: Image.Image, stem: Path) -> dict[int, dict[str, i
         resized.save(tmp_png)
         avif_path = stem.with_name(f"{stem.name}-{width}.avif")
         subprocess.run(
-            ["avifenc", "-q", str(AVIF_QUALITY), "--qalpha", "90", "-s", "4",
+            ["avifenc", "-q", str(AVIF_QUALITY), "--qalpha", "85", "-s", "4",
              str(tmp_png), str(avif_path)],
             check=True, capture_output=True, text=True,
         )
