@@ -1,17 +1,11 @@
 +++
-title = "Donguru"
-description = "One cable to your board: a USB-C hub with a serial port that flips TX and RX for you. Coming Q1–Q2 2027."
+title = "Donguru, USB-C hub, power switch, meter and SWD probe (B153)"
+description = "Donguru (B153): one cable to your board. A USB-C dongle with a USB 2.0 hub, a 20 V / 5 A VBUS switch, a power meter, an SWD probe and UART, I2C, GPIO on the sideband pins. Coming Q1–Q2 2027."
+template = "donguru.html"
 
 [extra]
 label = "B153 · Donguru"
 sig = "usb"
-stub = true
 +++
 
-To come: the pitch, features, block diagram, the draft spec and the CrowdSupply notify button (id `notify`).
-
-{% <vh.section label="Launch" id="notify" title="Get notified"> %}
-Donguru launches on CrowdSupply. Until the campaign page is up, write to [hello@vhrd.tech](mailto:hello@vhrd.tech) and we let you know.
-
-{{ <vh.specs items={["Status: prototype, rev B", "Launch: Q1–Q2 2027", "Where: CrowdSupply"]} /> }}
-{% </vh.section> %}
+The page is drawn by `templates/donguru.html` from the datasheet's tables in `data/donguru.toml`.

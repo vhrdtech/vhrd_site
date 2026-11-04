@@ -1,0 +1,90 @@
+/* /donguru only: inlined by templates/donguru.html after site.css. Tokens only, never hex values. */
+
+.dg-hero h1 { font-size: clamp(2.5rem, 6.5vw, 4.25rem); }
+.dg-when { margin: 1.25rem 0 0; font: 500 0.875rem/1.4 var(--font-mono); color: var(--muted); display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+
+/* Two short paragraphs side by side on a wide screen. */
+.dg-two { display: grid; gap: 0.5rem 2.5rem; grid-template-columns: minmax(0, 1fr); max-width: 72rem; }
+@media (min-width: 52rem) { .dg-two { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.dg-two p { margin: 0 0 1rem; }
+
+/* Feature cards: a ruled grid like .cards, each card's top edge wired in its signal colour. */
+.dg-feats { display: grid; gap: 1px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); margin-top: 1.5rem; background: var(--line); border: 1px solid var(--line); }
+.dg-feat { background: var(--bg); padding: 1.1rem 1.25rem 1.25rem; box-shadow: inset 0 2px 0 var(--sig); min-width: 0; }
+.dg-feat h3 { font-size: 1.0625rem; margin: 0 0 0.5rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.dg-feat p { margin: 0; font-size: 0.9375rem; }
+.dg-feat p + p { margin-top: 0.6rem; }
+.dg-why { color: var(--muted); }
+.dg-why > span:first-child { font: 500 0.6875rem/1.4 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); margin-right: 0.35em; }
+
+/* Badges for the datasheet's open values and the Plus variant. */
+.dg-tbd { font-size: 0.625rem; padding: 0.05em 0.4em; vertical-align: 0.1em; }
+.dg-plus { font-size: 0.625rem; padding: 0.05em 0.4em; vertical-align: 0.1em; color: var(--signal-usb); border-color: var(--signal-usb); }
+
+/* The block diagram: Plus paths dashed, a legend in mono under the figure. */
+.dg-diagram { margin-top: 1.5rem; max-width: 60rem; }
+.bd-plus path { stroke-dasharray: 7 5; }
+.dg-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem; margin: 0.75rem 0 1.75rem; padding: 0; font: 500 0.6875rem/1.4 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.dg-legend li { display: inline-flex; align-items: center; gap: 0.45rem; }
+.dg-legend li::before { content: ""; width: 1.5rem; border-top: 3px solid var(--sig); }
+.dg-legend .dg-legend-dash::before { border-top-style: dashed; }
+
+/* Tables from the datasheet. */
+.dg-h3 { font-size: 1.125rem; margin: 2rem 0 0.5rem; scroll-margin-top: 5rem; }
+.dg-spec { scroll-margin-top: 4.5rem; }
+.dg-note { max-width: 48rem; font-size: 0.875rem; margin: 0 0 0.75rem; }
+.dg-table { margin-top: 0.5rem; }
+.dg-table th[scope="row"] { font-weight: 500; text-align: left; color: var(--text); padding: 0.4rem 0.75rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+.dg-table td { vertical-align: top; }
+.dg-params th[scope="row"] { width: 28%; }
+.dg-params td.v-num { text-align: right; width: 7%; }
+.dg-params .dg-unit { font-family: var(--font-mono); white-space: nowrap; width: 6%; }
+.dg-notes { color: var(--muted); }
+.dg-jump { margin: 1.5rem 0 0.5rem; }
+.dg-jump ul { gap: 0.3rem 1rem; }
+.dg-jump a { font-size: 0.8125rem; min-height: 1.5rem; }
+
+/* On a phone a parameter row stacks: the name, then Min, Typ, Max with their labels, then the unit and notes. */
+@media (max-width: 40rem) {
+  .dg-params thead { display: none; }
+  .dg-params, .dg-params tbody { display: block; }
+  .dg-params tr { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.9rem; padding: 0.55rem 0; border-bottom: 1px solid var(--line); }
+  .dg-params th[scope="row"], .dg-params td { display: block; padding: 0; border: 0; width: auto; }
+  .dg-params th[scope="row"] { flex: 1 0 100%; }
+  .dg-params td.v-num { text-align: left; width: auto; }
+  .dg-params td.v-num:empty { display: none; }
+  .dg-params td.v-num::before { content: attr(data-l); margin-right: 0.35em; font: 500 0.625rem/1.4 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .dg-params .dg-unit { width: auto; }
+  .dg-params .dg-unit:empty { display: none; }
+  .dg-params .dg-notes { flex: 1 0 100%; font-size: 0.8125rem; }
+  .dg-params .dg-notes:empty { display: none; }
+  .dg-kv th[scope="row"] { width: 38%; }
+}
+
+/* Pinout: the renders side by side, then the header beside the two connectors. */
+.dg-boards { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); margin-top: 1.5rem; }
+@media (min-width: 48rem) { .dg-boards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.dg-pins { display: grid; gap: 0 2.5rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 60rem) { .dg-pins { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); } }
+.dg-header-pins td.v-num { width: 2.5rem; color: var(--muted); }
+.dg-pin { font-family: var(--font-mono); white-space: nowrap; box-shadow: inset 3px 0 0 var(--sig); }
+.dg-pin-bus { --sig: var(--signal-bus); }
+.dg-pin-power { --sig: var(--signal-power); }
+.dg-pin-usb { --sig: var(--signal-usb); }
+.dg-pin-ctrl { --sig: var(--signal-ctrl); }
+.dg-pin-gnd { --sig: var(--line-strong); }
+
+/* FAQ: hairline rows, the question in the text colour, a plus that turns when open. */
+.dg-faq { max-width: 52rem; margin-top: 1rem; border-top: 1px solid var(--line); }
+.dg-faq details { border-bottom: 1px solid var(--line); }
+.dg-faq summary { cursor: pointer; list-style: none; position: relative; padding: 0.9rem 2rem 0.9rem 0; font-weight: 500; }
+.dg-faq summary::-webkit-details-marker { display: none; }
+.dg-faq summary::after { content: "+"; position: absolute; right: 0.25rem; top: 0.8rem; font: 400 1.25rem/1 var(--font-mono); color: var(--muted); transition: transform 0.2s; }
+.dg-faq details[open] summary::after { transform: rotate(45deg); }
+.dg-faq summary:hover::after { color: var(--accent); }
+.dg-faq details p { margin: 0 0 1rem; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .dg-faq summary::after { transition: none; } }
+
+.dg-order { margin-top: 1.25rem !important; }
+.contact-card .dg-table { font-size: 0.8125rem; }
+.contact-card .dg-table td.v-num { white-space: normal; overflow-wrap: anywhere; }

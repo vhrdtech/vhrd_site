@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{#- /donguru: the product page, made from the datasheet (hw b153_typec_serial/spec/datasheet/b153_datasheet.typ,
+    Preview 0.2). The tables come from data/donguru.toml, a copy of the datasheet's; the copy here says only what the
+    datasheet, the P2534 README and typec_dongle's FEATURES.md say. What the datasheet marks tbd or planned stays
+    marked. The page's own styles are static/css/donguru.css, inlined here like site.css in base.html. -#}
+{% block head -%}
+{%- set hero = "img/boards/b153-donguru/b153_hero" %}
+<link rel="preload" as="image" type="image/avif" fetchpriority="high" imagesrcset="{% for w in [640, 1280, 1920] %}{{ get_url(path=hero ~ '-' ~ w ~ '.avif') }} {{ w }}w{% if not loop.last %}, {% endif %}{% endfor %}" imagesizes="(max-width: 52rem) calc(100vw - 2rem), 34rem">
+<style>
+{{ load_data(path="static/css/donguru.css", format="plain") | safe }}
+</style>
+{%- endblock head %}
+{% block content %}
+{%- set d = load_data(path="data/donguru.toml") -%}
+{%- set tbd = '<span class="v-badge dg-tbd">tbd</span>' -%}
+{%- set plus = '<span class="v-badge dg-plus">Plus</span>' -%}
+{%- set draft = '<span class="v-badge">draft</span>' -%}
+<section class="section hero dg-hero">
+  <div class="hero-text">
+    {{ <vh.label text="B153 · Donguru" /> }}
+    <h1 class="v-hero">One cable to your <span class="hl">board</span></h1>
+    <p class="v-lead">Donguru sits between your computer and a device with a USB-C port. A USB 2.0 hub, an STM32G0B1 microcontroller and a set of switches give software full control over the device's power, its USB data lines and its sideband pins. Flashing, logging and power cycling become one cable and a script.</p>
+    <p class="dg-when"><span class="v-badge v-accent">Coming Q1–Q2 2027</span> on CrowdSupply</p>
+    <div class="ctas">
+      <a class="v-btn v-primary" href="#notify">Get notified</a>
+      <a class="v-btn" href="#specs">Read the datasheet</a>
+    </div>
+    <p class="draft-note">{{ draft | safe }} Copy not yet read by Marketing and PM. Specifications from the datasheet, {{ d.datasheet }}; the PDF is coming.</p>
+  </div>
+  {{ <vh.fig stem="img/boards/b153-donguru/b153_hero" widths={[640, 1280, 1920]} sizes="(max-width: 52rem) calc(100vw - 2rem), 34rem" alt="Donguru, the B153 board, three-quarter view" n="1" caption="B153 Donguru · rev A (render)" cls="hero-fig" eager={true} /> }}
+</section>
+
+{{ <vh.trace sig="usb" from={74} to={16} label="USB 2.0" /> }}
+
+{% <vh.section label="Why" n="01" id="why" title="One cable instead of a small test rack"> %}
+<div class="dg-two">
+<p>A device with a USB-C port usually reaches the bench through several boxes: a cable for USB, an adapter and jumper wires for the serial console, a debug probe, a switchable supply and a meter. Each one is another cable to plug and another thing a test script can't control. Donguru puts all of it in one dongle on the device's own USB-C port, and every part of it answers to software.</p>
+<p>It is for everyone who works where code meets hardware: hardware, firmware and software engineers bringing up, debugging, testing and flashing devices with a USB-C port. It fits on a desk, in an automated test bench and on a production line, where the product's own connector becomes its test port.</p>
+</div>
+{% </vh.section> %}
+
+{{ <vh.trace sig="power" from={16} to={60} label="VBUS" /> }}
+
+{% <vh.section label="Features" n="02" id="features" title="What it does, and why it matters"> %}
+<div class="dg-feats">
+<article class="dg-feat" style="--sig: var(--signal-power)"><h3>VBUS switch</h3><p>Between computer and device, up to 20 V and 5 A, both directions, off at power-up.</p><p class="dg-why"><span>Why</span> Power-cycle the device from a script, and nothing reaches it until you ask.</p></article>
+<article class="dg-feat" style="--sig: var(--signal-analog)"><h3>Power meter</h3><p>VBUS voltage, current both ways, power, charge and energy totals.</p><p class="dg-why"><span>Why</span> See what the device draws while it boots, and log it beside its console.</p></article>
+<article class="dg-feat" style="--sig: var(--signal-power)"><h3>Guards in the firmware</h3><p>Voltage, current and power limits that cut VBUS on their own. A cut stays latched until the mode is written again.</p><p class="dg-why"><span>Why</span> A script that hangs, or a PD charger that renegotiates to 20 V, can't leave a 5 V device on a voltage it didn't ask for. Design target, to be tested on rev B.</p></article>
+<article class="dg-feat" style="--sig: var(--signal-usb)"><h3>USB data switch</h3><p>Connect or cut the device's D+/D− without unplugging.</p><p class="dg-why"><span>Why</span> The device disappears from the computer and re-enumerates on reconnect, without touching power.</p></article>
+<article class="dg-feat" style="--sig: var(--signal-ctrl)"><h3>SWD debug probe</h3><p>CMSIS-DAP v2 on the plug's SBU pins. Works with probe-rs, OpenOCD and pyOCD.</p><p class="dg-why"><span>Why</span> A device with SWD on its sideband pins is flashed and debugged through the same cable that powers it.</p></article>
+<article class="dg-feat" style="--sig: var(--signal-bus)"><h3>Buses on SBU, either way round</h3><p>UART, I2C, SWD, FDCAN, GPIO and ADC on the plug's SBU pins, at 1.8 or 3.3 V, with switchable pull-ups. UART, I2C and SWD swap their lines for either cable orientation.</p><p class="dg-why"><span>Why</span> The orientation is a setting, so a flipped cable is one command instead of re-plugging. Automatic TX/RX flip: {{ tbd | safe }}</p></article>
+<article class="dg-feat" style="--sig: var(--signal-bus)"><h3>Debug-accessory mode</h3><p>Switchable pull-ups on the plug's CC lines, as a USB-C debug accessory.</p><p class="dg-why"><span>Why</span> The device opens its debug path (SWD, a UART) onto the SBU pins with a few comparators or ADC pins. No PD controller needed.</p></article>
+<article class="dg-feat" style="--sig: var(--signal-usb)"><h3>USB 2.0 Hi-Speed hub</h3><p>The device under test and the on-board MCU on one cable. {{ plus | safe }} adds USB on the header and on the plug's SBU pins.</p><p class="dg-why"><span>Why</span> The device's own USB keeps its 480 Mbit/s, and the dongle's control traffic takes little of it.</p></article>
+<article class="dg-feat" style="--sig: var(--signal-bus)"><h3>Header with a relay</h3><p>4 protected GPIO with UART, I2C, SPI, FDCAN and ADC, 3.3 V out, switched VBUS and an isolated relay.</p><p class="dg-why"><span>Why</span> The relay presses a reset button, a boot strap or a power key on the device.</p></article>
+<article class="dg-feat" style="--sig: var(--signal-power)"><h3>USB Power Delivery</h3><p>A PD controller on each port, each a source or a sink. The PD stack in the firmware is planned for v1.0.</p><p class="dg-why"><span>Why</span> A small PD test tool: watch a contract, ask for another voltage, see the meter follow.</p></article>
+<article class="dg-feat" style="--sig: var(--signal-ctrl)"><h3>Safe by default</h3><p>Every enable has a pull-down. Plug VBUS, the header's VBUS_SW and the relay are off at power-up, after a reset and while the MCU is halted.</p><p class="dg-why"><span>Why</span> The hardware holds the safe state, not the firmware.</p></article>
+<article class="dg-feat" style="--sig: var(--signal-usb)"><h3>One typed API</h3><p>Rust library, Python wheel, the <code>dg</code> CLI and the IOWeaver GUI over the same API.</p><p class="dg-why"><span>Why</span> Every tool sees the same functions and the same checks, and always matches the firmware.</p></article>
+</div>
+{% </vh.section> %}
+
+{{ <vh.trace sig="usb" from={60} to={84} label="D+ / D−" /> }}
+
+{% <vh.section label="Block diagram" n="03" id="diagram" title="What is on the board"> %}
+<figure class="fig dg-diagram"><div class="fig-frame"><div class="bd-scroll" tabindex="0" role="group" aria-label="Block diagram, scrolls sideways on small screens">{% include "partials/donguru-overview.html" %}</div></div><figcaption><span class="fig-no">FIG. 2</span>Donguru overview, from the datasheet. Dashed: fitted only on Plus.</figcaption></figure>
+<ul class="dg-legend" aria-label="Legend">
+<li style="--sig: var(--signal-power)">Power</li>
+<li style="--sig: var(--signal-usb)">USB</li>
+<li style="--sig: var(--signal-bus)">Buses, IO</li>
+<li style="--sig: var(--signal-ctrl)" class="dg-legend-dash">Control</li>
+<li style="--sig: var(--signal-usb)" class="dg-legend-dash">Plus only</li>
+</ul>
+<div class="dg-two">
+<p>The computer talks to the STM32G0B1 through port 1 of the hub. The MCU switches plug VBUS, cuts or connects the device's USB data, drives the sideband pins through a level translator and reads the power meter. Every enable has a pull-down: with the MCU in reset or halted, everything that could reach the device is off.</p>
+<p>VBUS passes through a bidirectional load switch with a current shunt, so the computer can power the device or the device can feed the computer. Donguru itself runs from whichever side has VBUS (a diode OR into a 4.5 to 40 V buck converter), so it keeps working while plug VBUS is off, and a self-powered device can keep it alive.</p>
+</div>
+<h3 class="dg-h3" id="variants">Main and Plus</h3>
+<p class="v-muted section-lead">Two assembly variants on the same board. Main covers bench work on one device; Plus adds two more USB ports. The firmware is the same and tells the variant at boot.</p>
+<div class="v-table-wrap"><table class="v-table dg-table dg-variants">
+<thead><tr><th scope="col">Feature</th><th scope="col">Main</th><th scope="col">Plus</th></tr></thead>
+<tbody>{% for r in d.variants %}<tr><th scope="row">{{ r[0] }}</th><td>{{ r[1] }}</td><td>{{ r[2] }}</td></tr>{% endfor %}</tbody>
+</table></div>
+{% </vh.section> %}
+
+{{ <vh.trace sig="analog" from={84} to={30} label="SENSE" /> }}
+
+{% <vh.section label="Specifications" n="04" id="specs" title="Specifications"> %}
+<p class="v-muted section-lead">Electrical characteristics from the datasheet ({{ d.datasheet }}), preliminary: targets for rev B, nothing measured yet. Where a value is open ({{ tbd | safe }}), the note gives the limit of the part that sets it; the board's own limit can only be lower. The PDF datasheet is coming.</p>
+<nav class="groups dg-jump" aria-label="Specification tables">
+<p class="v-label">Tables</p>
+<ul>{% for g in d.specs %}<li><a href="#spec-{{ g.id }}">{{ g.title }}</a></li>{% endfor %}<li><a href="#spec-safe">At reset</a></li><li><a href="#spec-sbu-modes">SBU modes</a></li></ul>
+</nav>
+{%- for g in d.specs %}
+<div class="dg-spec" id="spec-{{ g.id }}">
+<h3 class="dg-h3">{{ g.title }}</h3>
+{%- if g.note %}<p class="v-muted dg-note">{{ g.note }}</p>{% endif %}
+<table class="v-table dg-table dg-params">
+<thead><tr><th scope="col">Parameter</th><th scope="col">Min</th><th scope="col">Typ</th><th scope="col">Max</th><th scope="col">Unit</th><th scope="col">Notes</th></tr></thead>
+<tbody>{% for r in g.rows %}<tr><th scope="row">{{ r[0] | safe }}</th>{% for c in [1, 2, 3] %}<td class="v-num" data-l="{{ ['', 'Min', 'Typ', 'Max'][c] }}">{{ r[c] | replace(from="[tbd]", to=tbd) | safe }}</td>{% endfor %}<td class="dg-unit">{{ r[4] }}</td><td class="dg-notes">{{ r[5] | replace(from="[tbd]", to=tbd) | replace(from="[Plus]", to=plus) | safe }}</td></tr>{% endfor %}</tbody>
+</table>
+</div>
+{%- endfor %}
+<div class="dg-spec" id="spec-safe">
+<h3 class="dg-h3">At reset, halted or unpowered</h3>
+<p class="v-muted dg-note">Every enable and select line has a pull-down, so while the MCU is in reset, halted by a debugger, or without power, the board falls back to the same safe state.</p>
+<table class="v-table dg-table dg-kv"><thead><tr><th scope="col">Part</th><th scope="col">State</th></tr></thead>
+<tbody>{% for r in d.safe_state %}<tr><th scope="row">{{ r[0] }}</th><td>{{ r[1] }}</td></tr>{% endfor %}</tbody></table>
+</div>
+<div class="dg-spec" id="spec-sbu-modes">
+<h3 class="dg-h3">SBU modes and the cable orientation</h3>
+<p class="v-muted dg-note">USB-C plugs go in either way round, and the device's CC pins can't tell which: a device has the same 5.1 kΩ pull-down on both. The orientation is a setting instead. FDCAN has a TX pin on SBU2 only, so it works in one orientation.</p>
+<div class="v-table-wrap"><table class="v-table dg-table dg-kv3"><thead><tr><th scope="col">Mode</th><th scope="col">Cable one way</th><th scope="col">Flipped</th></tr></thead>
+<tbody>{% for r in d.sbu_modes %}<tr><th scope="row">{{ r[0] }}</th><td>{{ r[1] }}</td><td>{{ r[2] }}</td></tr>{% endfor %}</tbody></table></div>
+</div>
+{% </vh.section> %}
+
+{{ <vh.trace sig="bus" from={30} to={70} label="J101" /> }}
+
+{% <vh.section label="Pinout" n="05" id="pinout" title="Pinout, connectors and size"> %}
+<div class="dg-boards">
+{{ <vh.fig stem="img/boards/b153-donguru/b153_top" widths={[640, 1280, 1920]} sizes="(max-width: 52rem) calc(100vw - 2rem), 36rem" alt="B153 Donguru PCB, top view" n="3" caption="Top · rev A (render)" /> }}
+{{ <vh.fig stem="img/boards/b153-donguru/b153_bottom" widths={[640, 1280, 1920]} sizes="(max-width: 52rem) calc(100vw - 2rem), 36rem" alt="B153 Donguru PCB, bottom view" n="4" caption="Bottom · rev A (render)" /> }}
+</div>
+<div class="dg-pins">
+<div>
+<h3 class="dg-h3">J101, 1×12 2.54 mm header</h3>
+<table class="v-table dg-table dg-header-pins"><thead><tr><th scope="col">Pin</th><th scope="col">Signal</th><th scope="col">Function</th></tr></thead>
+<tbody>{% for p in d.header %}<tr><td class="v-num">{{ p.pin }}</td><th scope="row" class="dg-pin dg-pin-{{ p.kind }}">{{ p.name }}</th><td>{{ p.use | replace(from="[Plus]", to=plus) | safe }}</td></tr>{% endfor %}</tbody></table>
+<p class="v-muted dg-note"><strong>VBUS_SW</strong> (pin 10) is the computer's own VBUS through a switch, off at power-up: 5 V normally, up to 20 V after a PD renegotiation. Turning it on always shows the present voltage, and above 5.5 V needs an explicit confirmation. <strong>Relay</strong> (pins 11, 12): an isolated photo-MOS contact for a reset button, a boot strap or a power key on the device.</p>
+</div>
+<div>
+<h3 class="dg-h3">Plug J501, to the device</h3>
+<table class="v-table dg-table dg-kv"><thead><tr><th scope="col">Pin</th><th scope="col">Use</th></tr></thead>
+<tbody>{% for r in d.plug %}<tr><th scope="row">{{ r[0] }}</th><td>{{ r[1] | replace(from="[Plus]", to=plus) | safe }}</td></tr>{% endfor %}</tbody></table>
+<h3 class="dg-h3">Receptacle J401, to the computer</h3>
+<table class="v-table dg-table dg-kv"><thead><tr><th scope="col">Pin</th><th scope="col">Use</th></tr></thead>
+<tbody>{% for r in d.receptacle %}<tr><th scope="row">{{ r[0] }}</th><td>{{ r[1] }}</td></tr>{% endfor %}</tbody></table>
+<h3 class="dg-h3">Button, switch and LEDs</h3>
+<p class="v-muted">A push button and a slide switch share one ADC input; the firmware decodes presses and their length, and the button can be given an action (power cycle, data reconnect). Holding the button at power-up starts the STM32 USB bootloader for a firmware update without a probe. A red and a green LED show state, and can blink to identify one dongle among several.</p>
+<h3 class="dg-h3">Mechanical</h3>
+<p class="v-muted">Board and enclosure dimensions {{ tbd | safe }}. A STEP model comes with them.</p>
+</div>
+</div>
+{% </vh.section> %}
+
+{{ <vh.trace sig="ctrl" from={70} to={20} label="SWD" /> }}
+
+{% <vh.section label="Software" n="06" id="software" title="A CLI, a library and a GUI over one API"> %}
+<p class="v-muted section-lead">The firmware serves a typed WireWeaver API over USB, with a CMSIS-DAP interface for debug tools beside it. The Rust library is generated from the API, and the CLI, the Python wheel and the IOWeaver GUI are built on the library, so every tool sees the same functions and the same checks. A mock Donguru in the library runs test scripts without hardware.</p>
+{% <vh.code_tabs id="dg-code" labels={["CLI · works today", "Rust · works today", "Python · planned"]} label="FIG. 5 · Software"> %}
+```sh
+dg device list              # every Donguru on USB: serial, path, label, API version
+dg info                     # firmware, board, variant, last reset
+dg power status             # plug VBUS, header VBUS_SW and the meter in one read
+dg power on --trip 1.5A     # VBUS to the device, cut above 1.5 A
+dg power cycle --off 500ms  # off, wait, back on through the same checks
+dg power watch --on-change  # voltage, current, power as they change
+dg power totals             # charge and energy since the last reset, mAh / mWh
+dg usb disconnect           # cut the device's USB data; connect brings it back
+dg header relay on          # close the isolated relay contact
+dg swd memtest --chip STM32G0B1CEUx   # check the SWD link at each speed
+dg device log --follow      # the firmware's log, decoded on the PC
+```
+=== tab ===
+```rust
+use donguru_core::{Dongle, vbus};
+
+#[tokio::main]
+async fn main() -> donguru_core::Result<()> {
+    let dg = Dongle::open(None).await?;           // the one on USB, or as in donguru.toml
+    dg.plug().set_vbus_mode(vbus::auto(5.5, 1.5)).await?; // cut above 5.5 V or 1.5 A
+    let r = dg.meter().reading().await?;
+    println!("{} V, {} A", r.vbus_in, r.current);
+    Ok(())
+}
+```
+=== tab ===
+```python
+from donguru import Donguru
+
+dg = Donguru.connect()                  # first on USB; or Donguru.connect(serial="B153B-042")
+dg.plug.vbus_on(max_voltage=5.5, trip_current=1.5)
+r = dg.meter.reading()
+print(f"{r.vbus_in:.2f} V  {r.current * 1000:.0f} mA")
+
+dg.plug.vbus_cycle(off=0.5)             # power cycle the device
+dg.usb.disconnect(); dg.usb.connect()   # make it re-enumerate
+```
+{% </vh.code_tabs> %}
+<div class="cols">
+<div class="col" style="--sig: var(--signal-usb)"><h3><code>dg</code> CLI</h3><p><code>--format json</code> or <code>jsonl</code> on every command for scripts, and exit codes that tell a refused request from a missing dongle. Completion for bash, zsh and fish. Planned for v1.0: <code>dg uart</code>, <code>dg i2c</code>, <code>dg gpio</code>.</p></div>
+<div class="col" style="--sig: var(--signal-ctrl)"><h3>probe-rs and friends</h3><p>probe-rs uses the probe directly: <code>probe-rs run --chip STM32G0B1CEUx firmware.elf</code> with Donguru plugged in. OpenOCD and pyOCD find it like any other CMSIS-DAP probe.</p></div>
+<div class="col" style="--sig: var(--signal-bus)"><h3>IOWeaver <span class="v-badge">planned for v1.0</span></h3><p>The GUI for Donguru and rePort: power, the meter, the switches and every bus on one screen, on the desktop or in the browser. Zero setup: Donguru brings up its own small network over USB with a start page, so any browser reaches it with nothing to install.</p></div>
+</div>
+<p class="more"><a class="ext" href="https://vhrdtech.github.io/typec_dongle/">Documentation</a> · <a class="ext" href="https://github.com/vhrdtech/typec_dongle">Source on GitHub</a> · <a class="go" href="{{ get_url(path='/software/') }}">IOWeaver</a></p>
+{% </vh.section> %}
+
+{{ <vh.trace sig="usb" from={20} to={80} label="DUT" /> }}
+
+{% <vh.section label="Use cases" n="07" id="uses" title="Where it earns its place"> %}
+<div class="dg-feats dg-uses">
+<article class="dg-feat" style="--sig: var(--signal-usb)"><h3>Development</h3><p>Bring-up of a device with a USB-C port: its USB, its console and its power on one cable, with the current it draws on the meter.</p></article>
+<article class="dg-feat" style="--sig: var(--signal-ctrl)"><h3>Debugging</h3><p>Flash and debug over SWD on the sideband pins with probe-rs, OpenOCD or pyOCD, and read the UART on the same cable.</p></article>
+<article class="dg-feat" style="--sig: var(--signal-power)"><h3>Automated test benches</h3><p>Power cycling, current logging and USB re-enumeration from a script, with limits that hold even when the script doesn't.</p></article>
+<article class="dg-feat" style="--sig: var(--signal-bus)"><h3>Production flashing</h3><p>Test and program the product through its own USB-C connector. One Donguru can flash another through the receptacle's SBU pins.</p></article>
+</div>
+{% </vh.section> %}
+
+{{ <vh.trace sig="ctrl" from={80} to={40} label="FAQ" /> }}
+
+{% <vh.section label="FAQ" n="08" id="faq" title="Questions the datasheet answers"> %}
+<div class="dg-faq">
+<details><summary>What is the difference between Main and Plus?</summary><p>Both have the VBUS switch, the meter, PD on both ports, SBU and header IO, the relay and the SWD probe. Plus has a 4-port hub instead of 2 ports, and adds USB on the 2.54 mm header and USB to the device over the plug's SBU pins. See <a href="#variants">Main and Plus</a>.</p></details>
+<details><summary>Can a PD charger put 20 V on my 5 V board?</summary><p>Not with the default mode. ForceOn keeps plug VBUS on only while the computer's VBUS stays at or below the limit, 5.5 V unless asked for more. The firmware checks the limits about every 15 ms: fast enough for a renegotiation, not a fuse. A short circuit is caught by the load switch itself. This is a design target, to be tested on rev B.</p></details>
+<details><summary>What happens when the firmware hangs or the MCU is halted?</summary><p>Every enable has a pull-down. Plug VBUS, the header's VBUS_SW and the relay are off; the device's USB data stays connected to the hub. See <a href="#spec-safe">At reset, halted or unpowered</a>.</p></details>
+<details><summary>Does it work with probe-rs?</summary><p>Yes. Donguru is a CMSIS-DAP v2 probe on the plug's SBU pins, so probe-rs, OpenOCD and pyOCD find it on USB like any other probe. The SWD clock goes up to 3 MHz bit-banged, and up to 4 MHz SPI-driven as an experiment.</p></details>
+<details><summary>What if the cable goes in the other way round?</summary><p>The orientation is a setting, so a flipped cable is one command rather than re-plugging. UART, I2C and SWD swap their lines; FDCAN on SBU works in one orientation only.</p></details>
+<details><summary>Does my device need a PD controller for the debug path?</summary><p>No. In debug-accessory mode Donguru pulls both CC pins of the device up. A device recognises that with a few comparators or ADC pins and switches its SWD or UART onto the SBU pins. Devices with a PD controller can be asked the same over PD, with a vendor message.</p></details>
+<details><summary>Can I use the UART as a plain serial port?</summary><p>That is planned: the SBU UART as a standard USB serial port (CDC-ACM), which terminal programs open as <code>/dev/ttyACM0</code> or <code>COM3</code> with no Donguru software at all.</p></details>
+<details><summary>Does Donguru need its own power supply?</summary><p>No. It runs from whichever side has VBUS, so it keeps working while plug VBUS is off, and a self-powered device can keep it alive.</p></details>
+<details><summary>How fast is the UART?</summary><p>The baud rate goes up to 8 MBd, with 7 or 8 data bits and no flow control. Receiving runs sustained at 2 MBd (200 kB/s) with any data, without compression, measured on rev A. Above about 2 MBd the firmware compresses what it receives with LZ4 for hosts that support it, so the sustained rate depends on the data; those rates are {{ tbd | safe }}.</p></details>
+<details><summary>Can I write tests without the hardware?</summary><p>Yes. The library carries a mock Donguru that follows the same rules as the firmware, for Rust tests today and for Python (<code>Donguru.mock()</code>) with the wheel.</p></details>
+<details><summary>How is its own firmware updated?</summary><p>Holding the button at power-up starts the STM32 USB bootloader, for a firmware update without a probe.</p></details>
+<details><summary>What does it cost, and when can I get one?</summary><p>Donguru is coming in Q1–Q2 2027 on CrowdSupply. The price is not set yet. <a href="#notify">Get notified</a> and we tell you when the campaign opens.</p></details>
+</div>
+{% </vh.section> %}
+
+{{ <vh.trace sig="usb" from={40} to={16} /> }}
+
+{% <vh.section label="Launch" n="09" id="notify" title="Get notified"> %}
+<div class="contact">
+<div>
+<p class="v-lead">Donguru launches on CrowdSupply, coming Q1–Q2 2027. Until the campaign page is up, write to <a href="mailto:{{ config.extra.email }}?subject=Donguru">{{ config.extra.email }}</a> and we let you know.</p>
+<div class="ctas"><a class="v-btn v-primary" href="mailto:{{ config.extra.email }}?subject=Donguru">Get notified</a></div>
+{{ <vh.specs items={["Status: rev A built, rev B in design", "Launch: Q1–Q2 2027", "Where: CrowdSupply"]} /> }}
+</div>
+<div class="contact-card">
+<p class="v-label">Datasheet</p>
+<p>The PDF datasheet is coming. Until then, this page carries its tables: <a href="#specs">specifications</a> and <a href="#pinout">pinout</a>, from {{ d.datasheet }}.</p>
+<p class="v-label dg-order">Ordering</p>
+<table class="v-table dg-table dg-kv3"><thead><tr><th scope="col">Part number</th><th scope="col">Product</th><th scope="col">Contents</th></tr></thead>
+<tbody>{% for r in d.ordering %}<tr><td class="v-num">{{ r[0] }}</td><td>{{ r[1] }}</td><td>{{ r[2] }}</td></tr>{% endfor %}</tbody></table>
+</div>
+</div>
+{% </vh.section> %}
+{% endblock content %}

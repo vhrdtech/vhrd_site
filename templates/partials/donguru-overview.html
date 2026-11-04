@@ -1,0 +1,66 @@
+{#- Donguru (B153) overview for /donguru: a redraw of the datasheet's overview() (hw b153_typec_serial/spec/diagrams/
+    b153_diagrams.typ), same blocks and the same nets, in the site's look: hairline blocks, the MCU in the brand red,
+    nets in the signal colours. Plus-only paths are dashed, like the datasheet's dotted lines. Uses the .bd styles of
+    site.css; .bd-plus and the legend are in donguru.css. -#}
+<svg class="bd bd-overview" viewBox="0 0 720 400" role="img" aria-labelledby="ov-title ov-desc" focusable="false">
+<title id="ov-title">Donguru block diagram</title>
+<desc id="ov-desc">The computer's USB-C receptacle feeds VBUS through the VBUS switch with its voltage and current meter to the device's USB-C plug. The computer's USB goes into a USB 2.0 hub: port 1 to the STM32G0B1 MCU, port 2 as D+ and D− through the plug signal block to the device, and on the Plus variant port 3 to the 2.54 mm header and port 4 to the device over SBU. The MCU drives the VBUS switch and reads the meter, runs the header IO, and reaches the plug's SBU, CC, A2 and B2 pins.</desc>
+<g class="bd-net" style="--sig: var(--signal-power)">
+  <path d="M110 50 H425"/>
+  <path d="M595 50 H610"/>
+</g>
+<g class="bd-net" style="--sig: var(--signal-usb)">
+  <path d="M110 320 H135"/>
+  <path d="M285 320 H440"/>
+  <path d="M580 320 H610"/>
+  <path d="M225 295 V242 L237 230 H290"/>
+</g>
+<g class="bd-net bd-plus" style="--sig: var(--signal-usb)">
+  <path d="M210 345 V363 L222 375 H498 L510 363 V352"/>
+  <path d="M190 295 V152 L202 140 H280"/>
+</g>
+<g class="bd-net" style="--sig: var(--signal-bus)">
+  <path d="M360 205 V172"/>
+  <path d="M430 240 H513 L525 252 V288"/>
+</g>
+<g class="bd-net bd-ctrl" style="--sig: var(--signal-ctrl)">
+  <path d="M430 220 H483 L495 208 V75"/>
+</g>
+<g class="bd-box">
+  <rect x="10" y="20" width="100" height="330" rx="2"/>
+  <rect x="610" y="20" width="100" height="330" rx="2"/>
+  <rect x="425" y="25" width="170" height="50" rx="2"/>
+  <rect x="280" y="108" width="160" height="64" rx="2"/>
+  <rect x="135" y="295" width="150" height="50" rx="2"/>
+  <rect x="440" y="288" width="140" height="64" rx="2"/>
+</g>
+<rect class="bd-mcu" x="290" y="205" width="140" height="50" rx="2"/>
+<g class="bd-text">
+  <text x="60" y="176" text-anchor="middle">COMPUTER</text>
+  <text x="60" y="194" text-anchor="middle" class="bd-sub">USB-C</text>
+  <text x="60" y="208" text-anchor="middle" class="bd-sub">RECEPTACLE</text>
+  <text x="660" y="176" text-anchor="middle">DEVICE</text>
+  <text x="660" y="194" text-anchor="middle" class="bd-sub">USB-C</text>
+  <text x="660" y="208" text-anchor="middle" class="bd-sub">PLUG</text>
+  <text x="510" y="46" text-anchor="middle">VBUS SWITCH</text>
+  <text x="510" y="62" text-anchor="middle" class="bd-sub">20 V / 5 A · V/I METER</text>
+  <text x="360" y="130" text-anchor="middle">2.54 MM HEADER</text>
+  <text x="360" y="146" text-anchor="middle" class="bd-sub">4 GPIO, RELAY</text>
+  <text x="360" y="160" text-anchor="middle" class="bd-sub">3.3 V, VBUS_SW</text>
+  <text x="360" y="227" text-anchor="middle" class="bd-mcu-t">STM32G0B1</text>
+  <text x="360" y="243" text-anchor="middle" class="bd-sub">MCU · 2× UCPD</text>
+  <text x="210" y="316" text-anchor="middle">USB 2.0 HUB</text>
+  <text x="210" y="332" text-anchor="middle" class="bd-sub">MAIN 2 · PLUS 4 PORTS</text>
+  <text x="510" y="306" text-anchor="middle">PLUG SIGNALS</text>
+  <text x="510" y="322" text-anchor="middle" class="bd-sub">DATA CUT, SBU I/O</text>
+  <text x="510" y="336" text-anchor="middle" class="bd-sub">CC PULL-UPS, OVP</text>
+  <text x="126" y="42" class="bd-net-t">VBUS</text>
+  <text x="300" y="312" class="bd-net-t">D+/D−</text>
+  <text x="240" y="222" class="bd-net-t">PORT 1</text>
+  <text x="198" y="196" class="bd-net-t">PORT 3 · PLUS</text>
+  <text x="290" y="392" class="bd-net-t">USB ON SBU · PLUS</text>
+  <text x="370" y="192" class="bd-net-t">IO</text>
+  <text x="503" y="180" class="bd-net-t">EN, METER</text>
+  <text x="436" y="235" class="bd-net-t">SBU, CC, A2/B2</text>
+</g>
+</svg>

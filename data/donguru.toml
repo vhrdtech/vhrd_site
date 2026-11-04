@@ -1,0 +1,244 @@
+# Donguru (B153): the tables of /donguru, copied from the datasheet, Preview 0.2 of 24 Oct 2026
+# (~/git/hw/b153_typec_serial/spec/datasheet/b153_datasheet.typ). The values, units and notes stay exactly as there:
+# Marketing's rule is that the specs on the page equal the datasheet. When the datasheet changes, change this file.
+# Markup in the strings: [tbd] becomes the tbd badge, [Plus] the Plus badge; <sub> and <code> pass through.
+# A spec row is [parameter, min, typ, max, unit, notes].
+
+datasheet = "Preview 0.2, 24 Oct 2026"
+
+variants = [
+  ["USB 2.0 hub", "2 ports", "4 ports"],
+  ["USB to the device (D+/D−), switchable", "✓", "✓"],
+  ["USB on the 2.54 mm header", "—", "✓"],
+  ["USB to the device over SBU, switchable with SBU I/O", "—", "✓"],
+  ["VBUS switch, meter, PD on both ports, SBU and header IO, relay, SWD probe", "✓", "✓"],
+]
+
+safe_state = [
+  ["Plug VBUS", "off"],
+  ["Header VBUS_SW", "off"],
+  ["Relay", "open"],
+  ["Device USB data", "connected to the hub"],
+  ["SBU", "to the MCU side, level translator off, pull-ups off, low level selected"],
+  ["J101 IO, plug A2/B2", "MCU pins as inputs; with Donguru unpowered a pin driven high reaches its 3.3 V rail through the MCU's clamp diodes and series resistors"],
+]
+
+sbu_modes = [
+  ["UART", "SBU1 TX, SBU2 RX", "SBU2 TX, SBU1 RX"],
+  ["I2C", "SBU1 SCL, SBU2 SDA", "SBU1 SDA, SBU2 SCL"],
+  ["FDCAN (to a transceiver)", "SBU1 RX, SBU2 TX", "— (no FDCAN pins for it)"],
+  ["SWD host", "SBU1 SWCLK, SBU2 SWDIO", "SBU1 SWDIO, SBU2 SWCLK"],
+  ["GPIO, ADC", "both lines", "both lines"],
+]
+
+# Pinout. J101 from the datasheet's header-pinout() (b153_diagrams.typ); kind gives the signal colour.
+header = [
+  { pin = 1, name = "IO7", kind = "bus", use = "PB3, ADC on PB1; I2C3 SCL, USART5 TX, FDCAN2 TX" },
+  { pin = 2, name = "IO8", kind = "bus", use = "PB4; I2C3 SDA, USART5 RX" },
+  { pin = 3, name = "IO9", kind = "bus", use = "PA2, ADC; USART2 TX, SPI1 MOSI" },
+  { pin = 4, name = "IO10", kind = "bus", use = "PB12, ADC; FDCAN2 RX" },
+  { pin = 5, name = "3.3 V out", kind = "power", use = "board 3.3 V" },
+  { pin = 6, name = "GND", kind = "gnd", use = "" },
+  { pin = 7, name = "GND", kind = "gnd", use = "" },
+  { pin = 8, name = "USB D+", kind = "usb", use = "hub port 3, [Plus]" },
+  { pin = 9, name = "USB D−", kind = "usb", use = "hub port 3, [Plus]" },
+  { pin = 10, name = "VBUS_SW", kind = "power", use = "computer's VBUS, switched: 5 V, or up to 20 V after PD" },
+  { pin = 11, name = "RL1", kind = "ctrl", use = "isolated photo-MOS contact" },
+  { pin = 12, name = "RL2", kind = "ctrl", use = "" },
+]
+
+plug = [
+  ["VBUS", "switched, measured, both directions"],
+  ["D+/D− (A6/A7)", "hub port 2 through the data switch"],
+  ["CC, VCONN (A5, B5)", "UCPD2: PD; pull-ups for debug-accessory mode"],
+  ["SBU1, SBU2 (A8, B8)", "UART, I2C, SWD, FDCAN, GPIO, ADC; USB on [Plus]"],
+  ["A2, B2", "GPIO, FDCAN2"],
+]
+
+receptacle = [
+  ["VBUS", "powers Donguru and the device"],
+  ["D+/D−", "hub upstream, USB 2.0 Hi-Speed"],
+  ["CC1, CC2", "UCPD1: PD, sink or source"],
+  ["SBU1, SBU2", "Donguru's own SWD: one Donguru can flash another"],
+]
+
+ordering = [
+  ["VHRD-B153", "Donguru Main", "Dongle, quick-start card"],
+  ["VHRD-B153-PLUS", "Donguru Plus", "Dongle, quick-start card"],
+]
+
+[[specs]]
+title = "Absolute maximum ratings"
+id = "abs-max"
+note = "Stress beyond these may damage the board. They are not operating conditions. The over-voltage values are design targets, to be tested on rev B, including 20 V applied without any PD negotiation (a lab supply, a broken charger), not only after a contract Donguru negotiated itself."
+rows = [
+  ["VBUS, either port", "−0.3", "", "24", "V", "load switch over-voltage cut-off; TVS 22 V standoff; to be tested"],
+  ["VBUS current through the switch", "", "", "5", "A", "[tbd], set by the current limit"],
+  ["Plug SBU, CC (short to VBUS)", "−0.3", "", "20", "V", "CC/SBU over-voltage protection, part for rev B [tbd]; to be tested"],
+  ["Plug A2, B2", "−0.3", "", "3.6", "V", "MCU pins, ESD only"],
+  ["J101 pins 1-4, IO7-IO10", "−0.5", "", "5.6", "V", "255 Ω, 5.6 V clamp, 12 V TVS; transients [tbd]"],
+  ["J101 pins 11, 12, relay", "", "", "[tbd]", "V", "photo-MOS, isolated"],
+  ["Storage temperature", "−40", "", "85", "°C", "[tbd]"],
+  ["ESD, external pins", "", "", "[tbd]", "kV", ""],
+]
+
+[[specs]]
+title = "Recommended operating conditions"
+id = "operating"
+rows = [
+  ["Computer VBUS", "4.5", "5.0", "20", "V", "above 5.5 V only on request"],
+  ["Supply current, Donguru itself", "", "[tbd]", "", "mA", ""],
+  ["SBU level", "", "1.8 or 3.3", "", "V", "selectable"],
+  ["Load on J101 pin 5, 3.3 V out", "", "", "[tbd]", "mA", "buck: 600 mA for the whole board"],
+  ["Operating temperature", "0", "", "50", "°C", "[tbd]"],
+]
+
+[[specs]]
+title = "VBUS switch"
+id = "vbus"
+rows = [
+  ["Voltage", "", "", "20", "V", "over-voltage cut-off 24 V"],
+  ["Current, device to computer", "", "", "5.5", "A", "hardware limit, latch-off; [tbd]"],
+  ["Current, computer to device", "", "", "5", "A", "no hardware limit, short-circuit protected; firmware Auto mode"],
+  ["On resistance", "", "[tbd]", "", "mΩ", "plus 5 mΩ shunt"],
+  ["Guard reaction (firmware)", "", "15", "", "ms", "one ADC update"],
+  ["Power cycle off time", "0", "", "60", "s", ""],
+]
+
+[[specs]]
+title = "Power meter"
+id = "meter"
+rows = [
+  ["Current range", "−6.6", "", "6.6", "A", "positive towards the device"],
+  ["Current resolution", "", "3.2", "", "mA", "12-bit ADC before oversampling"],
+  ["Current accuracy after calibration", "", "[tbd]", "", "%", ""],
+  ["Voltage range, computer VBUS", "0", "", "23.6", "V", "divider ÷7.17"],
+  ["Voltage resolution", "", "5.8", "", "mV", ""],
+  ["Voltage accuracy", "", "[tbd]", "", "%", ""],
+  ["Plug VBUS voltage", "", "", "", "", "not measured"],
+]
+
+[[specs]]
+title = "SBU"
+id = "sbu"
+rows = [
+  ["Level", "", "1.8 or 3.3", "", "V", "selectable; adjustable range for rev B [tbd]"],
+  ["Input high, low", "", "[tbd]", "", "V", "level translator"],
+  ["Pull-ups", "", "3.3", "", "kΩ", "to the SBU level, switched"],
+  ["Path resistance", "", "5", "", "Ω", "protection; Plus: +6 Ω USB switch"],
+  ["USB over SBU, Plus", "", "480", "", "Mbit/s", "hub port 4"],
+]
+
+[[specs]]
+title = "SWD probe"
+id = "swd"
+rows = [
+  ["Protocol", "", "", "", "", "CMSIS-DAP v2 (bulk), 512-byte packets"],
+  ["SWD clock", "", "", "3", "MHz", "bit-banged; up to 4 MHz SPI-driven, experimental"],
+  ["Target level", "", "3.3", "", "V", "1.8 V targets with rev B [tbd]"],
+]
+
+[[specs]]
+title = "Header IO, J101 pins 1-4"
+id = "header-io"
+rows = [
+  ["Level", "", "3.3", "", "V", "MCU pins"],
+  ["Series resistance", "", "255", "", "Ω", "plus the driver"],
+  ["Output current, pin shorted", "", "13", "", "mA", "3.3 V / 255 Ω"],
+  ["ADC inputs", "", "3", "", "", "IO7, IO9, IO10; 12 bit, 0-3.3 V"],
+  ["Relay contact current", "", "", "[tbd]", "mA", "photo-MOS"],
+  ["Relay contact voltage", "", "", "[tbd]", "V", ""],
+]
+
+[[specs]]
+title = "UART"
+id = "uart"
+rows = [
+  ["Ports", "", "2", "", "", "plug SBU (USART3, swapped USART1); J101 IO7 TX, IO8 RX (USART5)"],
+  ["Baud rate", "4", "", "8 M", "Bd", "64 MHz / k above 4 MBd: 5.818 M for 6 M asked; set rate is reported"],
+  ["Data bits", "7", "", "8", "", "parity none, even, odd; 1 or 2 stop bits"],
+  ["Flow control", "", "", "", "", "none (no RTS / CTS pins)"],
+  ["TX / RX swap", "", "", "", "", "SBU: follows the cable orientation setting"],
+  ["Receive buffer", "", "8", "", "KiB", "DMA ring, plus 32 chunks of 512 B"],
+  ["USB serial port (CDC-ACM)", "", "", "", "", "the SBU UART, for terminal programs; planned"],
+]
+
+[[specs]]
+title = "I2C"
+id = "i2c"
+rows = [
+  ["Ports", "", "2", "", "", "plug SBU (I2C1, SCL / SDA follow the orientation); J101 IO7 SCL, IO8 SDA (I2C3)"],
+  ["Clock", "[tbd]", "", "1000", "kHz", "standard, fast, fast-mode plus"],
+  ["Level", "", "1.8 or 3.3", "", "V", "SBU: selectable; J101: 3.3 V"],
+  ["Pull-ups, SBU", "", "3.3", "", "kΩ", "to the SBU level, switched"],
+  ["Pull-ups, J101", "", "≈40", "", "kΩ", "MCU's own only; add external ones above 100 kHz"],
+  ["Addresses", "", "", "", "", "7 and 10 bit"],
+  ["Bus capacitance", "", "", "[tbd]", "pF", ""],
+]
+
+[[specs]]
+title = "SPI"
+id = "spi"
+rows = [
+  ["Port", "", "1", "", "", "J101: IO7 SCK, IO8 MISO, IO9 MOSI, IO10 CS (SPI1, CS in software)"],
+  ["Clock, master", "", "", "[tbd]", "MHz", "MCU SPI: up to 32 MHz (64 MHz / 2); 255 Ω and clamps set the limit"],
+  ["Clock, slave", "", "", "[tbd]", "MHz", ""],
+  ["Modes", "", "", "", "", "0-3, MSB or LSB first"],
+  ["Word size", "4", "", "16", "bit", ""],
+]
+
+[[specs]]
+title = "Analog inputs"
+id = "analog"
+rows = [
+  ["Channels", "", "5", "", "", "J101 IO7, IO9, IO10; plug SBU1, SBU2 (MCU side of the translator)"],
+  ["Input range", "0", "", "3.3", "V", ""],
+  ["Resolution", "", "12", "", "bit", "≈0.8 mV per step before oversampling"],
+  ["Effective resolution", "", "[tbd]", "", "bit", ""],
+  ["Sample rate, all channels together", "", "", "[tbd]", "kS/s", "MCU ADC: 2.5 MS/s, shared with the power meter"],
+  ["Accuracy after calibration", "", "[tbd]", "", "mV", ""],
+  ["Source resistance", "", "", "[tbd]", "kΩ", "J101 adds 255 Ω in series"],
+]
+
+[[specs]]
+title = "GPIO, PWM and timers"
+id = "gpio"
+rows = [
+  ["GPIO", "", "8", "", "", "J101 IO7-IO10, plug SBU1, SBU2, A2, B2"],
+  ["Input high, V<sub>IH</sub>", "0.7 × V<sub>IO</sub>", "", "", "V", "MCU pins; SBU through the translator [tbd]"],
+  ["Input low, V<sub>IL</sub>", "", "", "0.3 × V<sub>IO</sub>", "V", ""],
+  ["Toggle rate from the host", "", "", "[tbd]", "1/s", "one request per change"],
+  ["Edge timestamps, inputs", "", "[tbd]", "", "µs", "resolution"],
+  ["PWM outputs", "", "3", "", "", "J101 IO7 (TIM14); plug SBU1, SBU2 (TIM2)"],
+  ["PWM resolution", "", "", "16", "bit", "64 MHz timer clock"],
+  ["PWM frequency", "[tbd]", "", "[tbd]", "Hz", ""],
+]
+
+[[specs]]
+title = "FDCAN"
+id = "fdcan"
+rows = [
+  ["Ports", "", "3", "", "", "plug SBU (FDCAN1, one orientation); plug A2, B2 and J101 IO7 TX, IO10 RX (FDCAN2)"],
+  ["Bit rate, arbitration", "", "", "1", "Mbit/s", "CAN FD"],
+  ["Bit rate, data phase", "", "", "[tbd]", "Mbit/s", "MCU FDCAN: up to 8 Mbit/s"],
+  ["Transceiver", "", "", "", "", "none on board: logic-level TX / RX to an external transceiver"],
+]
+
+[[specs]]
+title = "USB Power Delivery"
+id = "pd"
+rows = [
+  ["Controllers", "", "2", "", "", "UCPD1 on the computer port, UCPD2 on the plug"],
+  ["Power roles", "", "", "", "", "source or sink on each port"],
+  ["Messages", "", "", "", "", "PD 3.0 incl. VDM; firmware stack planned for v1.0"],
+  ["Debug-accessory pull-ups", "", "[tbd]", "", "kΩ", "both plug CC lines, switched"],
+]
+
+[[specs]]
+title = "USB"
+id = "usb"
+rows = [
+  ["Speed, external ports", "", "480", "", "Mbit/s", "USB 2.0 Hi-Speed: 1 port on Main, 3 on Plus"],
+  ["Speed, the MCU", "", "12", "", "Mbit/s", "USB Full Speed, hub port 1"],
+  ["Connectors", "", "", "", "", "USB-C receptacle (computer), USB-C plug (device)"],
+]
