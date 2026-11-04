@@ -52,6 +52,7 @@
 
 ### Changed
 
+- No release dates for the paid software: RockFace's "first paid release planned for January 2027" (front page and /software) now reads "Commercial release: TBD". Commercial timing is open for now (Roman).
 - /open-source has a GUI group, after Host tools, with vhrd_egui, egui_tabular and rvariant (moved out of Host tools), in the grey control colour Highlights no longer uses.
 - The intro plays only on a first visit from outside the site and on a reload of the home page (Roman). Coming home from inside the site (the wordmark or any link to /), going back or forward, or a page restored from the browser's cache shows the page at once. The replay button still plays the demo. The browser check covers an outside entry, the wordmark, a reload and back.
 - Code samples have two versions of the same code: a narrow one at 44 columns for phones and one with natural line breaks, which a container query shows once the card's code box holds its width. No sample scrolls sideways, and a wide screen is not held to the phone's line breaks. `tools/samples.py` checks that both versions are the same code (only line breaks, indentation and comment re-flow differ), and the browser check covers both from 320 to 1440 px.

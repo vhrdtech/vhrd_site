@@ -21,7 +21,7 @@ A protocol analyzer and grapher for the desktop: it records, decodes, shows on a
 
 {{ <vh.fig stem="img/lab/rockface/rockface-window" widths={[640, 1280]} sizes="(max-width: 75rem) 100vw, 72rem" alt="RockFace window: timeline view, log view and defmt counters" n="2" caption="RockFace: firmware debugger, timeline and logs" /> }}
 
-A tracer and debugger for embedded firmware, for systems that are running. The first paid release is planned for January 2027.
+A tracer and debugger for embedded firmware, for systems that are running. Commercial release: TBD.
 
 {{ <vh.specs items={["Logs: from one board or a fleet", "Graphs: stack and CPU use", "Profiling: zero-cost", "Timeline: sleep spans and events"]} /> }}
 
