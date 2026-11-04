@@ -11,6 +11,7 @@ Without BASE_URL it builds the site with zola into target/check for a local port
 
 For every page in the site map, at phone (390), tablet (820) and desktop (1440) widths, in dark and light:
 no console errors or failed requests, no sideways scroll, the open-source stack's track through every via's centre.
+A crate card marked `fits` in data/stack.toml shows its code without a sideways scroll from 320 px up.
 On the front page: the theme toggle switches and the choice survives a reload, the code tabs work by keyboard
 (arrow keys), the skip link is the first tab stop.
 First-view budget: what a phone loads for the front page before scrolling (HTML, CSS, script, fonts, images)
@@ -53,6 +54,9 @@ VIA_OFFSETS = """() => [...document.querySelectorAll('.layer')].map((l) => {
   const t = getComputedStyle(l, '::before');
   return v.left + v.width / 2 - (l.getBoundingClientRect().left + parseFloat(t.left) + parseFloat(t.width) / 2);
 })"""
+# Crate cards marked `fits` in data/stack.toml: how far each one's code scrolls sideways, in px.
+CODE_OVERFLOW = """() => [...document.querySelectorAll('.crate[data-fits] .crate-code pre')]
+  .map((p) => [p.closest('.crate').id, p.scrollWidth - p.clientWidth])"""
 IMAGES_WITHOUT = """() => [...document.images]
   .filter((i) => !i.hasAttribute("alt") || !i.getAttribute("width") || !i.getAttribute("height"))
   .map((i) => i.currentSrc || i.src)"""
@@ -115,6 +119,21 @@ class Quiet(http.server.SimpleHTTPRequestHandler):
 
 INTRO_ON = "document.documentElement.classList.contains('intro')"
 SCOPE_SHOWN = "getComputedStyle(document.querySelector('.scope')).display !== 'none'"
+
+
+def check_code_fits(browser, base):
+    """The crate cards marked `fits` show their code without a sideways scroll, from a 320px phone up."""
+    failures = []
+    for w in (320, 390, 820, 1440):
+        ctx = browser.new_context(viewport={"width": w, "height": 900}, reduced_motion="reduce")
+        page = ctx.new_page()
+        for path in ("", "open-source/"):
+            page.goto(base + path)
+            for crate, px in page.evaluate(CODE_OVERFLOW):
+                if px > 0:
+                    failures.append(f"{path or '/'} {w}px: the {crate} card's code scrolls sideways by {px}px")
+        ctx.close()
+    return failures
 
 
 def check_intro(browser, base):
@@ -314,6 +333,7 @@ def main():
             failures.append(f"image without alt, width or height: {src}")
         ctx.close()
 
+        failures += check_code_fits(browser, base)
         failures += check_intro(browser, base)
         failures += check_placeholders(browser, base)
 

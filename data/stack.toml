@@ -85,14 +85,28 @@ lang = "rust"
 code = '''
 // exact or refused, never rounded through a float
 let t: Micros<u32> = Fixed::new(1500);
-assert_eq!(t.to::<Milli, u16>(), None); // 1500 µs is not a whole number of ms
+assert_eq!(t.to::<Milli, u16>(), None); // not whole ms
 
-// zero cost: the type is the integer
-assert_eq!(size_of::<Micros<u32>>(), size_of::<u32>());
+// V/V and W/W are different kinds: the kind picks the dB
+type VGain = Fixed<Per<Volt, Volt>, One, f64>;
+type PGain = Fixed<Per<Watt, Watt>, One, f64>;
+VGain::new(2.0).to_db(); // 6.0206: 20·lg 2
+PGain::new(2.0).to_db(); // 3.0103: 10·lg 2
+
+// a threshold in dB, an integer at compile time
+let v: Fixed<Per<Volt, Volt>, Milli, u16> = db!(-6); // 501
+let p: Fixed<Per<Watt, Watt>, Milli, u16> = db!(-6); // 251
+
+// a duty cycle has no level: 0.5 duty is not -3 dB
+// Fixed::<Ratio, One, f64>::new(0.5).to_db();
+// error[E0080]: decibels are for W/W or V/V, A/A, Pa/Pa:
+//               a plain Ratio has no level form
 '''
 
 [[crate]]
 name = "embedded_bedrock"
+# fits = true: the code is written to 35 columns, so it never scrolls sideways (the browser check holds it)
+fits = true
 layer = "Firmware"
 sig = "can"
 front = true
@@ -101,14 +115,36 @@ repo = "https://github.com/romixlab/embedded_bedrock"
 note = "not on crates.io yet"
 lang = "rust"
 code = '''
-use bedrock_led::code::{blink, Code};
+use bedrock_led::code::*;
+use bedrock_sync::{Config, Sync};
+use cortex_m::asm::delay;
 
-// A firmware that won't start says why on its status LED,
-// then waits in the ROM bootloader to be flashed.
+// A firmware that will not start
+// says why on its status LED, then
+// waits in the ROM bootloader.
 if !guard.runs_board() {
-    blink(Code::UnknownRework, |on| led_pin_set(on), |ms| cortex_m::asm::delay(ms * BOOT_CLOCK_KHZ));
+    let pause = |n| delay(n * KHZ);
+    blink(Code::UnknownRework,
+          led, pause);
     reboot_into_rom_bootloader();
 }
+
+// One clock on all boards, steered
+// by the host over WireWeaver:
+// Acquiring, Locked within 2 ms.
+// `ww sync` locks the boards in
+// 1.2-1.6 s. On Donguru it costs
+// about 1.5 KB of flash.
+static SYNC: Sync =
+    Sync::new(Config::DEFAULT);
+
+// clock.steer, once a second
+let r = SYNC.with(|clock, now| {
+    server.steer(clock, now, &p)
+});
+
+// all boards act at the same µs
+SYNC.wait_until_shared(t).await?;
 '''
 
 [[crate]]

@@ -57,6 +57,8 @@
 - Headlines are in the text colour; the brand red marks one word of the hero and stays for accents.
 - Arrows after links are CSS masks instead of arrow characters, so no page loads the Pi font subsets for them; the skip link uses the medium weight, so the semibold face is not loaded either.
 - The shrink_wrap card shows the bit-packing: an I2C write (a 7- or 10-bit address, two flags, a nibble, an optional 10-bit timeout and a payload) is 7 bytes on the wire, 20 as a repr(C) struct. The bytes come from running it against shrink_wrap 0.2.0.
+- The exact_units card shows that V/V and W/W are different kinds: 2 V/V is +6.02 dB (20·lg), 2 W/W is +3.01 dB (10·lg), `db!(-6)` is 501 mV/V but 251 mW/W, and a plain Ratio has no dB at all (a compile error). The values come from running it against exact_units.
+- The embedded_bedrock card fits a phone without a sideways scroll (35 columns, down to 320 px wide) and shows the shared clock: steered by the host over WireWeaver, locked within 2 ms, `ww sync` locks the boards in 1.2-1.6 s, about 1.5 KB of flash on Donguru, and a task that waits for a shared instant. It compiles for a Cortex-M0+ against bedrock_sync.
 
 ### Fixed
 

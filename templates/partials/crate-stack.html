@@ -9,7 +9,7 @@
 {%- if c.crate %}{% set meta = load_data(url="https://crates.io/api/v1/crates/" ~ c.crate, format="json", required=false, headers=["User-Agent=vhrd_site build (https://vhrd.tech, hello@vhrd.tech)"]) %}{% else %}{% set meta = "" %}{% endif %}
 <li class="layer" style="--sig: var(--signal-{{ c.sig }})">
 <div class="layer-head"><span class="via" aria-hidden="true"></span><span class="v-label">{{ c.layer }}</span></div>
-<article class="crate{% if c.logo_dark %} has-logo{% endif %}" id="{{ c.name }}">
+<article class="crate{% if c.logo_dark %} has-logo{% endif %}" id="{{ c.name }}"{% if c.fits %} data-fits{% endif %}>
 <div class="crate-text">
 <header class="crate-head">
 {%- if c.logo_dark %}<span class="crate-logo"><img class="logo-dark" src="{{ get_url(path=c.logo_dark) }}" alt="" width="{{ c.logo_w }}" height="{{ c.logo_h }}" loading="lazy" decoding="async"><img class="logo-light" src="{{ get_url(path=c.logo_light) }}" alt="" width="{{ c.logo_w }}" height="{{ c.logo_h }}" loading="lazy" decoding="async"></span>{% endif %}
