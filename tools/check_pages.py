@@ -4,7 +4,10 @@
 # ///
 """Drive a built site in headless Chromium the way a visitor would and fail on what the web checklist names.
 
-Usage: uv run tools/check_pages.py BASE_URL [--chromium PATH] [--shots DIR]
+Usage: uv run tools/check_pages.py [BASE_URL] [--chromium PATH] [--shots DIR]
+
+Without BASE_URL it builds the site with zola into target/check for a local port and serves it from there (what
+`just check-browser` does); with one it checks that site as deployed (`just check-preview`).
 
 For every page in the site map, at phone (390), tablet (820) and desktop (1440) widths, in dark and light:
 no console errors or failed requests, no sideways scroll. On the front page: the theme toggle switches and the
@@ -13,8 +16,13 @@ With --shots, writes a full-page screenshot per width in dark (traces shown draw
 """
 
 import argparse
+import functools
+import http.server
 import shutil
+import socket
+import subprocess
 import sys
+import threading
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
@@ -24,13 +32,34 @@ PAGES = ["", "donguru/", "report/", "can/", "software/", "open-source/", "lab/",
 WIDTHS = {"phone": 390, "tablet": 820, "desktop": 1440}
 
 
+def serve_build():
+    """Build the site for a free local port, serve it in a thread, return its address."""
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
+    base = f"http://127.0.0.1:{port}/"
+    root = Path(__file__).resolve().parent.parent
+    out = root / "target/check"
+    subprocess.run(["zola", "build", "--base-url", base, "--output-dir", str(out), "--force"], cwd=root,
+                   check=True, stdout=subprocess.DEVNULL)
+    handler = functools.partial(Quiet, directory=str(out))
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return base
+
+
+class Quiet(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, *args):
+        pass
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("base")
+    ap.add_argument("base", nargs="?")
     ap.add_argument("--chromium", default=shutil.which("chromium") or shutil.which("chromium-browser"))
     ap.add_argument("--shots")
     a = ap.parse_args()
-    base = a.base.rstrip("/") + "/"
+    base = (a.base or serve_build()).rstrip("/") + "/"
     failures = []
 
     with sync_playwright() as p:

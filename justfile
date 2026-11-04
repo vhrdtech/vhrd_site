@@ -23,17 +23,28 @@ build:
     zola check --skip-external-links
     zola build
 
-# The site builds, internal links resolve, the brand files match vhrd_brand (when it is checked out here)
+# The site builds, internal links resolve, every page passes the browser checks, the brand files match vhrd_brand
+# (when it is checked out here)
 test *args:
     zola --version | grep -qF "{{ zola_version }}" || { echo "zola {{ zola_version }} expected: just install"; exit 1; }
     zola check --skip-external-links
     zola build --output-dir target/test --force
+    uv run tools/check_pages.py
     if [ -d "{{ brand }}/web" ]; then diff -q "{{ brand }}/web/tokens.css" static/css/brand/tokens.css && diff -q "{{ brand }}/web/vhrd.css" static/css/brand/vhrd.css; else echo "note: {{ brand }} missing, brand files not compared"; fi
 
-# No whitespace errors, the wordmark script parses
+# Every page in headless Chromium at phone, tablet and desktop widths, dark and light: no console errors, no sideways
+# scroll, theme toggle, keyboard tabs (needs chromium)
+check-browser:
+    uv run tools/check_pages.py
+
+# The same checks against the deployed preview, with full-page screenshots at 390 and 1440 px into DIR
+check-preview dir="target/shots":
+    uv run tools/check_pages.py "{{ preview_url }}" --shots "{{ dir }}"
+
+# No whitespace errors, the tools parse
 lint:
     git diff --check HEAD
-    uv run --no-project python -m py_compile tools/wordmark.py
+    uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py
 
 # Install the pinned Zola release binary into ~/.local/bin (no root)
 install:
