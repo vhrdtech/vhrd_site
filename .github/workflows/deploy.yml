@@ -1,0 +1,141 @@
+# Deploy https://vhrd.tech/: build the live site, then, once approved in the production environment, upload it to
+# the server with rsync. Started by hand only: Actions > Deploy vhrd.tech > Run workflow, on main.
+# How it is set up and why (key, environment, the server's ci-site user): README "Deploy".
+#
+# The build job has no secrets. Only the deploy job gets the SSH key, and it runs nothing from the repo but the
+# post-deploy check after the key is gone. On the server the key can only write into the site's folder (rrsync -wo).
+
+name: Deploy vhrd.tech
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  ZOLA_VERSION: "0.23.6"
+  ZOLA_SHA256: "8f5132b3522412d04e395e0b25f6d68613ad272a873e54a2b3ebf664873024a4"
+  DEPLOY_HOST: vhrd.tech
+  DEPLOY_PORT: "7722"
+  DEPLOY_USER: ci-site
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      stamp: ${{ steps.pack.outputs.stamp }}
+      digest: ${{ steps.pack.outputs.digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Zola (pinned, checked by sha256)
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/zola.tar.gz" \
+            "https://github.com/getzola/zola/releases/download/v${ZOLA_VERSION}/zola-v${ZOLA_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+          echo "${ZOLA_SHA256}  $RUNNER_TEMP/zola.tar.gz" | sha256sum -c -
+          tar xzf "$RUNNER_TEMP/zola.tar.gz" -C "$RUNNER_TEMP" zola
+          "$RUNNER_TEMP/zola" --version
+
+      # The same as `just live`, with the footer stamp the justfile would set.
+      - name: Build the live site
+        run: |
+          export VHRD_GIT="$(git describe --always --dirty --abbrev=7)"
+          export VHRD_BUILT="$(git log -1 --format=%cd --date=format:'%-d %b %Y')"
+          "$RUNNER_TEMP/zola" check --skip-external-links
+          "$RUNNER_TEMP/zola" build --base-url "https://vhrd.tech/" --output-dir target/live
+          python3 tools/check_live.py built target/live --stamp "$VHRD_GIT"
+          echo "VHRD_GIT=$VHRD_GIT" >> "$GITHUB_ENV"
+
+      - name: Pack
+        id: pack
+        run: |
+          case "$VHRD_GIT" in *-dirty) echo "the tree is dirty"; exit 1;; esac
+          tar cf "$RUNNER_TEMP/site.tar" -C target/live .
+          echo "stamp=$VHRD_GIT" >> "$GITHUB_OUTPUT"
+          echo "digest=$(sha256sum "$RUNNER_TEMP/site.tar" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: site
+          path: ${{ runner.temp }}/site.tar
+          retention-days: 7
+          if-no-files-found: error
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment:
+      name: production
+      url: https://vhrd.tech/
+    permissions:
+      contents: read
+    steps:
+      # Deny by default: only the people in the repository variable DEPLOY_ACTORS (logins, space separated) deploy.
+      - name: Who started it
+        env:
+          ACTORS: ${{ vars.DEPLOY_ACTORS }}
+          ACTOR: ${{ github.triggering_actor }}
+        run: |
+          [ -n "$ACTOR" ] || exit 1
+          case " $ACTORS " in
+            *" $ACTOR "*) echo "started by $ACTOR" ;;
+            *) echo "$ACTOR may not deploy (DEPLOY_ACTORS: '$ACTORS')"; exit 1 ;;
+          esac
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github/deploy
+            tools/check_live.py
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: site
+          path: ${{ runner.temp }}/artifact
+
+      - name: Unpack the build it approved
+        env:
+          DIGEST: ${{ needs.build.outputs.digest }}
+        run: |
+          echo "${DIGEST}  $RUNNER_TEMP/artifact/site.tar" | sha256sum -c -
+          mkdir "$RUNNER_TEMP/site"
+          tar xf "$RUNNER_TEMP/artifact/site.tar" -C "$RUNNER_TEMP/site"
+
+      # rsync over SSH to the ci-site user, whose key the server forces into `rrsync -wo -munge` on the site folder.
+      # The new files land beside the old ones and are renamed into place at the end (--delay-updates); pages that
+      # went away are deleted after that (--delete-after). The host key is the one committed in .github/deploy.
+      - name: Upload
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          umask 077
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$RUNNER_TEMP/deploy_key"
+          rsync --recursive --checksum --perms --chmod=D2755,F644 --omit-dir-times \
+            --delete-after --delay-updates --stats \
+            -e "ssh -p $DEPLOY_PORT -i $RUNNER_TEMP/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+                -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$GITHUB_WORKSPACE/.github/deploy/known_hosts \
+                -o ConnectTimeout=30" \
+            "$RUNNER_TEMP/site/" "$DEPLOY_USER@$DEPLOY_HOST:/"
+
+      - name: Forget the key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/deploy_key"
+
+      - name: Check the live site
+        env:
+          STAMP: ${{ needs.build.outputs.stamp }}
+        run: python3 tools/check_live.py site https://vhrd.tech --built "$RUNNER_TEMP/site" --stamp "$STAMP"

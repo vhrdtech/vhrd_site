@@ -42,10 +42,13 @@ check-browser:
 check-preview url dir="target/shots":
     uv run tools/check_pages.py "{{ url }}" --shots "{{ dir }}"
 
-# No whitespace errors, the tools parse. Check only: the bytecode goes to a temp dir, never into the tree
+# No whitespace errors, the tools parse, the deploy workflow passes actionlint and zizmor. Check only: the bytecode
+# goes to a temp dir, never into the tree
 lint:
     git diff --check HEAD
-    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py tools/samples.py tools/perf.py tools/fonts.py scripts/render_boards.py
+    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py tools/samples.py tools/perf.py tools/fonts.py tools/check_live.py scripts/render_boards.py
+    uvx --from actionlint-py actionlint .github/workflows/deploy.yml
+    uvx zizmor --offline .github/workflows/deploy.yml
 
 # Install the pinned Zola release binary into ~/.local/bin (no root)
 install:
@@ -78,7 +81,19 @@ live:
     rm -rf target/live
     zola check --skip-external-links
     zola build --base-url "https://vhrd.tech/" --output-dir target/live
+    python3 tools/check_live.py built target/live --stamp "$VHRD_GIT"
     @echo "built https://vhrd.tech/ ($VHRD_GIT) in target/live"
+
+# Deploy main to https://vhrd.tech/: starts the Deploy workflow on GitHub and follows it. It waits for approval in
+# the production environment (README "Deploy")
+deploy:
+    gh workflow run deploy.yml --repo vhrdtech/vhrd_site --ref main
+    @echo "approve it in GitHub (Actions > Deploy vhrd.tech), then: gh run watch --repo vhrdtech/vhrd_site"
+
+# Check the deployed site against target/live (from `just live` at the same commit): every page 200, the footer
+# stamp, /shop/ still reaching WordPress
+check-live url="https://vhrd.tech":
+    python3 tools/check_live.py site "{{ url }}" --built target/live --stamp "$VHRD_GIT"
 
 # Build a noindex preview for https://shadow.vhrd.tech/TOKEN/ into target/preview/TOKEN. TOKEN is the share link's
 # token, a fresh one per preview; the site is built for that base path, so it only works under that link. The

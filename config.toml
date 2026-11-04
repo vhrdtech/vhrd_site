@@ -10,7 +10,9 @@ build_search_index = false
 # No blog or shop here yet: the old WordPress site serves its posts, /feed/ and /shop/ behind this one.
 generate_feeds = false
 # The 2400 px PNG render sources stay in the repo for re-encoding but never ship: the site uses their AVIF/WebP variants.
-ignored_static = ["img/boards/**/*.png"]
+# The manifests are read by the templates (load_data) and name paths in the private hw repo: they never ship either,
+# nor do the .gitkeep placeholders.
+ignored_static = ["img/boards/**/*.png", "img/**/manifest.toml", "**/.gitkeep"]
 feed_filenames = ["atom.xml"]
 
 [markdown]

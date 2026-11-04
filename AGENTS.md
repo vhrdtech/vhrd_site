@@ -23,6 +23,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 - `static/css/site.css`: the site's own layer. `base.html` inlines all the CSS (fonts.css, the brand files and site.css) into each page with `load_data`, so there is no render-blocking request. `static/js/site.js`: theme toggle, tabs and the image placeholders' marking, nothing else.
 - `static/fonts/`: IBM Plex woff2 subsets and `fonts.css`. `static/img/boards/` holds board renders (`just renders`, README "Board renders") and `static/img/lab/` lab photos.
 - `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check, `tools/perf.py` measures the first screen on a slow phone, `tools/fonts.py` cuts the Core font subsets and the small Greek faces (Ω, μ) from vhrd_brand's full fonts.
+- `.github/workflows/deploy.yml`: the only way the site reaches vhrd.tech (README "Deploy"); `.github/deploy/known_hosts` pins the server's host key. `tools/check_live.py` checks a live build before upload and the site after it.
 - `data/stack.toml`: the open-source crates in their /open-source order (layer, logos per theme, code sample, which are on crates.io); `front = true` puts one on the front page too. `partials/crate-stack.html` draws them for both pages, `templates/open-source.html` is the /open-source page. `data/repos.toml`: every other repository on /open-source, by area (`partials/repo-list.html`); its head names the repos left off and why.
 
 ## Commands
@@ -37,7 +38,9 @@ just wordmark         # redraw the wordmark and favicon from vhrd_brand's Audiow
 just check-browser    # the browser check alone
 just perf             # first screen on a slow phone: requests, KB, FCP, LCP (median of 3 runs)
 just fonts            # Core subsets of the IBM Plex Latin1 faces, and fonts.css
-just live             # the live site for https://vhrd.tech/ into target/live (indexable, no blog or shop)
+just live             # the live site for https://vhrd.tech/ into target/live (indexable, no blog or shop), checked
+just deploy           # start the Deploy workflow on GitHub; it waits for approval (README "Deploy")
+just check-live       # the deployed site against target/live: pages 200, the footer stamp, /shop/ reaches WordPress
 just preview TOKEN    # noindex build for https://shadow.vhrd.tech/TOKEN/, uploaded with tpm share (README "Preview")
 just check-preview URL  # the browser check against a deployed preview, screenshots into target/shots
 just renders          # rebuild static/img/boards/ from ~/git/hw (KiCad); needs a machine-local 3D model

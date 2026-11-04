@@ -1,0 +1,4 @@
+# The SSH host key of vhrd.tech on port 7722, which the deploy workflow trusts and nothing else. Its fingerprint,
+# SHA256:aVlvOjzwnMaJXzC5XaYpIhbOXK16oaMrTaAqk8Agw+Q, must match `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`
+# on the server. A new host key is a reviewed commit here.
+[vhrd.tech]:7722 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAfJY60237njjCJFkujpq/ux5nMDpTm7xt/1u8ZHfrJX
