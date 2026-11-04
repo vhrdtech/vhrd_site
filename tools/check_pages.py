@@ -17,9 +17,9 @@ First-view budget: what a phone loads for the front page before scrolling (HTML,
 stays under BUDGET_KB as sent over the wire: text gzipped (as the local build would be served by a server that
 compresses), fonts and images as they are; against a deployed site, the transfer sizes the browser saw. Every image
 has alt text and its width and height.
-The front page's intro: it plays on the first visit in a tab and clears by itself, waits (ARMED) for a late hero
-render, says after 5 s how to skip and a click skips it, a key skips it, it does not play
-again in the same tab, and it never shows under reduced motion or without JavaScript.
+The front page's intro: on every load it shows and clears by itself without waiting on a fast site, waits (LOADING)
+for a late hero render and fires (TRIG'D), says after 5 s how to skip and a click skips it, a key skips it, the
+replay button plays it again; never with a #fragment, under reduced motion or without JavaScript.
 A picture on its way shows as a small scope screen in its box and fades in when it comes, without a size change.
 With --shots, writes a full-page screenshot per width in dark (traces shown drawn: reduced motion).
 """
@@ -118,22 +118,42 @@ SCOPE_SHOWN = "getComputedStyle(document.querySelector('.scope')).display !== 'n
 
 
 def check_intro(browser, base):
-    """The intro plays once per tab, clears itself, can be skipped, and stays off under reduced motion or no JS."""
+    """The intro on every load: fast path straight to the page, slow path LOADING / hint / TRIG'D, replay, skip;
+    never with a #fragment, under reduced motion or without JS."""
     failures = []
+    # Waiting is remembered on the page, so the fast path can be told from a short wait.
+    seen = """window.__waited = false; new MutationObserver(() => {
+      if (document.documentElement.classList.contains('intro-wait')) window.__waited = true;
+    }).observe(document, {attributes: true, subtree: true, attributeFilter: ['class']});"""
     ctx = browser.new_context(viewport={"width": 1440, "height": 900}, color_scheme="dark")
+    ctx.add_init_script(seen)
     page = ctx.new_page()
-    page.goto(base)
-    if not page.evaluate(SCOPE_SHOWN):
-        failures.append("intro: the scope does not show on the first visit")
-    if not page.locator("h1").is_visible():
-        failures.append("intro: the headline is not rendered under the intro")
-    try:
-        page.wait_for_function(f"!({INTRO_ON})", timeout=3000)
-    except Exception:
-        failures.append("intro: still on after 3 s")
-    page.reload()
+    for load in ("first load", "reload"):
+        page.goto(base) if load == "first load" else page.reload()
+        if not page.evaluate(SCOPE_SHOWN):
+            failures.append(f"intro: the scope does not show on the {load}")
+        if not page.locator("h1").is_visible():
+            failures.append("intro: the headline is not rendered under the intro")
+        try:
+            page.wait_for_function(f"!({INTRO_ON})", timeout=3000)
+        except Exception:
+            failures.append(f"intro: still on 3 s after the {load}")
+        if page.evaluate("window.__waited"):
+            failures.append(f"intro: waited (LOADING) on the {load} of a fast local site")
+    replay = page.locator(".replay")
+    if not replay.is_visible():
+        failures.append("intro: no replay button")
+    else:
+        replay.click()
+        if not page.evaluate(INTRO_ON):
+            failures.append("intro: the replay button does not play it")
+        try:
+            page.wait_for_function(f"!({INTRO_ON})", timeout=3000)
+        except Exception:
+            failures.append("intro: the replay does not clear")
+    page.goto(base + "#notify")
     if page.evaluate(INTRO_ON):
-        failures.append("intro: plays again in the same tab")
+        failures.append("intro: plays although a #fragment links to a section")
     ctx.close()
 
     ctx = browser.new_context(viewport={"width": 390, "height": 844}, color_scheme="light")
@@ -147,8 +167,8 @@ def check_intro(browser, base):
         failures.append("intro: a key press did not skip it within 0.5 s")
     ctx.close()
 
-    # A slow hero render: the scope waits (ARMED), fires (TRIG'D) and reveals once the render is in; never received,
-    # it says after 5 s how to skip, and a click does.
+    # A slow hero render: the scope waits (LOADING) and fires (TRIG'D) once the render is in; never received, it
+    # says after 5 s how to skip, and a click does.
     for release, why in ((True, "a late hero"), (False, "a hero that never comes")):
         ctx = browser.new_context(viewport={"width": 1440, "height": 900}, color_scheme="dark")
         page = ctx.new_page()
@@ -158,16 +178,22 @@ def check_intro(browser, base):
         page.wait_for_timeout(2000)
         if not page.evaluate("document.documentElement.classList.contains('intro-wait')"):
             failures.append(f"intro: does not wait for {why}")
-        elif page.locator(".scope-status").inner_text().upper() != "ARMED":
-            failures.append(f"intro: no ARMED status while waiting for {why}")
-        if not release:
+        elif page.locator(".scope-status").inner_text().upper() != "LOADING":
+            failures.append(f"intro: no LOADING status while waiting for {why}")
+        if release:
+            for r in held:
+                r.continue_()
+            try:
+                page.wait_for_function("document.documentElement.classList.contains('intro-trig')", timeout=1500)
+                if page.locator(".scope-status").inner_text().upper() != "TRIG'D":
+                    failures.append("intro: no TRIG'D when it fires")
+            except Exception:
+                failures.append("intro: does not fire once the hero is in")
+        else:
             page.wait_for_timeout(5000)
             if not page.locator(".scope-hint").is_visible():
                 failures.append("intro: no slow-link hint after 5 s of waiting")
             page.mouse.click(10, 10)
-        if release:
-            for r in held:
-                r.continue_()
         try:
             page.wait_for_function(f"!({INTRO_ON})", timeout=1500)
         except Exception:
@@ -180,9 +206,10 @@ def check_intro(browser, base):
         ctx = browser.new_context(viewport={"width": 1440, "height": 900}, **opts)
         page = ctx.new_page()
         page.goto(base)
-        if page.evaluate(SCOPE_SHOWN) if opts.get("java_script_enabled", True) else \
-                page.locator(".scope").is_visible():
+        if page.locator(".scope").is_visible():
             failures.append(f"intro: shows under {why}")
+        if page.locator(".replay").is_visible():
+            failures.append(f"intro: the replay button shows under {why}")
         ctx.close()
     return failures
 
@@ -199,8 +226,7 @@ def check_placeholders(browser, base):
         held = []
         page.route("**/b200_hero-*", lambda route: held.append(route))
         page.goto(base)
-        page.evaluate("sessionStorage.setItem('intro', '1')")
-        page.reload()
+        page.wait_for_function(f"!({INTRO_ON})")
         if page.evaluate("document.querySelector('.hero-fig .fig-frame').matches('.img-wait, .img-in')"):
             failures.append(f"placeholder ({motion}): the hero got one, so its largest paint waits for the fade")
         page.evaluate(f"{FRAME}.scrollIntoView()")

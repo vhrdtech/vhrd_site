@@ -16,7 +16,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 
 - `config.toml`: site settings; `[extra]` holds the company line, contact mail, header links and the notify button.
 - `content/`: one Markdown file per page (`donguru.md` is `/donguru/`), `blog/` is a section. Stubs carry `extra.stub = true`.
-- `templates/base.html`: the page frame. `partials/header.html`, `partials/footer.html` (build stamp from `VHRD_GIT` and `VHRD_BUILT`, which the justfile sets) and `partials/wordmark.html` (generated).
+- `templates/base.html`: the page frame, with the view frame's four crosses (`.view-frame`) and an `intro` block the home page fills. `partials/header.html`, `partials/footer.html` (build stamp from `VHRD_GIT` and `VHRD_BUILT`, which the justfile sets) and `partials/wordmark.html` (generated).
 - `templates/components.html`: the `vh.*` components, usable in templates and Markdown (README "Components").
 - `templates/index.html`: the landing page; `partials/donguru-diagram.html` is its block diagram and `partials/intro.html` its oscilloscope intro (README "Intro"). `page.html` is a plain page, `section.html` is the blog list, and there are `404.html` and `robots.txt`.
 - `static/css/brand/`: `tokens.css` and `vhrd.css` from vhrd_brand (`just brand`). Never edit these here; change vhrd_brand and pull.

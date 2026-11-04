@@ -6,13 +6,13 @@
 {#- The hero render, before anything else: the largest paint on every width. Same candidates as its <picture>. #}
 {%- set hero = "img/boards/b153-donguru/b153_hero" %}
 <link rel="preload" as="image" type="image/avif" fetchpriority="high" imagesrcset="{% for w in [640, 1280, 1920] %}{{ get_url(path=hero ~ '-' ~ w ~ '.avif') }} {{ w }}w{% if not loop.last %}, {% endif %}{% endfor %}" imagesizes="(max-width: 52rem) calc(100vw - 2rem), 34rem">
-{#- The intro plays once per tab, with JS on, without reduced motion and when the page opens at its top. Set before the
-    first paint, so the page never flashes before the scope covers it. #}
-<script>try{if(!sessionStorage.getItem("intro")&&!location.hash&&!matchMedia("(prefers-reduced-motion: reduce)").matches){sessionStorage.setItem("intro","1");document.documentElement.classList.add("intro")}}catch(e){}</script>
+{#- The intro plays on every load, with JS on, without reduced motion and unless a #fragment links to a section. Set
+    before the first paint, so the page never flashes before the scope covers it. #}
+<script>if(!location.hash&&!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("intro")</script>
 {%- endblock head %}
+{% block intro %}{% include "partials/intro.html" %}{% endblock intro %}
 {% block content %}
 {%- set draft = '<span class="v-badge">draft</span>' -%}
-{% include "partials/intro.html" %}
 <section class="section hero">
   <div class="hero-text">
     {{ <vh.label text="Boards · Rust firmware · Open source" /> }}

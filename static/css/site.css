@@ -192,7 +192,7 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 
 /* Figures: corner marks in the brand red like the datasheet frame, the caption in mono caps. */
 .fig { margin: 0; }
-.fig-frame, .scope-screen {
+.fig-frame {
   position: relative;
   padding: 0.75rem;
   --c: 14px;
@@ -545,44 +545,71 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
   :root:not([data-theme="dark"]) .logo-dark { display: none; }
 }
 
-/* Intro, the front page only (partials/intro.html): an oscilloscope screen sweeps a ringing step, grows out to
-   FIG. 1's corners and becomes that frame while the page shows through. The page is painted underneath from the
-   start (the largest paint is not held back); this layer only covers it. Without `html.intro` it never shows.
-   Timeline: power-on 0.25 s, sweep 0.7 s, growth and reveal 0.6 s, about 1.55 s in all. On a slow connection the
-   growth waits for the first screen (.intro-wait: the step re-triggers, "ARMED" blinks; .intro-slow after 5 s: how
-   to skip; .intro-trig: "TRIG'D"), at most 20 s.
-   The trace is the CAN cyan, the brightest signal colour on the screen's #0f0f10 and the colour a scope channel is
-   read as; the brand red stays on the corner marks the screen turns into. The screen is dark in both themes, so the
-   trace takes the token's hue at a fixed phosphor brightness (the light theme's CAN colour is too dark to glow). */
+/* The view frame (base.html): a cross at each corner of the visible screen, on the column's edges, just under the
+   header and 10px above the bottom (10px in from the sides where the column fills the screen, so a cross is never
+   cut); like the crosshairs where section rules meet the frame. Above the header and the intro, which opens out onto
+   it; .scope-ray takes the same box. */
+:root { --view-edge: 10px; }
+.view-frame {
+  --x: max(var(--view-edge), (100% - var(--page)) / 2);
+  --arm: linear-gradient(var(--mark), var(--mark));
+  position: fixed;
+  inset: calc(var(--header-h) - 6px) calc(var(--x) - 6px) calc(var(--view-edge) - 6px);
+  z-index: 210;
+  pointer-events: none;
+  background:
+    var(--arm) left 0 top 5px / 11px 1px no-repeat, var(--arm) left 5px top 0 / 1px 11px no-repeat,
+    var(--arm) right 0 top 5px / 11px 1px no-repeat, var(--arm) right 5px top 0 / 1px 11px no-repeat,
+    var(--arm) left 0 bottom 5px / 11px 1px no-repeat, var(--arm) left 5px bottom 0 / 1px 11px no-repeat,
+    var(--arm) right 0 bottom 5px / 11px 1px no-repeat, var(--arm) right 5px bottom 0 / 1px 11px no-repeat;
+}
+.intro .view-frame { --mark: var(--trace); transition: none; }
+
+/* Intro, the front page only (partials/intro.html), like an old CRT scope powering up: a bright dot in the middle of
+   a dark screen, then the deflection ramps up and it opens into a rectangle that overshoots, wobbles and settles
+   with its corners on the view frame's crosses (1 s). With the first screen ready, the screen fades to the page
+   (0.4 s). On a slow link a sine runs with "LOADING" (.intro-wait), "SLOW LINK · CLICK TO SKIP" after 5 s
+   (.intro-slow), "TRIG'D" when it fires (.intro-trig), at most 20 s. The page is painted underneath from the start
+   (the largest paint is not held back); this layer only covers it. Without `html.intro` it never shows.
+   The trace is the CAN cyan at a fixed phosphor brightness: the brightest signal colour on the screen's #0f0f10 and
+   the colour a scope channel is read as. The screen is dark in both themes. */
+:root {
+  --trace: var(--signal-can);
+  --trace: oklch(from var(--signal-can) 0.82 0.14 h);
+  --beam: color-mix(in oklch, var(--trace) 40%, var(--vhrd-grey-0));
+}
 .scope { display: none; }
 .intro .scope {
   display: block;
   position: fixed;
   inset: 0;
   z-index: 200;
-  background-color: var(--bg);
-  animation: scope-failsafe 0.2s 21s forwards; /* the script's CAP (20 s) plus the reveal */
+  background: var(--vhrd-grey-950);
+  animation: scope-failsafe 0.2s 21s forwards; /* the script's CAP (20 s) plus the fade */
 }
-/* Centred, in the render's proportions (--hr, height over width, set by the template). */
-.scope-screen {
-  --sw: min(86vw, 30rem, 70vh / var(--hr));
-  position: fixed;
-  left: calc(50% - var(--sw) / 2);
-  top: calc(50% - var(--sw) * var(--hr) / 2);
-  width: var(--sw);
-  height: calc(var(--sw) * var(--hr));
-  box-sizing: border-box;
-  transform-origin: 0 0;
+/* The beam's raster, placed exactly on the view frame's crosses. */
+.scope-ray {
+  position: absolute;
+  inset: var(--header-h) max(var(--view-edge), (100% - var(--page)) / 2) var(--view-edge);
+  border: 1.5px solid var(--trace);
+  border-radius: 3px;
+  background: radial-gradient(ellipse at center, color-mix(in oklch, var(--trace) 9%, var(--vhrd-grey-950)), var(--vhrd-grey-950) 75%);
+  box-shadow: 0 0 14px color-mix(in oklch, var(--trace) 55%, transparent), inset 0 0 40px color-mix(in oklch, var(--trace) 14%, transparent);
+  animation: scope-power 1s linear both;
 }
-.scope-crt {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 6px;
-  background: radial-gradient(ellipse at center, color-mix(in oklch, var(--trace) 8%, var(--vhrd-grey-950)), var(--vhrd-grey-950) 75%);
-  box-shadow: 0 0 0 1px var(--vhrd-grey-800), inset 0 0 2rem color-mix(in oklch, var(--trace) 6%, transparent);
-  animation: scope-on 0.25s ease-out both;
+@keyframes scope-power {
+  0% { transform: scale(0.004, 0.007); opacity: 0; background: var(--beam); }
+  8% { transform: scale(0.004, 0.007); opacity: 1; background: var(--beam); animation-timing-function: cubic-bezier(0.5, 0, 0.6, 1); }
+  30% { transform: scale(0.004, 0.007); background: var(--beam); animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1); }
+  33% { background: radial-gradient(ellipse at center, color-mix(in oklch, var(--trace) 9%, var(--vhrd-grey-950)), var(--vhrd-grey-950) 75%); }
+  58% { transform: scale(1.06, 0.42); }
+  72% { transform: scale(0.97, 1.07); }
+  84% { transform: scale(1.015, 0.97); }
+  93% { transform: scale(0.996, 1.008); }
+  100% { transform: none; opacity: 1; }
 }
+.scope-crt { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity 0.3s; }
+.intro-wait .scope-crt { opacity: 1; }
 .scope-grid, .scope-axes { fill: none; vector-effect: non-scaling-stroke; stroke-width: 1; }
 .scope-grid { stroke: color-mix(in oklch, var(--trace) 14%, transparent); }
 .scope-axes { stroke: color-mix(in oklch, var(--trace) 26%, transparent); stroke-dasharray: 2 3; }
@@ -593,78 +620,55 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
 }
-/* The phosphor: a wide faint glow and the trace itself, written as the beam passes and then slowly dimming, and
-   the beam's bright spot running ahead of them. */
-.scope-glow { stroke-width: 8; opacity: 0.25; stroke-dasharray: 1 1; animation: scope-draw 0.7s 0.25s linear both; }
-.scope-trail {
-  stroke-width: 2;
-  stroke-dasharray: 1 1;
-  animation: scope-draw 0.7s 0.25s linear both, scope-decay 1.2s 0.6s ease-out both;
-}
-.scope-beam {
-  stroke: var(--beam);
-  stroke-width: 3;
-  stroke-dasharray: 0.025 1;
-  filter: drop-shadow(0 0 4px var(--trace));
-  animation: scope-beam 0.7s 0.25s linear both;
-}
-/* Waiting for the first screen: the scope re-triggers, each sweep redrawing the step over the glow's persistence. */
-.scope-status {
-  display: none;
-  position: absolute;
-  top: 1.25rem;
-  right: 1.4rem;
-  font: 500 0.6875rem/1 var(--font-mono);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--trace);
-}
-.intro-wait .scope-status { display: block; animation: scope-blink 1s step-end infinite; }
-.intro-trig .scope-status { animation: none; color: var(--beam); }
-.scope-hint {
-  display: none;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 1.4rem;
-  text-align: center;
-  font: 500 0.6875rem/1 var(--font-mono);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--trace);
-}
-.intro-slow .scope-hint { display: block; }
-.intro-trig .scope-hint, .intro-grow .scope-hint { display: none; }
-.intro-grow .scope-status { opacity: 0; transition: opacity 0.2s; }
+/* The phosphor while waiting: a wide faint glow, the trace re-drawn sweep after sweep, the beam's bright spot. */
+.scope-glow { stroke-width: 8; opacity: 0.25; stroke-dasharray: 1 1; }
+.scope-trail { stroke-width: 2; stroke-dasharray: 1 1; }
+.scope-beam { stroke: var(--beam); stroke-width: 3; stroke-dasharray: 0.025 1; filter: drop-shadow(0 0 4px var(--trace)); }
+.intro-wait .scope-glow { animation: scope-draw 0.9s linear both; }
 .intro-wait .scope-trail { animation: scope-draw 0.9s linear infinite; }
 .intro-wait .scope-beam { animation: scope-beam 0.9s linear infinite; }
-@keyframes scope-blink { 50% { opacity: 0.35; } }
-@keyframes scope-on {
-  from { transform: scaleY(0.01); filter: brightness(4); }
-  60% { transform: scaleY(1); filter: brightness(1.6); }
-}
 @keyframes scope-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes scope-beam { from { stroke-dashoffset: 0.025; } to { stroke-dashoffset: -0.975; } }
-@keyframes scope-decay { to { opacity: 0.75; } }
+.scope-status, .scope-hint {
+  display: none;
+  position: absolute;
+  font: 500 0.6875rem/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--trace);
+}
+.scope-status { top: 1rem; right: 1.25rem; }
+.scope-hint { left: 0; right: 0; bottom: 1.5rem; text-align: center; }
+.intro-wait .scope-status { display: block; animation: scope-blink 1s step-end infinite; }
+.intro-trig .scope-status { animation: none; color: var(--beam); }
+.intro-slow .scope-hint { display: block; }
+.intro-trig .scope-hint { display: none; }
+@keyframes scope-blink { 50% { opacity: 0.35; } }
 @keyframes scope-failsafe { to { opacity: 0; visibility: hidden; } }
-/* The growth: the screen moves onto FIG. 1's frame (its place set by the script), the tube goes dark, the cover
-   clears and the page shows; the screen's red corners are then the frame's own. */
-.intro-grow .scope-screen { transition: transform 0.45s cubic-bezier(0.6, 0, 0.2, 1); }
-.intro-grow .scope-crt { opacity: 0; transition: opacity 0.3s 0.2s; }
-.intro-grow .scope { background-color: transparent; transition: background-color 0.45s 0.15s; }
+.intro-out .scope { opacity: 0; transition: opacity 0.4s; }
 .intro-skip .scope { opacity: 0; transition: opacity 0.15s; }
 @media (prefers-reduced-motion: reduce) { .intro .scope { display: none; } }
+
+/* The footer's replay button for the intro (home page only; shown by the intro's script). */
+.replay {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--muted);
+  cursor: pointer;
+}
+.replay:hover { color: var(--text); }
+.replay[hidden] { display: none; }
 
 /* Image placeholders (LOOK-5 scope-placeholders): a picture still on its way shows as a small oscilloscope screen
    in its own box, the same screen as the intro: dark glass, a faint graticule, the ringing step sweeping across.
    The picture fades in over it when it arrives. site.js marks such frames (.img-wait, then .img-in); without the
    script nothing changes. The box keeps the image's width and height, so nothing shifts. The trace is a mask over
    the token colour, so it costs no request. Under reduced motion the screen stays, without the sweep. */
-.scope, .fig-frame {
-  --trace: var(--signal-can);
-  --trace: oklch(from var(--signal-can) 0.82 0.14 h);
-  --beam: color-mix(in oklch, var(--trace) 40%, var(--vhrd-grey-0));
-}
 .img-wait::before, .img-in::before, .img-wait::after, .img-in::after {
   content: "";
   position: absolute;
@@ -690,13 +694,15 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
   filter: drop-shadow(0 0 3px var(--trace));
   animation: img-sweep 1.4s linear infinite;
 }
-.img-wait img, .img-in img { position: relative; z-index: 1; transition: opacity 0.4s; }
+/* Hidden at once when marked, faded in when it comes. */
+.img-wait img, .img-in img { position: relative; z-index: 1; }
 .img-wait img { opacity: 0; }
+.img-in img { transition: opacity 0.4s; }
 .img-in::before, .img-in::after { opacity: 0; }
 @keyframes img-sweep {
   70%, 100% { mask-size: 100% 100%, 100% 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .img-wait::after, .img-in::after { display: none; }
-  .img-wait img, .img-in img { transition: none; }
+  .img-in img { transition: none; }
 }

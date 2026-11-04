@@ -99,21 +99,30 @@ The front page is built to show fast on a slow phone. `just perf` (`tools/perf.p
 
 ## Intro
 
-The front page opens like an oscilloscope (`templates/partials/intro.html`, styles under "Intro" in `site.css`):
+The front page opens like an old CRT oscilloscope powering up (`templates/partials/intro.html`, styles under "Intro" in `site.css`):
 
-1. A dark screen with a faint graticule switches on, like a CRT.
-2. A phosphor trace sweeps a step that rings and settles, with a glow, a bright beam spot and a slowly dimming trail.
-3. The screen grows out to FIG. 1's red corner marks and becomes that frame, while the cover over the page clears.
+1. A dark screen, and a single bright dot appears in its centre.
+2. The deflection ramps up: the dot opens into a rectangle that overshoots, wobbles and settles with its corners on the four crosses of the view frame.
+3. With the first screen ready (the hero render loaded or failed, the fonts ready), the screen fades straight to the page.
 
-On a slow connection the scope waits for the first screen before it grows out: the hero render loaded (or failed) and the fonts ready. While it waits, the step re-triggers sweep after sweep and "ARMED" blinks in the screen's corner. When everything is in, it says "TRIG'D" and grows out. After 5 s of waiting a line on the screen says "SLOW LINK · CLICK TO SKIP". It waits at most 20 s. When the first screen is ready within the normal 1.55 s, nothing changes.
+On a slow link the screen waits instead:
+
+- A sine runs on it, sweep after sweep, and "LOADING" blinks in its corner.
+- After 5 s of waiting, "SLOW LINK · CLICK TO SKIP" shows at its foot.
+- When the first screen is in, the status says "TRIG'D" and the screen fades to the page.
+- It waits at most 20 s.
+
+The view frame (`.view-frame` in `base.html`) is on every page: a cross at each corner of the visible screen, on the column's edges, just under the header and 10 px above the bottom. It stays as part of the page's frame.
 
 How it is built:
 
-- About 1.55 s in all: power-on 0.25 s, sweep 0.7 s, growth and reveal 0.6 s. The timings are CSS animations; the inline script (about 2.7 KB with its comments) starts the growth when the sweep has ended and the first screen is ready, and clears the layer.
-- The page is in the HTML and painted underneath from the start; the intro only covers it. The largest paint is the hero render either way, at the same time.
-- The growth is a transform (no layout shift). The screen has the render's proportions, so the corners keep their size as they land.
-- A click, key, wheel, touch or scroll skips it. It plays once per tab (sessionStorage), not when the URL has a #fragment, never under reduced motion and never without JavaScript. A CSS failsafe hides the layer after 21 s (the 20 s cap plus the reveal) whatever the script does.
-- The trace is the CAN cyan at a fixed phosphor brightness: the brightest signal colour on #0f0f10 and the colour a scope channel is read as. The brand red stays on the corners.
+- The power-on is one CSS animation of 1 s, the fade 0.4 s: about 1.4 s in all on a fast link or from the cache.
+- The inline script (about 3.7 KB with its comments) decides between the fade and the wait, and clears the layer.
+- The page is in the HTML and painted underneath from the start; the intro only covers it. The largest paint is the hero render either way, at the same time. The growth is a transform: no layout shift.
+- It plays on every load and refresh of the home page, but not when the URL has a #fragment (a link to a section goes straight there).
+- A click, key, wheel, touch or scroll skips it. The footer's "Replay intro" button plays it again.
+- Under reduced motion and without JavaScript there is no intro and no replay button. A CSS failsafe hides the layer after 21 s (the 20 s cap plus the fade) whatever the script does.
+- The trace and the crosses during the intro are the CAN cyan at a fixed phosphor brightness: the brightest signal colour on #0f0f10 and the colour a scope channel is read as.
 
 ## Image placeholders
 

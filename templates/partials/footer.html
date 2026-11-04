@@ -45,6 +45,9 @@
   </div>
   <div class="frame footer-stamp">
     <span>© {{ now() | date(format="%Y") }} {{ config.extra.company }} · vhrd.tech</span>
+    {%- if current_path == "/" %}
+    <button class="replay" type="button" hidden><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false"><path d="M10 2.5v7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M6.2 5.2a6.2 6.2 0 1 0 7.6 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Replay intro</span></button>
+    {%- endif %}
     <span class="stamp">built from <code>{% if git %}{{ git }}{% else %}an unstamped tree{% endif %}</code>{% if built %} · {{ built }}{% endif %}</span>
   </div>
 </footer>

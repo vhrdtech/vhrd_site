@@ -42,6 +42,10 @@
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
+{#- The view frame: a cross at each corner of the visible screen, under the header and at the bottom, on the
+    column's edges. The intro's screen opens out onto them. #}
+<div class="view-frame" aria-hidden="true"></div>
+{%- block intro %}{% endblock intro %}
 {% include "partials/header.html" %}
 <main id="main" class="frame">
 {% block content %}{% endblock content %}
