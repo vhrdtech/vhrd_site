@@ -53,7 +53,7 @@
 ### Changed
 
 - The front page's notify buttons lead to the Donguru page: "Get notified about Donguru" in the hero to /donguru/, the spotlight's and the notify section's buttons to its notify block (/donguru/#notify), like the header's red button. The mail link lives there for now.
-- The granite CNC on /lab is "Modelled down to bolt level", without "ready to be built": it is not for sale.
+- The granite CNC on /work is "Modelled down to bolt level", without "ready to be built": it is not for sale.
 - No release dates for the paid software: RockFace's "first paid release planned for January 2027" (front page and /software) now reads "Commercial release: TBD". Commercial timing is open for now (Roman).
 - /open-source has a GUI group, after Host tools, with vhrd_egui, egui_tabular and rvariant (moved out of Host tools), in the grey control colour Highlights no longer uses.
 - The intro plays only on a first visit from outside the site and on a reload of the home page (Roman). Coming home from inside the site (the wordmark or any link to /), going back or forward, or a page restored from the browser's cache shows the page at once. The replay button still plays the demo. The browser check covers an outside entry, the wordmark, a reload and back.
@@ -92,6 +92,7 @@
 
 ### Fixed
 
+- Tables on /donguru read in both themes: the brand's `.v-table` painted every `th` in the text colour, which hid the row headers and put a white bar over the dark page. Every table now uses theme tokens only (header row on the surface, every other row raised, badges on the page colour), and `just test` checks that the text of every table cell is 4.5:1 on its cell in dark and light (SITE-4 browser-checks).
 - The open-source stack's vias sit on the track's centre (they were 6 px to the left, the track running along their side). The browser check now checks it on every page, width and theme.
 - The intro's replay no longer blinks off at once: it ignores skips for its first 0.4 s, so the click, tap or key that started it, or a wheel's scroll still running out, does not end it.
 - The front page's Donguru card, spotlight and block diagram match the B153 datasheet (Preview 0.2): the cable orientation is a setting, not an automatic TX/RX flip, and there is no boot-mode switch claim. They now name what the datasheet lists: a USB 2.0 Hi-Speed hub; UART, I2C, SWD, FDCAN, GPIO and ADC on the plug's SBU pins; a VBUS switch to 20 V and 5 A with a power meter and firmware guards; the `dg` CLI and a CMSIS-DAP probe. The rePort and CAN cards were checked against their sources and already matched.

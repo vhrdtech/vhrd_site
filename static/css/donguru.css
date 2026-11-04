@@ -34,7 +34,6 @@
 .dg-spec { scroll-margin-top: 4.5rem; }
 .dg-note { max-width: 48rem; font-size: 0.875rem; margin: 0 0 0.75rem; }
 .dg-table { margin-top: 0.5rem; }
-.dg-table th[scope="row"] { font-weight: 500; text-align: left; color: var(--text); padding: 0.4rem 0.75rem; border-bottom: 1px solid var(--line); vertical-align: top; }
 .dg-table td { vertical-align: top; }
 .dg-params th[scope="row"] { width: 28%; }
 .dg-params td.v-num { text-align: right; width: 7%; }

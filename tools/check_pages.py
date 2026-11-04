@@ -22,6 +22,7 @@ has alt text and its width and height.
 The front page's intro: on every load it shows and clears by itself without waiting on a fast site, waits (LOADING)
 for a late hero render and fires (TRIG'D), says after 5 s how to skip and a click skips it, a key skips it, the
 replay button plays the slow path as a demo; never with a #fragment, under reduced motion or without JavaScript.
+Every text in a table cell is 4.5:1 on the cell's background, in dark and light.
 A picture on its way shows as a small scope screen in its box and fades in when it comes, without a size change.
 With --shots, writes a full-page screenshot per width in dark (traces shown drawn: reduced motion).
 """
@@ -81,6 +82,41 @@ CROPPED = """() => [...document.images]
   })
   .map((i) => i.getAttribute("src"))"""
 
+
+# Table text against its cell: every text in a th or td (badges and links in it too), its colour on the first
+# background behind it that is not transparent (half-transparent ones blended on), answered where under 4.5:1.
+TABLE_CONTRAST = r"""() => {
+  const rgba = (c) => { const m = c.match(/rgba?\(([^)]+)\)/); if (!m) return null;
+    const v = m[1].split(/[\s,\/]+/).filter(Boolean).map(Number); return [v[0], v[1], v[2], v.length > 3 ? v[3] : 1]; };
+  const over = (a, b) => [0, 1, 2].map((i) => a[i] * a[3] + b[i] * (1 - a[3])).concat(1);
+  const behind = (el) => {
+    const layers = [];
+    for (let e = el; e; e = e.parentElement) {
+      const c = rgba(getComputedStyle(e).backgroundColor);
+      if (c && c[3] > 0) { layers.push(c); if (c[3] >= 1) break; }
+    }
+    return layers.reduceRight((acc, c) => over(c, acc), [255, 255, 255, 1]);
+  };
+  const lum = (c) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+    return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]); };
+  const bad = [];
+  let n = 0;
+  for (const cell of document.querySelectorAll('table th, table td')) {
+    const walk = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT);
+    for (let t; (t = walk.nextNode());) {
+      if (!t.data.trim()) continue;
+      const el = t.parentElement, cs = getComputedStyle(el);
+      if (cs.visibility === 'hidden' || el.getClientRects().length === 0) continue;
+      const fg0 = rgba(cs.color);
+      if (!fg0) { bad.push(`${t.data.trim().slice(0, 30)}: colour ${cs.color} not rgb`); continue; }
+      const bg = behind(el), fg = over(fg0, bg);
+      const l1 = lum(fg), l2 = lum(bg), r = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+      n++;
+      if (r < 4.5) bad.push(`"${t.data.trim().slice(0, 30)}" ${r.toFixed(2)}:1 (${cs.color} on rgb(${bg.slice(0, 3).map(Math.round)}))`);
+    }
+  }
+  return [n, bad];
+}"""
 
 def wire_bytes(fetched, base, out):
     """Bytes as sent: for the local build, text files gzipped and the rest as they are; else the transfer sizes."""
@@ -491,6 +527,25 @@ def check_placeholders(browser, base):
     return failures
 
 
+def check_table_contrast(browser, base):
+    """Every table cell's text is 4.5:1 on its cell, on every page, in dark and in light (the stored choice)."""
+    failures = []
+    for scheme in ("dark", "light"):
+        ctx = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
+        if scheme == "light":
+            ctx.add_init_script("try { localStorage.setItem('theme', 'light') } catch (e) {}")
+        page = ctx.new_page()
+        cells = 0
+        for path in PAGES[:-1]:
+            page.goto(base + path)
+            n, bad = page.evaluate(TABLE_CONTRAST)
+            cells += n
+            failures += [f"{path or '/'} {scheme}: table text under 4.5:1: {b}" for b in bad]
+        print(f"table contrast, {scheme}: {cells} texts in table cells")
+        ctx.close()
+    return failures
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("base", nargs="?")
@@ -557,6 +612,7 @@ def main():
         failures += check_repos(browser, base)
         failures += check_intro(browser, base)
         failures += check_placeholders(browser, base)
+        failures += check_table_contrast(browser, base)
 
         # Interactions, on a desktop page in a browser that prefers light: dark all the same on a first visit (the
         # default, from the HTML, so no light flash), the toggle switches to light and remembers it, and back to dark
