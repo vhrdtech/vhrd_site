@@ -64,6 +64,7 @@
 - Deploy to vhrd.tech from GitHub Actions (PREVIEW-4 ci-deploy). The Deploy workflow is started by hand on main, builds the live site, waits for approval in the production environment and uploads it with rsync to a server user that can only write into the site's folder. `just deploy` starts it and `just check-live` checks the deployed site. Setup: README "Deploy".
 - `deploy/golden-links.txt`: links we have printed or sent. A build that breaks one stops before upload, and `just check-live` fetches each from the live site.
 - `just live` checks its build before anything ships (`tools/check_live.py`): only the file types the site serves, no symlinks, no WordPress path or `.well-known/`, the redirects, the indexable build and the footer stamp.
+- /software shows WireWeaver's evolution check (`ww api check`), a real run with its colours: an API change that keeps old clients and devices working passes with what it accepted, and a breaking one is caught with the rule it breaks and the version bump it needs. The API is wire_weaver's blinky example (`tools/term/ww_evolution`). `just captures` can now run several commands on one screen (`steps`).
 
 ### Changed
 

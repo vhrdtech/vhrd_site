@@ -59,10 +59,14 @@ Real runs of the command-line tools, recorded once and kept as text, colours and
 
 {{ <vh.ref name="WireWeaver" /> }}'s `ww` prints the tree of an API: every method, stream and property, with the number it has on the wire. This one is the GPIO example, ports of pins.
 
-{{ <vh.term id="bedrock-lint" n="8" caption="bedrock-lint: what could hang or brick a board in the field" /> }}
+{{ <vh.term id="ww-api-check" n="8" prompt={false} caption="ww api check: catches a breaking API change before it ships" /> }}
+
+`ww api check` compares an API with the snapshot saved at its last release, and says whether the new version number is enough. Adding a method is compatible: old clients and devices still work with new ones, and a patch bump will do. Giving `led_on` an argument breaks old clients, so the check fails and names the bump it needs.
+
+{{ <vh.term id="bedrock-lint" n="9" caption="bedrock-lint: what could hang or brick a board in the field" /> }}
 
 {{ <vh.ref name="embedded_bedrock" /> }}'s `bedrock-lint` reads a firmware crate and its build files, and reports what could hang, crash or brick the board in the field, each with a fix. Here it checks a small test firmware.
 
-{{ <vh.term id="exact-units-error" n="9" caption="ExactUnits: a torque is not an energy" /> }}
+{{ <vh.term id="exact-units-error" n="10" caption="ExactUnits: a torque is not an energy" /> }}
 
 With {{ <vh.ref name="ExactUnits" /> }}, converting a torque in N·m to an energy in joules does not compile: the angle is a dimension, and the message says so.

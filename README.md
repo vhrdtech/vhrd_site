@@ -57,7 +57,7 @@ Images go under `static/img/boards/` (board renders) and `static/img/lab/` (lab 
 
 ## Terminal captures
 
-/software shows real runs of the command-line tools (cnt, ww, bedrock-lint, an exact_units compile error) as text with their colours, not as pictures and not mocked up. `just captures` (`tools/term_capture.py`, run with uv) records them:
+/software shows real runs of the command-line tools (cnt, ww's API tree and evolution check, bedrock-lint, an exact_units compile error) as text with their colours, not as pictures and not mocked up. `just captures` (`tools/term_capture.py`, run with uv) records them:
 
 - `data/term/captures.toml` lists each one: the command as typed, the checkout it runs in, the terminal's width.
 - The command runs once in a pseudo-terminal, and a terminal emulator (pyte) keeps its screen. The screen is written to `data/term/ID.html` as spans; the command, the version (its `--version`), the commit it ran on and the date go to `data/term/ID.toml`.
@@ -66,6 +66,8 @@ Images go under `static/img/boards/` (board renders) and `static/img/lab/` (lab 
 - Nothing private: the tool refuses to write a capture with a home path, this PC's host or user name, a machine name or a tpm id. Paths from rustc go through its own `--remap-path-prefix` (`remap` in captures.toml), so they read as on any machine.
 - The 16 terminal colours come from the brand's status and category tokens (`.term` in `site.css`); a colour the program picks itself (256 or true colour) is kept inline as it wrote it. The panel is dark in both themes, like the terminal it came from.
 - `tools/term/units_demo` is the crate behind the exact_units error, the README's first example of code that does not compile.
+- `tools/term/ww_evolution` is behind the evolution check: wire_weaver's blinky_api example with its 0.1.0 snapshot, edited once in a compatible way and once in a breaking way, both bumped to 0.1.1.
+- `steps` in captures.toml runs several commands on one screen, each on its own prompt line.
 
 ## Board renders
 

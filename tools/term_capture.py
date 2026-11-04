@@ -8,7 +8,8 @@ emulator (pyte) keeps the screen with its colours, and the screen is written as 
 Usage: uv run tools/term_capture.py [ID ...] [--bin NAME=PATH ...] [--cast ID=FILE ...]
 
 The captures are listed in data/term/captures.toml: the command as typed, where it runs, the terminal's size, and for
-a full-screen program (a TUI) how long to wait before the screen is taken and the keys that end it. `remap` turns
+a full-screen program (a TUI) how long to wait before the screen is taken and the keys that end it. `steps` instead of
+`cmd` runs several commands one after the other on one screen, each on its own prompt line. `remap` turns
 paths under the home and the toolchain's sources into what any machine shows (rustc's --remap-path-prefix), `target`
 is the cargo target dir under this repo. Without IDs every
 capture is recorded again. `--bin` runs another binary for a command's name, e.g. one just built in a target dir.
@@ -206,12 +207,17 @@ def capture(c, bins, casts):
         env["RUSTFLAGS"] = " ".join(f"--remap-path-prefix={os.path.expanduser(fill(a))}={fill(b)}" for a, b in c["remap"])
     if c.get("target"):
         env["CARGO_TARGET_DIR"] = str(ROOT / c["target"])
-    exe = bins.get(c["cmd"][0]) or shutil.which(c["cmd"][0], path=env["PATH"] + ":" + os.path.expanduser("~/.local/bin"))
-    if not exe:
-        sys.exit(f"{c['id']}: {c['cmd'][0]} not found (--bin {c['cmd'][0]}=PATH)")
-    argv = [exe] + c["cmd"][1:]
+    steps = c.get("steps") or [c["cmd"]]
     rows = c.get("rows", 400)
-    raw = run(argv, cwd, env, c["cols"], rows, c.get("wait", 0), c.get("keys", "q"))
+    raw = b""
+    for i, step in enumerate(steps):
+        exe = bins.get(step[0]) or shutil.which(step[0], path=env["PATH"] + ":" + os.path.expanduser("~/.local/bin"))
+        if not exe:
+            sys.exit(f"{c['id']}: {step[0]} not found (--bin {step[0]}=PATH)")
+        if len(steps) > 1:  # each step on its own prompt line, as typed, a blank line before the next
+            raw += (b"\r\n" if i else b"") + f"\x1b[32m$ \x1b[0m{' '.join(step)}\r\n".encode()
+        raw += run([exe] + step[1:], cwd, env, c["cols"], rows, c.get("wait", 0), c.get("keys", "q"))
+    exe = bins.get(steps[0][0]) or shutil.which(steps[0][0], path=env["PATH"] + ":" + os.path.expanduser("~/.local/bin"))
     version = first_line(c.get("version", [exe, "--version"]), cwd, env)
     commit = subprocess.run(["git", "-C", str(cwd), "describe", "--always", "--dirty", "--abbrev=8"],
                             capture_output=True, text=True).stdout.strip()
@@ -226,7 +232,7 @@ def write(c, raw, cols, rows, version, source, tui):
     lines = render(screen, rows)
     meta = {
         "id": c["id"],
-        "cmd": " ".join(c["cmd"]),
+        "cmd": "; ".join(" ".join(step) for step in c.get("steps") or [c["cmd"]]),
         "version": version,
         "source": source,
         "size": f"{cols}×{rows if tui else len(lines)}",

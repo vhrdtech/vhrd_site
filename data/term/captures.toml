@@ -44,3 +44,11 @@ cols = 200
 version = ["rustc", "--version"]
 remap = [["~/.cargo", "~/.cargo"], ["{sysroot}/lib/rustlib/src/rust", "/rustc/{commit}"]]
 target = "target/term"
+
+[[capture]]
+id = "ww-api-check"
+steps = [["ww", "api", "check", "compatible"], ["ww", "api", "check", "breaking"]]
+cwd = "tools/term/ww_evolution"
+repo = "vhrd_site"
+source = "wire_weaver's blinky_api example, saved at 0.1.0, then two edits bumped to 0.1.1 (tools/term/ww_evolution)"
+cols = 200

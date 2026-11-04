@@ -1,0 +1,6 @@
+id = "ww-api-check"
+cmd = "ww api check compatible; ww api check breaking"
+version = "ww 0.5.0 (241ff787, committed 3 Nov 2026 13:55)"
+source = "wire_weaver's blinky_api example, saved at 0.1.0, then two edits bumped to 0.1.1 (tools/term/ww_evolution)"
+size = "200×11"
+recorded = "2026-11-04"
