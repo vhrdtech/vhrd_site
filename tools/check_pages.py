@@ -185,6 +185,19 @@ def check_repos(browser, base):
     return failures
 
 
+def replay_holds(page, how):
+    """The replay started by `how` plays and stays on for its first second: the event that started it is no skip."""
+    seen = []
+    for _ in range(10):
+        seen.append(page.evaluate(INTRO_ON + " && !document.documentElement.classList.contains('intro-skip')"))
+        page.wait_for_timeout(100)
+    if not seen[0]:
+        return [f"intro: the replay button does not play it ({how})"]
+    if not all(seen):
+        return [f"intro: the replay started by {how} blinks off at once"]
+    return []
+
+
 def check_intro(browser, base):
     """The intro on every load: fast path straight to the page, slow path LOADING / hint / TRIG'D, replay, skip;
     never with a #fragment, under reduced motion or without JS."""
@@ -213,10 +226,15 @@ def check_intro(browser, base):
         failures.append("intro: no replay button")
     else:
         # The replay is a demo of the slow path although everything is cached: LOADING after the power-on, the
-        # hint from 5.5 s, TRIG'D at 9 s, the page at about 10 s.
-        replay.click()
-        if not page.evaluate(INTRO_ON):
-            failures.append("intro: the replay button does not play it")
+        # hint from 5.5 s, TRIG'D at 9 s, the page at about 10 s. It is started down the page, by a real click right
+        # after a wheel scroll, and ends with the page at the top.
+        page.mouse.move(700, 400)
+        for _ in range(30):
+            page.mouse.wheel(0, 1000)
+        box = replay.bounding_box()
+        page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+        page.mouse.wheel(0, 200)  # a wheel's scroll still running out
+        failures += replay_holds(page, "a click after a scroll")
         page.wait_for_timeout(4000)
         if page.locator(".scope-status").inner_text().upper() != "LOADING":
             failures.append("intro: the replay shows no LOADING after the power-on")
@@ -231,6 +249,18 @@ def check_intro(browser, base):
             page.wait_for_function(f"!({INTRO_ON})", timeout=2000)
         except Exception:
             failures.append("intro: the replay does not clear")
+        if page.evaluate("scrollY") != 0:
+            failures.append(f"intro: the page comes back from the replay at {page.evaluate('scrollY')}px, not the top")
+        # From the keyboard: Enter and Space on the focused button play it too, and it holds.
+        for key in ("Enter", "Space"):
+            replay.focus()
+            page.keyboard.press(key)
+            failures += replay_holds(page, key)
+            page.keyboard.press("Escape")
+            try:
+                page.wait_for_function(f"!({INTRO_ON})", timeout=1000)
+            except Exception:
+                failures.append(f"intro: a key does not skip the replay started by {key}")
     page.goto(base + "#notify")
     if page.evaluate(INTRO_ON):
         failures.append("intro: plays although a #fragment links to a section")

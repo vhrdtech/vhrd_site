@@ -8,7 +8,8 @@
     "TRIG'D" when it fires; after 5 s "SLOW LINK · CLICK TO SKIP"; at most 20 s. The page is in the HTML and painted
     underneath from the start; this layer only covers it. It plays on every load of the home page when the head
     script in index.html set `html.intro` (JS on, no reduced motion, no #fragment), and again from the footer's
-    replay button, which shows the slow path as a demo (LOADING, the hint, TRIG'D; about 10 s). Styles in site.css
+    replay button, which shows the slow path as a demo (LOADING, the hint, TRIG'D; about 10 s) and ends on the top of
+    the page. Styles in site.css
     ("Intro"). -#}
 <div class="scope" aria-hidden="true">
 <div class="scope-box">
@@ -34,7 +35,8 @@
 // Runs the intro: the power-on is CSS (.intro); when it has settled, the layer fades out (.intro-out) if the first
 // screen is ready, else the scope waits (.intro-wait, LOADING), says how to skip after HINT ms (.intro-slow) and fires
 // (.intro-trig, TRIG'D) once ready, at most CAP ms after the start. A click, key, wheel, touch or scroll skips it
-// (.intro-skip). The footer's replay button plays it again as a demo of the slow path (about 10 s). site.css's
+// (.intro-skip). The footer's replay button plays it again as a demo of the slow path (about 10 s), from the top of
+// the page, and ignores skips for its first GRACE ms. site.css's
 // failsafe hides the layer a little after CAP.
 (() => {
   const CAP = 20000;
@@ -43,6 +45,9 @@
   // at about 10 s.
   const DEMO_HINT = 5500;
   const DEMO_TRIG = 9000;
+  // A replay ignores skips for its first GRACE ms: the click, tap or key that started it, a wheel's or a trackpad's
+  // scroll still running out, and its own jump to the top must not end it at once.
+  const GRACE = 400;
   const root = document.documentElement;
   const scope = document.querySelector(".scope");
   const ray = scope.querySelector(".scope-ray");
@@ -63,7 +68,10 @@
       root.classList.remove("intro", "intro-wait", "intro-slow", "intro-trig", "intro-out", "intro-skip");
       events.forEach((e) => removeEventListener(e, skip, true));
     };
+    // A replay ends on the top of the page, whatever scrolled under the cover.
+    const top = () => demo && scrollTo({ top: 0, behavior: "instant" });
     const skip = () => {
+      top();
       root.classList.add("intro-skip");
       timers.push(setTimeout(done, 200));
     };
@@ -72,9 +80,12 @@
       const end = (e) => e.target === scope && (scope.removeEventListener("transitionend", end), done());
       scope.addEventListener("transitionend", end);
       timers.push(setTimeout(done, 900));
+      top();
       root.classList.add("intro-out");
     };
-    events.forEach((e) => addEventListener(e, skip, { capture: true, passive: true }));
+    const listen = () => events.forEach((e) => addEventListener(e, skip, { capture: true, passive: true }));
+    if (demo) timers.push(setTimeout(listen, GRACE));
+    else listen();
     status.textContent = "Loading";
     ray.addEventListener("animationend", (e) => {
       if (e.target !== ray || !live()) return;
@@ -108,8 +119,9 @@
       root.classList.remove("intro", "intro-wait", "intro-slow", "intro-trig", "intro-out", "intro-skip");
       void scope.offsetWidth; // restart the CSS animations
       root.classList.add("intro");
-      // The click that started it is not a skip: listen from the next task on.
-      setTimeout(() => play(true));
+      // Under the cover (the dark screen shows at once), go to the top: the page comes back there.
+      scrollTo({ top: 0, behavior: "instant" });
+      play(true);
     });
   });
   if (root.classList.contains("intro")) play();

@@ -72,8 +72,11 @@
 - The shrink_wrap card shows the bit-packing: an I2C write (a 7- or 10-bit address, two flags, a nibble, an optional 10-bit timeout and a payload) is 7 bytes on the wire, 20 as a repr(C) struct. The bytes come from running it against shrink_wrap 0.2.0.
 - The exact_units card shows that V/V and W/W are different kinds: 2 V/V is +6.02 dB (20·lg), 2 W/W is +3.01 dB (10·lg), `db!(-6)` is 501 mV/V but 251 mW/W, and a plain Ratio has no dB at all (a compile error). The values come from running it against exact_units.
 - The embedded_bedrock card fits a phone without a sideways scroll (35 columns, down to 320 px wide) and shows the shared clock: steered by the host over WireWeaver, locked within 2 ms, `ww sync` locks the boards in 1.2-1.6 s, about 1.5 KB of flash on Donguru, and a task that waits for a shared instant. It compiles for a Cortex-M0+ against bedrock_sync.
+- The intro's phosphor is "P11 softened", #2f5bff instead of real P11 #0029ff, toward how a bright beam reads on camera. The beam head, the readouts and the image placeholders follow it; the readouts are 7.5:1 on the screen (5.5:1 before) and TRIG'D 13.3:1.
+- The intro's replay ends with the page at the top: it jumps there under the dark screen, so the page fades in at the top.
 
 ### Fixed
 
 - The open-source stack's vias sit on the track's centre (they were 6 px to the left, the track running along their side). The browser check now checks it on every page, width and theme.
+- The intro's replay no longer blinks off at once: it ignores skips for its first 0.4 s, so the click, tap or key that started it, or a wheel's scroll still running out, does not end it.
 

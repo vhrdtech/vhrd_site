@@ -628,15 +628,16 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
    this layer only covers it. Without `html.intro` it never shows.
    The phosphor is P11 blue, as on later scopes: the glow, the persistence, the sine and the graticule's tint. The
    beam's head is a hot blue-white core that fades into P11 at its edges (a real beam blooms white where it is
-   brightest). Pure P11 is dark on #0f0f10 (2.5:1), so the readouts and the status take a blue-white tint:
-   --trace-text is 5.5:1 there, TRIG'D in --beam 12:1. The screen is dark in both themes. */
+   brightest). The phosphor alone is 3.7:1 on #0f0f10, so the readouts and the status take a blue-white tint:
+   --trace-text is 7.5:1 there, TRIG'D in --beam 13.3:1. The screen is dark in both themes. */
 :root {
   /* P11 (ZnS:Ag,Cl): emission peak about 460 nm, medium-short persistence, CIE 1931 about x 0.14, y 0.07 (a 460 nm
      band of 55-70 nm FWHM; the measured ZnS:Ag CRT blue is x 0.15, y 0.07, where sRGB's blue primary comes from).
-     Source: the CRT phosphor table, curtpalme.com/forum_archived/CRT Phosphors.pdf. In sRGB #0029ff (#001dff to
-     #004aff), at the gamut's edge. A physical colour, not a brand one, so it is its own token here, the one hex
-     value in this file (Roman, 4 Nov 2026). */
-  --phosphor-p11: #0029ff;
+     Source: the CRT phosphor table, curtpalme.com/forum_archived/CRT Phosphors.pdf. In sRGB that is #0029ff (#001dff
+     to #004aff), at the gamut's edge. The token is "P11 softened", #2f5bff: toward how a bright beam reads on camera,
+     where pure P11 looks dark. A physical colour, not a brand one, so it is its own token here, the one hex value in
+     this file (Roman, 4 Nov 2026). */
+  --phosphor-p11: #2f5bff;
   --trace: var(--phosphor-p11);
   --trace-text: color-mix(in srgb, var(--phosphor-p11) 60%, var(--vhrd-grey-0));
   --beam: color-mix(in srgb, var(--phosphor-p11) 25%, var(--vhrd-grey-0));
