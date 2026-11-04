@@ -1,0 +1,50 @@
+board = "B107"
+product = "FlexyRJ45 (flexible RJ45 pass-through)"
+slug = "flexy-rj45"
+revision = "A"
+source_file = "b107_flexy_rj45/source/b107a/vb107b_flexy_rj45.kicad_pcb"
+hw_git_hash = "beb9889"
+
+[[views]]
+name = "hero"
+alt = "B107 FlexyRJ45 PCB, three-quarter view"
+source = "b107_hero.png"
+web = [
+  { width = 480, webp = "b107_hero-480.webp", avif = "b107_hero-480.avif" },
+  { width = 640, webp = "b107_hero-640.webp", avif = "b107_hero-640.avif" },
+  { width = 1280, webp = "b107_hero-1280.webp", avif = "b107_hero-1280.avif" },
+  { width = 1920, webp = "b107_hero-1920.webp", avif = "b107_hero-1920.avif" },
+]
+
+[[views]]
+name = "detail"
+alt = "B107 FlexyRJ45 PCB, angled detail view"
+source = "b107_detail.png"
+web = [
+  { width = 480, webp = "b107_detail-480.webp", avif = "b107_detail-480.avif" },
+  { width = 640, webp = "b107_detail-640.webp", avif = "b107_detail-640.avif" },
+  { width = 1280, webp = "b107_detail-1280.webp", avif = "b107_detail-1280.avif" },
+  { width = 1920, webp = "b107_detail-1920.webp", avif = "b107_detail-1920.avif" },
+]
+
+[[views]]
+name = "top"
+alt = "B107 FlexyRJ45 PCB, top view"
+source = "b107_top.png"
+web = [
+  { width = 480, webp = "b107_top-480.webp", avif = "b107_top-480.avif" },
+  { width = 640, webp = "b107_top-640.webp", avif = "b107_top-640.avif" },
+  { width = 1280, webp = "b107_top-1280.webp", avif = "b107_top-1280.avif" },
+  { width = 1920, webp = "b107_top-1920.webp", avif = "b107_top-1920.avif" },
+]
+
+[[views]]
+name = "bottom"
+alt = "B107 FlexyRJ45 PCB, bottom view"
+source = "b107_bottom.png"
+web = [
+  { width = 480, webp = "b107_bottom-480.webp", avif = "b107_bottom-480.avif" },
+  { width = 640, webp = "b107_bottom-640.webp", avif = "b107_bottom-640.avif" },
+  { width = 1280, webp = "b107_bottom-1280.webp", avif = "b107_bottom-1280.avif" },
+  { width = 1920, webp = "b107_bottom-1920.webp", avif = "b107_bottom-1920.avif" },
+]

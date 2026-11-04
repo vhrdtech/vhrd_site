@@ -86,6 +86,11 @@ BOARDS = [
           "USB HS to ISO FDCAN bridge (DB-9, SD logging, optional BP)", "usb-fdcan"),
     Board("b129", "b129_cannify_micro", "CANnify Micro (STM32G0, CAN, up to 48 V in)", "cannify-micro"),
     Board("b133", "b133_d600plus_control_board", "D600Plus pick-and-place control board", "d600plus-control"),
+    # B107, B146, B154, B198 for /work (Roman, 4 Nov 2026).
+    Board("b107", "b107_flexy_rj45", "FlexyRJ45 (flexible RJ45 pass-through)", "flexy-rj45"),
+    Board("b146", "b146_db9_nanofit", "DB-9 to Nano-Fit CAN adapter", "db9-nanofit"),
+    Board("b154", "b154_usb_io_simbus", "SimBus (early USB IO prototype)", "usb-io-simbus"),
+    Board("b198", "b198_jlink_tagconnect", "J-Link to Tag-Connect adapter", "jlink-tagconnect"),
 ]
 
 VIEWS = {
@@ -140,15 +145,70 @@ def check_fonts(boards_pcbs: list[tuple["Board", Path]]) -> None:
         )
 
 
+DEFAULT_2LAYER_STACKUP = """\t\t(stackup
+\t\t\t(layer "F.SilkS"
+\t\t\t\t(type "Top Silk Screen")
+\t\t\t)
+\t\t\t(layer "F.Paste"
+\t\t\t\t(type "Top Solder Paste")
+\t\t\t)
+\t\t\t(layer "F.Mask"
+\t\t\t\t(type "Top Solder Mask")
+\t\t\t\t(thickness 0.01)
+\t\t\t)
+\t\t\t(layer "F.Cu"
+\t\t\t\t(type "copper")
+\t\t\t\t(thickness 0.035)
+\t\t\t)
+\t\t\t(layer "dielectric 1"
+\t\t\t\t(type "core")
+\t\t\t\t(thickness 1.51)
+\t\t\t\t(material "FR4")
+\t\t\t\t(epsilon_r 4.5)
+\t\t\t\t(loss_tangent 0.02)
+\t\t\t)
+\t\t\t(layer "B.Cu"
+\t\t\t\t(type "copper")
+\t\t\t\t(thickness 0.035)
+\t\t\t)
+\t\t\t(layer "B.Mask"
+\t\t\t\t(type "Bottom Solder Mask")
+\t\t\t\t(thickness 0.01)
+\t\t\t)
+\t\t\t(layer "B.Paste"
+\t\t\t\t(type "Bottom Solder Paste")
+\t\t\t)
+\t\t\t(layer "B.SilkS"
+\t\t\t\t(type "Bottom Silk Screen")
+\t\t\t)
+\t\t\t(copper_finish "None")
+\t\t\t(dielectric_constraints no)
+\t\t)
+"""
+
+
 def make_mask_black_copy(pcb: Path) -> Path:
     """Copy the board's whole source revision dir to a temp dir and force its
     stackup to black solder mask / white silkscreen there, so the real board
     files under ~/git/hw are never touched. Returns the copied .kicad_pcb.
-    A layer without a (color ...) (B129, B133) gets one after its (type ...)."""
+    A layer without a (color ...) (B129, B133) gets one after its (type ...).
+    A board with no (stackup ...) at all (B198: saved without ever opening
+    the stackup editor) gets a plain 2-layer one inserted first, so the same
+    colour patch below still applies; a board with inner copper layers fails
+    loudly instead of guessing a multi-layer stackup."""
     tmp_dir = Path(tempfile.mkdtemp(prefix="vhrd-render-"))
     shutil.copytree(pcb.parent, tmp_dir / pcb.parent.name)
     tmp_pcb = tmp_dir / pcb.parent.name / pcb.name
     text = tmp_pcb.read_text()
+
+    if "(stackup" not in text:
+        copper_layers = re.findall(r'\(\d+ "([^"]+\.Cu)" signal\)', text)
+        if copper_layers != ["F.Cu", "B.Cu"]:
+            sys.exit(f"error: {pcb} has no (stackup ...) and copper layers {copper_layers} "
+                     "aren't the plain 2-layer case this script can default: add a stackup in KiCad")
+        text, n = re.subn(r"(\(setup\n)", r"\1" + DEFAULT_2LAYER_STACKUP, text, count=1)
+        if n != 1:
+            sys.exit(f"error: could not find (setup ...) to insert a stackup into in {pcb}")
 
     def fix_layer(m: re.Match) -> str:
         target = "Black" if "Mask" in m.group(1) else "White"

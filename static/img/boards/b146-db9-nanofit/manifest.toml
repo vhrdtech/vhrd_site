@@ -1,0 +1,50 @@
+board = "B146"
+product = "DB-9 to Nano-Fit CAN adapter"
+slug = "db9-nanofit"
+revision = "B"
+source_file = "b146_db9_nanofit/source/b146b/vb146b_db9_nanofit.kicad_pcb"
+hw_git_hash = "beb9889"
+
+[[views]]
+name = "hero"
+alt = "B146 DB-9 to Nano-Fit CAN adapter PCB, three-quarter view"
+source = "b146_hero.png"
+web = [
+  { width = 480, webp = "b146_hero-480.webp", avif = "b146_hero-480.avif" },
+  { width = 640, webp = "b146_hero-640.webp", avif = "b146_hero-640.avif" },
+  { width = 1280, webp = "b146_hero-1280.webp", avif = "b146_hero-1280.avif" },
+  { width = 1920, webp = "b146_hero-1920.webp", avif = "b146_hero-1920.avif" },
+]
+
+[[views]]
+name = "detail"
+alt = "B146 DB-9 to Nano-Fit CAN adapter PCB, angled detail view"
+source = "b146_detail.png"
+web = [
+  { width = 480, webp = "b146_detail-480.webp", avif = "b146_detail-480.avif" },
+  { width = 640, webp = "b146_detail-640.webp", avif = "b146_detail-640.avif" },
+  { width = 1280, webp = "b146_detail-1280.webp", avif = "b146_detail-1280.avif" },
+  { width = 1920, webp = "b146_detail-1920.webp", avif = "b146_detail-1920.avif" },
+]
+
+[[views]]
+name = "top"
+alt = "B146 DB-9 to Nano-Fit CAN adapter PCB, top view"
+source = "b146_top.png"
+web = [
+  { width = 480, webp = "b146_top-480.webp", avif = "b146_top-480.avif" },
+  { width = 640, webp = "b146_top-640.webp", avif = "b146_top-640.avif" },
+  { width = 1280, webp = "b146_top-1280.webp", avif = "b146_top-1280.avif" },
+  { width = 1920, webp = "b146_top-1920.webp", avif = "b146_top-1920.avif" },
+]
+
+[[views]]
+name = "bottom"
+alt = "B146 DB-9 to Nano-Fit CAN adapter PCB, bottom view"
+source = "b146_bottom.png"
+web = [
+  { width = 480, webp = "b146_bottom-480.webp", avif = "b146_bottom-480.avif" },
+  { width = 640, webp = "b146_bottom-640.webp", avif = "b146_bottom-640.avif" },
+  { width = 1280, webp = "b146_bottom-1280.webp", avif = "b146_bottom-1280.avif" },
+  { width = 1920, webp = "b146_bottom-1920.webp", avif = "b146_bottom-1920.avif" },
+]

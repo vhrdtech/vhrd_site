@@ -1,0 +1,50 @@
+board = "B198"
+product = "J-Link to Tag-Connect adapter"
+slug = "jlink-tagconnect"
+revision = "A"
+source_file = "b198_jlink_tagconnect/source/b198a/b198a_jlink_tagconnect_adapter.kicad_pcb"
+hw_git_hash = "beb9889"
+
+[[views]]
+name = "hero"
+alt = "B198 J-Link to Tag-Connect adapter PCB, three-quarter view"
+source = "b198_hero.png"
+web = [
+  { width = 480, webp = "b198_hero-480.webp", avif = "b198_hero-480.avif" },
+  { width = 640, webp = "b198_hero-640.webp", avif = "b198_hero-640.avif" },
+  { width = 1280, webp = "b198_hero-1280.webp", avif = "b198_hero-1280.avif" },
+  { width = 1920, webp = "b198_hero-1920.webp", avif = "b198_hero-1920.avif" },
+]
+
+[[views]]
+name = "detail"
+alt = "B198 J-Link to Tag-Connect adapter PCB, angled detail view"
+source = "b198_detail.png"
+web = [
+  { width = 480, webp = "b198_detail-480.webp", avif = "b198_detail-480.avif" },
+  { width = 640, webp = "b198_detail-640.webp", avif = "b198_detail-640.avif" },
+  { width = 1280, webp = "b198_detail-1280.webp", avif = "b198_detail-1280.avif" },
+  { width = 1920, webp = "b198_detail-1920.webp", avif = "b198_detail-1920.avif" },
+]
+
+[[views]]
+name = "top"
+alt = "B198 J-Link to Tag-Connect adapter PCB, top view"
+source = "b198_top.png"
+web = [
+  { width = 480, webp = "b198_top-480.webp", avif = "b198_top-480.avif" },
+  { width = 640, webp = "b198_top-640.webp", avif = "b198_top-640.avif" },
+  { width = 1280, webp = "b198_top-1280.webp", avif = "b198_top-1280.avif" },
+  { width = 1920, webp = "b198_top-1920.webp", avif = "b198_top-1920.avif" },
+]
+
+[[views]]
+name = "bottom"
+alt = "B198 J-Link to Tag-Connect adapter PCB, bottom view"
+source = "b198_bottom.png"
+web = [
+  { width = 480, webp = "b198_bottom-480.webp", avif = "b198_bottom-480.avif" },
+  { width = 640, webp = "b198_bottom-640.webp", avif = "b198_bottom-640.avif" },
+  { width = 1280, webp = "b198_bottom-1280.webp", avif = "b198_bottom-1280.avif" },
+  { width = 1920, webp = "b198_bottom-1920.webp", avif = "b198_bottom-1920.avif" },
+]
