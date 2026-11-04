@@ -94,6 +94,7 @@
 
 ### Fixed
 
+- Every internal link ends in '/' (nav, footer, cards, buttons), so no click costs a redirect: Zola's `get_url` drops the trailing slash unless it is given `trailing_slash=true`. `just test` walks the site from the front page over every link: each internal href must end in '/' when it names a page and answer 200 without a redirect, and every page of the site map must be reached (no orphans) (SITE-4 browser-checks).
 - Tables on /donguru read in both themes: the brand's `.v-table` painted every `th` in the text colour, which hid the row headers and put a white bar over the dark page. Every table now uses theme tokens only (header row on the surface, every other row raised, badges on the page colour), and `just test` checks that the text of every table cell is 4.5:1 on its cell in dark and light (SITE-4 browser-checks).
 - The open-source stack's vias sit on the track's centre (they were 6 px to the left, the track running along their side). The browser check now checks it on every page, width and theme.
 - The intro's replay no longer blinks off at once: it ignores skips for its first 0.4 s, so the click, tap or key that started it, or a wheel's scroll still running out, does not end it.

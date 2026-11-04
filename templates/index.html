@@ -22,7 +22,7 @@
     <h1 class="v-hero">Where code meets <span class="hl">hardware</span></h1>
     <p class="v-lead">Instruments for embedded development, and the open-source software behind them.</p>
     <div class="ctas">
-      <a class="v-btn v-primary" href="{{ get_url(path='/donguru/') }}">Get notified about Donguru</a>
+      <a class="v-btn v-primary" href="{{ get_url(path='/donguru/', trailing_slash=true) }}">Get notified about Donguru</a>
       <a class="v-btn" href="#products">See the products</a>
     </div>
     <p class="draft-note"><span class="v-badge">draft</span> Copy not yet read by Marketing and PM. Board renders follow.</p>
@@ -63,8 +63,8 @@
 </ol>
 <p class="v-muted">For bring-up, debugging, flashing and production test of devices with a USB-C port.</p>
 <div class="ctas">
-<a class="v-btn v-primary" href="{{ get_url(path='/donguru/#notify') }}">Get notified</a>
-<a class="v-btn" href="{{ get_url(path='/donguru/') }}">More about Donguru</a>
+<a class="v-btn v-primary" href="{{ get_url(path='/donguru/#notify', trailing_slash=true) }}">Get notified</a>
+<a class="v-btn" href="{{ get_url(path='/donguru/', trailing_slash=true) }}">More about Donguru</a>
 </div>
 </div>
 <figure class="fig spotlight-fig"><div class="fig-frame"><div class="bd-scroll" tabindex="0" role="group" aria-label="Block diagram, scrolls sideways on small screens">{% include "partials/donguru-diagram.html" %}</div></div><figcaption><span class="fig-no">FIG. 5</span>Donguru block diagram {{ draft | safe }}</figcaption></figure>
@@ -128,7 +128,7 @@ ww_impl!(uart[]: ww_uart::Uart)
    pitch="A firmware debugger for running systems. Commercial release: TBD."
    specs={["Logs: from a fleet", "Graphs: stack, CPU use", "Profiling: zero-cost"]} /> }}
 {% </vh.cards> %}
-<p class="more"><a class="go" href="{{ get_url(path='/work/') }}">More of our work</a></p>
+<p class="more"><a class="go" href="{{ get_url(path='/work/', trailing_slash=true) }}">More of our work</a></p>
 {% </vh.section> %}
 
 {{ <vh.trace sig="can" from={70} to={8} label="CAN_H / CAN_L" /> }}
@@ -137,7 +137,7 @@ ww_impl!(uart[]: ww_uart::Uart)
 <p class="v-muted section-lead">The products stand on open crates, all Rust: the API and its wire format, units checked at compile time, and a bare-metal firmware template.</p>
 {%- set stack_front = true %}
 {% include "partials/crate-stack.html" %}
-<p class="more"><a class="go" href="{{ get_url(path='/open-source/') }}">All open-source crates</a></p>
+<p class="more"><a class="go" href="{{ get_url(path='/open-source/', trailing_slash=true) }}">All open-source crates</a></p>
 {% </vh.section> %}
 
 {{ <vh.trace sig="power" from={8} to={50} label="VBUS 5 V" /> }}
@@ -147,13 +147,13 @@ ww_impl!(uart[]: ww_uart::Uart)
 <div>
 <p class="v-lead">Donguru launches on Crowd Supply. Its sign-up list opens with the pre-launch page; until then, send a line and you hear first. {{ draft | safe }}</p>
 <div class="ctas">
-<a class="v-btn v-primary" href="{{ get_url(path='/donguru/#notify') }}">Get notified</a>
+<a class="v-btn v-primary" href="{{ get_url(path='/donguru/#notify', trailing_slash=true) }}">Get notified</a>
 </div>
 </div>
 <div class="contact-card">
 <p class="v-label">Contact</p>
 <p>Questions about the boards, the software or a project of your own: <a href="mailto:{{ config.extra.email }}">{{ config.extra.email }}</a>.</p>
-<p class="v-muted">Engineering services are rare right now. <a class="go" href="{{ get_url(path='/services/') }}">What I do and how I work</a></p>
+<p class="v-muted">Engineering services are rare right now. <a class="go" href="{{ get_url(path='/services/', trailing_slash=true) }}">What I do and how I work</a></p>
 </div>
 </div>
 {% </vh.section> %}

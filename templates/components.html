@@ -65,7 +65,7 @@
 <article class="card" style="--sig: var(--signal-{{ sig }})">
 {{ <vh.fig src={img} stem={stem} widths={widths} sizes="(max-width: 40rem) 100vw, (max-width: 75rem) 50vw, 25rem" alt={alt or title ~ " render"} n={n} caption={caption} cls={fig_cls} /> }}
 <div class="card-body">
-<h3>{% if icon %}<img class="card-icon" src="{{ get_url(path=icon) }}" alt="" width="32" height="32" loading="lazy" decoding="async">{% endif %}<a href="{{ get_url(path=href) }}">{{ title }}</a>{% if badge %} <span class="v-badge {{ badge_cls }}">{{ badge }}</span>{% endif %}</h3>
+<h3>{% if icon %}<img class="card-icon" src="{{ get_url(path=icon) }}" alt="" width="32" height="32" loading="lazy" decoding="async">{% endif %}<a href="{{ get_url(path=href, trailing_slash=true) }}">{{ title }}</a>{% if badge %} <span class="v-badge {{ badge_cls }}">{{ badge }}</span>{% endif %}</h3>
 {% if pitch %}<p class="v-muted">{{ pitch }}</p>{% endif %}
 {% if specs %}{{ <vh.specs items={specs} /> }}{% endif %}
 </div>

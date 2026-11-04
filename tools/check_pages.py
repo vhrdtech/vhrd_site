@@ -23,6 +23,8 @@ The front page's intro: on every load it shows and clears by itself without wait
 for a late hero render and fires (TRIG'D), says after 5 s how to skip and a click skips it, a key skips it, the
 replay button plays the slow path as a demo; never with a #fragment, under reduced motion or without JavaScript.
 Every text in a table cell is 4.5:1 on the cell's background, in dark and light.
+Links: every page in the site map is reached from the front page by links (no orphans), and every internal
+href on every page reached ends in '/' when it names a page and answers 200 without a redirect.
 A picture on its way shows as a small scope screen in its box and fades in when it comes, without a size change.
 With --shots, writes a full-page screenshot per width in dark (traces shown drawn: reduced motion).
 """
@@ -30,6 +32,7 @@ With --shots, writes a full-page screenshot per width in dark (traces shown draw
 import argparse
 import functools
 import gzip
+import html.parser
 import http.server
 import shutil
 import socket
@@ -37,8 +40,10 @@ import subprocess
 import sys
 import threading
 import tomllib
+import urllib.error
+import urllib.request
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import urljoin, urlsplit
 
 from playwright.sync_api import sync_playwright
 
@@ -546,6 +551,98 @@ def check_table_contrast(browser, base):
     return failures
 
 
+# Paths this site never generates: on vhrd.tech the old WordPress site answers them (AGENTS.md).
+FALLTHROUGH = ("shop/", "feed/", "product/", "cart/", "checkout/")
+
+
+class Hrefs(html.parser.HTMLParser):
+    """The href of every <a> and <link>, the src of every <img>, <source> srcset and <script>."""
+
+    def __init__(self):
+        super().__init__()
+        self.links, self.files = [], []
+
+    def handle_starttag(self, tag, attrs):
+        a = dict(attrs)
+        if tag == "a" and a.get("href"):
+            self.links.append(a["href"])
+        elif tag == "link" and a.get("href"):
+            self.files.append(a["href"])
+        elif tag in ("img", "script") and a.get("src"):
+            self.files.append(a["src"])
+        for key in ("srcset", "imagesrcset"):
+            for part in (a.get(key) or "").split(","):
+                if part.strip():
+                    self.files.append(part.split()[0])
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args):
+        return None
+
+
+def fetch(opener, url, method="GET"):
+    """Status and body, without following a redirect."""
+    try:
+        with opener.open(urllib.request.Request(url, method=method), timeout=20) as r:
+            return r.status, r.read() if method == "GET" else b""
+    except urllib.error.HTTPError as e:
+        return e.code, b""
+
+
+def check_links(base):
+    """Walk the site from the front page by its links: every internal href ends in '/' when it names a page and
+    answers 200 without a redirect, and every page of the site map is reached (no orphan pages)."""
+    failures = []
+    opener = urllib.request.build_opener(NoRedirect)
+    host, root = urlsplit(base).netloc, urlsplit(base).path
+    seen, files, todo = {base}, set(), [base]
+    while todo:
+        page = todo.pop()
+        status, body = fetch(opener, page)
+        if status != 200:
+            continue  # reported where it was linked from
+        p = Hrefs()
+        p.feed(body.decode("utf-8", "replace"))
+        where = urlsplit(page).path[len(root):] or "/"
+        for href, is_page in [(h, True) for h in p.links] + [(h, False) for h in p.files]:
+            u = urlsplit(urljoin(page, href))
+            if u.scheme not in ("http", "https") or u.netloc != host:
+                continue
+            if root != "/" and u.path == root.rstrip("/"):
+                failures.append(f"links: {where} links {href}, without the trailing '/' (a redirect)")
+                continue
+            if not u.path.startswith(root):
+                continue
+            rel = u.path[len(root):]
+            if rel.startswith(FALLTHROUGH):
+                continue
+            target = f"{u.scheme}://{u.netloc}{u.path}"
+            named_page = is_page and "." not in rel.rsplit("/", 1)[-1]
+            if named_page and not u.path.endswith("/"):
+                failures.append(f"links: {where} links {href}, without the trailing '/' (a redirect)")
+            if target in seen or target in files:
+                continue
+            code, _ = fetch(opener, target, "GET" if named_page else "HEAD")
+            if code != 200:
+                failures.append(f"links: {where} links {href}: HTTP {code}, expected 200 without a redirect")
+            if named_page:
+                seen.add(target)
+                if code == 200:
+                    todo.append(target)
+            else:
+                files.add(target)
+    status, body = fetch(opener, base + "sitemap.xml")
+    pages = [m.split("</loc>")[0] for m in body.decode().split("<loc>")[1:]]
+    if status != 200 or not pages:
+        failures.append(f"links: no site map (HTTP {status})")
+    for url in pages:
+        if url not in seen:
+            failures.append(f"links: {urlsplit(url).path} is in the site map but no link leads there from the front page")
+    print(f"links: {len(seen)} pages and {len(files)} files reached from the front page, {len(pages)} in the site map")
+    return failures
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("base", nargs="?")
@@ -554,7 +651,7 @@ def main():
     a = ap.parse_args()
     base, out = (a.base, None) if a.base else serve_build()
     base = base.rstrip("/") + "/"
-    failures = []
+    failures = check_links(base)
 
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path=a.chromium)

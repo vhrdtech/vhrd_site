@@ -13,33 +13,33 @@
 <footer class="site-footer">
   <div class="frame footer-grid">
     <div class="footer-brand">
-      <a class="brand" href="{{ get_url(path='/') }}" aria-label="VHRD, home">{% include "partials/wordmark.html" %}</a>
+      <a class="brand" href="{{ get_url(path='/', trailing_slash=true) }}" aria-label="VHRD, home">{% include "partials/wordmark.html" %}</a>
       <p>{{ config.extra.company }}<br>{{ config.extra.address }}<br><a href="mailto:{{ config.extra.email }}">{{ config.extra.email }}</a></p>
     </div>
     <nav class="footer-col" aria-label="Products">
       <p class="v-label">Products</p>
       <ul>
-        <li><a href="{{ get_url(path='/donguru/') }}">Donguru</a></li>
-        <li><a href="{{ get_url(path='/report/') }}">rePort</a></li>
-        <li><a href="{{ get_url(path='/can/') }}">CAN line</a></li>
-        <li><a href="{{ get_url(path='/shop/') }}">Shop</a></li>
+        <li><a href="{{ get_url(path='/donguru/', trailing_slash=true) }}">Donguru</a></li>
+        <li><a href="{{ get_url(path='/report/', trailing_slash=true) }}">rePort</a></li>
+        <li><a href="{{ get_url(path='/can/', trailing_slash=true) }}">CAN line</a></li>
+        <li><a href="{{ get_url(path='/shop/', trailing_slash=true) }}">Shop</a></li>
       </ul>
     </nav>
     <nav class="footer-col" aria-label="Software">
       <p class="v-label">Software</p>
       <ul>
-        <li><a href="{{ get_url(path='/software/') }}">IOWeaver and RockFace</a></li>
-        <li><a href="{{ get_url(path='/open-source/') }}">Open source</a></li>
+        <li><a href="{{ get_url(path='/software/', trailing_slash=true) }}">IOWeaver and RockFace</a></li>
+        <li><a href="{{ get_url(path='/open-source/', trailing_slash=true) }}">Open source</a></li>
         <li><a href="{{ config.extra.github }}" rel="noopener"><span class="ext">GitHub</span></a></li>
       </ul>
     </nav>
     <nav class="footer-col" aria-label="Company">
       <p class="v-label">Company</p>
       <ul>
-        <li><a href="{{ get_url(path='/about/') }}">About</a></li>
-        <li><a href="{{ get_url(path='/work/') }}">Work</a></li>
-        <li><a href="{{ get_url(path='/lab/') }}">Lab</a></li>
-        <li><a href="{{ get_url(path='/services/') }}">Services</a></li>
+        <li><a href="{{ get_url(path='/about/', trailing_slash=true) }}">About</a></li>
+        <li><a href="{{ get_url(path='/work/', trailing_slash=true) }}">Work</a></li>
+        <li><a href="{{ get_url(path='/lab/', trailing_slash=true) }}">Lab</a></li>
+        <li><a href="{{ get_url(path='/services/', trailing_slash=true) }}">Services</a></li>
       </ul>
     </nav>
   </div>
