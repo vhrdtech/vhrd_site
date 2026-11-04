@@ -124,7 +124,7 @@ How it is built:
 - It plays on every load and refresh of the home page, but not when the URL has a #fragment (a link to a section goes straight there).
 - A click, key, wheel, touch or scroll skips it. The footer's "Replay intro" button plays it again as a demo of the slow path, even with everything cached: the power-on, LOADING, the slow-link line from 5.5 s, TRIG'D at 9 s and the page at about 10 s.
 - Under reduced motion and without JavaScript there is no intro and no replay button. A CSS failsafe hides the layer after 21 s (the 20 s cap plus the fade) whatever the script does.
-- The beam and the graticule are the blue of later scopes (P7/P11-like): the USB blue at a fixed phosphor brightness, a blue-white beam head, a cooler blue glow and persistence (Roman, 4 Nov 2026, after a P31 green). It sits apart from the brand red of the corner marks on #0f0f10; the graticule and readouts stay quiet. The image placeholders use the same colour.
+- The phosphor is real P11 (ZnS:Ag,Cl, peak about 460 nm, CIE 1931 about x 0.14, y 0.07; source: the CRT phosphor table at curtpalme.com, "CRT Phosphors.pdf"), in sRGB #0029ff, its own token `--phosphor-p11` in `site.css` (Roman, 4 Nov 2026). The glow, the persistence, the sine and the graticule's tint are P11. The beam's head is a hot blue-white core (`--beam`) that fades into P11 at its edges. Pure P11 is dark on #0f0f10 (2.5:1), so the readouts and the status are blue-white (`--trace-text`, 5.5:1), and TRIG'D is in `--beam` (12:1). The image placeholders use the same colours.
 
 ## Image placeholders
 

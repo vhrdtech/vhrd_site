@@ -602,13 +602,20 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
    "LOADING" (.intro-wait), "SLOW LINK · CLICK TO SKIP" after 5 s (.intro-slow), "TRIG'D" when it fires
    (.intro-trig), at most 20 s. The page is painted underneath from the start (the largest paint is not held back);
    this layer only covers it. Without `html.intro` it never shows.
-   The phosphor is the blue of later scopes (P7/P11-like): the USB blue at a fixed phosphor brightness, with a
-   blue-white beam head and a cooler blue glow and persistence. On the screen's #0f0f10 it sits apart from the brand
-   red of the corner marks, and the graticule and readouts stay quiet in it. The screen is dark in both themes. */
+   The phosphor is P11 blue, as on later scopes: the glow, the persistence, the sine and the graticule's tint. The
+   beam's head is a hot blue-white core that fades into P11 at its edges (a real beam blooms white where it is
+   brightest). Pure P11 is dark on #0f0f10 (2.5:1), so the readouts and the status take a blue-white tint:
+   --trace-text is 5.5:1 there, TRIG'D in --beam 12:1. The screen is dark in both themes. */
 :root {
-  --trace: var(--signal-usb);
-  --trace: oklch(from var(--signal-usb) 0.76 0.14 h);
-  --beam: color-mix(in oklch, var(--trace) 30%, var(--vhrd-grey-0));
+  /* P11 (ZnS:Ag,Cl): emission peak about 460 nm, medium-short persistence, CIE 1931 about x 0.14, y 0.07 (a 460 nm
+     band of 55-70 nm FWHM; the measured ZnS:Ag CRT blue is x 0.15, y 0.07, where sRGB's blue primary comes from).
+     Source: the CRT phosphor table, curtpalme.com/forum_archived/CRT Phosphors.pdf. In sRGB #0029ff (#001dff to
+     #004aff), at the gamut's edge. A physical colour, not a brand one, so it is its own token here, the one hex
+     value in this file (Roman, 4 Nov 2026). */
+  --phosphor-p11: #0029ff;
+  --trace: var(--phosphor-p11);
+  --trace-text: color-mix(in srgb, var(--phosphor-p11) 60%, var(--vhrd-grey-0));
+  --beam: color-mix(in srgb, var(--phosphor-p11) 25%, var(--vhrd-grey-0));
   --glass: radial-gradient(ellipse at center, color-mix(in oklch, var(--trace) 8%, var(--vhrd-grey-950)), var(--vhrd-grey-950) 75%);
 }
 .scope { display: none; }
@@ -705,8 +712,8 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .scope-sigs { opacity: 0; transition: opacity 0.3s; }
 .intro-wait .scope-sigs { opacity: 1; }
 .scope-grid, .scope-axes, .scope-ticks { fill: none; vector-effect: non-scaling-stroke; stroke-width: 1; }
-.scope-grid { stroke: color-mix(in oklch, var(--trace) 20%, transparent); }
-.scope-axes, .scope-ticks { stroke: color-mix(in oklch, var(--trace) 34%, transparent); }
+.scope-grid { stroke: color-mix(in oklch, var(--trace) 38%, transparent); }
+.scope-axes, .scope-ticks { stroke: color-mix(in oklch, var(--trace) 62%, transparent); }
 .scope-glow, .scope-trail, .scope-beam {
   fill: none;
   stroke: var(--trace);
@@ -728,7 +735,7 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
   position: absolute;
   font: 500 0.6875rem/1 var(--font-mono);
   letter-spacing: 0.08em;
-  color: var(--trace);
+  color: var(--trace-text);
 }
 .scope-read { bottom: 0.75rem; }
 .scope-read-ch { left: 1rem; }
