@@ -80,13 +80,14 @@ def main():
                     want = 404 if path == "no-such-page/" else 200
                     if status != want:
                         failures.append(f"{path or '/'}: HTTP {status}, expected {want}")
-                    if want == 404:
-                        # the server's own 404 may not be ours (python's http.server); only ours is checked
-                        errors = [e for e in errors if "404" not in e]
                     sideways = page.evaluate("document.documentElement.scrollWidth - innerWidth")
                     if sideways > 0:
                         failures.append(f"{path or '/'} {name} {scheme}: scrolls sideways by {sideways}px")
+                    page.wait_for_load_state("load")
                     for e in errors:
+                        # the missing page's own 404 is expected; the 404 page is the server's (static hosting)
+                        if want == 404 and "404" in e:
+                            continue
                         failures.append(f"{path or '/'} {name} {scheme}: console: {e}")
                 if a.shots and scheme == "dark" and name != "tablet":
                     page.goto(base)
