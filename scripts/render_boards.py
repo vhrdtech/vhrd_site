@@ -14,6 +14,8 @@ and writes a 2400px-wide PNG plus AVIF/WebP web variants at 480/640/1280/1920px
 into static/img/boards/<bnnn>-<slug>/, with a manifest.toml next to them. The PNG
 sources stay in the repo but never ship with the site (config.toml ignored_static).
 
+Board numbers as arguments (b129 b133) render only those boards.
+
 With --variants it renders nothing: it makes the web variants that are missing
 from the PNG sources already in static/img/boards/ and updates the manifests, so
 a new width needs neither KiCad nor the 3D libraries.
@@ -74,8 +76,7 @@ class Board:
     slug: str
 
 
-# Front-page boards only (Roman, 4 Nov 2026); the rest of ~/git/hw's boards
-# are a separate later task.
+# The front-page boards, then the /work and /can ones (Roman, 4 Nov 2026).
 BOARDS = [
     Board("b153", "b153_typec_serial", "Donguru (Type-C Serial)", "donguru"),
     Board("b200", "b200_re_port", "rePort (RePort Lite)", "re-port"),
@@ -83,6 +84,8 @@ BOARDS = [
           "Ethernet to 2x ISO FDCAN bridge (DB-9, SD logging, optional PoE/BP)", "eth-2fdcan"),
     Board("b135", "b135_fdcan_iso_usb",
           "USB HS to ISO FDCAN bridge (DB-9, SD logging, optional BP)", "usb-fdcan"),
+    Board("b129", "b129_cannify_micro", "CANnify Micro (STM32G0, CAN, up to 48 V in)", "cannify-micro"),
+    Board("b133", "b133_d600plus_control_board", "D600Plus pick-and-place control board", "d600plus-control"),
 ]
 
 VIEWS = {
@@ -141,8 +144,7 @@ def make_mask_black_copy(pcb: Path) -> Path:
     """Copy the board's whole source revision dir to a temp dir and force its
     stackup to black solder mask / white silkscreen there, so the real board
     files under ~/git/hw are never touched. Returns the copied .kicad_pcb.
-    Every board's stackup already has a (color ...) on these 4 layers, so a
-    straight replace is enough (verified against all 4 front-page boards)."""
+    A layer without a (color ...) (B129, B133) gets one after its (type ...)."""
     tmp_dir = Path(tempfile.mkdtemp(prefix="vhrd-render-"))
     shutil.copytree(pcb.parent, tmp_dir / pcb.parent.name)
     tmp_pcb = tmp_dir / pcb.parent.name / pcb.name
@@ -150,6 +152,8 @@ def make_mask_black_copy(pcb: Path) -> Path:
 
     def fix_layer(m: re.Match) -> str:
         target = "Black" if "Mask" in m.group(1) else "White"
+        if "(color " not in m.group(0):
+            return re.sub(r'(\(type "[^"]*"\))', rf'\1 (color "{target}")', m.group(0))
         return re.sub(r'\(color "[^"]+"\)', f'(color "{target}")', m.group(0))
 
     # Anchored on the stackup's own (type "Top/Bottom Solder Mask"|"Silk Screen")
@@ -278,7 +282,15 @@ def write_manifest(board: Board, rev: str, source_file: str, git_hash: str,
     (out_dir / "manifest.toml").write_text("\n".join(lines))
 
 
-def main() -> None:
+def selected(names: list[str]) -> list[Board]:
+    """The boards named on the command line (b129 ...), or all of them."""
+    unknown = set(names) - {board.number for board in BOARDS}
+    if unknown:
+        sys.exit(f"error: unknown boards {', '.join(sorted(unknown))}")
+    return [board for board in BOARDS if not names or board.number in names]
+
+
+def main(names: list[str]) -> None:
     require_tool("kicad-cli")
     require_tool("avifenc")
     require_tool("fc-list")
@@ -286,7 +298,7 @@ def main() -> None:
         sys.exit(f"error: hw repo not found at {HW_ROOT}")
     git_hash = hw_git_hash()
 
-    resolved = [(board, *latest_revision_pcb(board)) for board in BOARDS]
+    resolved = [(board, *latest_revision_pcb(board)) for board in selected(names)]
     check_fonts([(board, pcb) for board, _rev, pcb in resolved])
 
     report: list[str] = []
@@ -320,10 +332,10 @@ def main() -> None:
     print("\n".join(report))
 
 
-def variants_only() -> None:
+def variants_only(names: list[str]) -> None:
     """The web variants missing next to the committed PNG sources, and the manifests updated to list them."""
     require_tool("avifenc")
-    for board in BOARDS:
+    for board in selected(names):
         out_dir = OUT_ROOT / f"{board.number}-{board.slug}"
         old = tomllib.loads((out_dir / "manifest.toml").read_text())
         view_sizes: dict[str, dict] = {}
@@ -337,4 +349,5 @@ def variants_only() -> None:
 
 
 if __name__ == "__main__":
-    variants_only() if sys.argv[1:] == ["--variants"] else main()
+    args = sys.argv[1:]
+    variants_only([a for a in args if a != "--variants"]) if "--variants" in args else main(args)

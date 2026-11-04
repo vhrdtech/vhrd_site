@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{#- /lab: the workshop itself. The text is in content/lab.md; the photos are the three lab photos and the laser scanner
-    on its bench (static/img/lab/lab and laser-scanner-aoi). -#}
+{#- /lab: the workshop itself. The text is in content/lab.md; the photos are the three lab photos, the laser scanner
+    on its bench and the machines, each with its caption (static/img/lab/lab, laser-scanner-aoi and lab-equipment). -#}
 {% block content %}
 <article class="section page lab-page">
   {{ <vh.label text={page.extra.label | default(value=page.title)} /> }}
@@ -18,6 +18,10 @@
   {%- endfor %}
   {%- set scan = aoi.images[1] %}
   {{ <vh.fig stem={"img/lab/laser-scanner-aoi/" ~ scan.file} widths={scan.widths} sizes="(max-width: 52rem) 100vw, 36rem" alt={scan.alt} n="4" caption="The 3D laser scanner, built in the lab" /> }}
+  {%- set kit = load_data(path="static/img/lab/lab-equipment/manifest.toml") %}
+  {%- for img in kit.images %}
+  {{ <vh.fig stem={"img/lab/lab-equipment/" ~ img.file} widths={img.widths} sizes="(max-width: 52rem) 100vw, 36rem" alt={img.alt} n={(loop.index + 4) ~ ""} caption={img.caption} /> }}
+  {%- endfor %}
   </div>
 </article>
 {{ <vh.trace sig={page.extra.sig or "analog"} from={8} to={50} /> }}

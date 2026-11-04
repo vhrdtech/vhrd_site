@@ -92,6 +92,6 @@ preview token:
     @echo "upload: tpm share target/preview/{{ token }} --token {{ token }} -e 3m -t 'vhrd.tech preview $VHRD_GIT'"
 
 # Rebuild board product renders in static/img/boards/ from ~/git/hw (KiCad). With --variants: only the missing web
-# widths, from the PNG sources already here (no KiCad needed)
+# widths, from the PNG sources already here (no KiCad needed). Board numbers (b129 b133) limit it to those boards
 renders *args:
     uv run scripts/render_boards.py {{ args }}

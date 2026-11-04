@@ -1,0 +1,44 @@
+title = "Lab equipment"
+alt = "The lab's machines for building boards in-house"
+
+facts = []
+
+tools = []
+
+# Photos from Roman (4 Nov 2026), named as on the portfolio's page 13 list; a model only where it is printed on the
+# machine. caption is the figure's line on /lab.
+[[images]]
+file = "pnp-d600plus"
+widths = [640]
+caption = "The D600Plus pick-and-place machine"
+alt = "Desktop pick-and-place machine with tape feeders on both sides and its placement head on the gantry"
+
+[[images]]
+file = "stencil-printer"
+widths = [640, 1280]
+caption = "The vacuum stencil printer"
+alt = "Stencil printer with a steel stencil on a vacuum block, alignment pins and clamps on a perforated plate"
+
+[[images]]
+file = "paste-printed"
+widths = [640, 1280]
+caption = "Solder paste from the stencil printer, on a BGA footprint"
+alt = "Close-up of a green circuit board with solder paste printed on a BGA footprint and the pads around it"
+
+[[images]]
+file = "reflow-station"
+widths = [640, 1280]
+caption = "The reflow station: a T-962 infrared IC heater and a Quick TR1300A rework station"
+alt = "Bench with an infrared IC heater, a rework station with its handpiece in a holder, and a set of wrenches"
+
+[[images]]
+file = "reflowed-connector"
+widths = [640, 1280]
+caption = "Reflowed in-house: a fine-pitch board-to-board connector"
+alt = "Microscope view of a fine-pitch board-to-board connector soldered onto a green circuit board"
+
+[[images]]
+file = "cnc-router"
+widths = [640, 1280]
+caption = "The CNC router"
+alt = "CNC router gantry with its spindle, ball screw, linear rails and cable carrier"

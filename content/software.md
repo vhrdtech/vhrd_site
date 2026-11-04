@@ -36,6 +36,8 @@ The electronics side of an in-house lab system: from a BOM to parts on the shelf
 
 </div>
 
+{{ <vh.fig stem="img/lab/mx3/mx3-bom-cost" widths={[640, 1280]} sizes="(max-width: 75rem) 100vw, 72rem" alt="mx3 BOM Cost tab: a chart of the cost per BOM line and a table of each line's unit price from 1 to 5k pieces" n="5" caption="mx3: BOM cost at every price break" /> }}
+
 - BOM import from CSV or XLSX, with each line mapped to a part automatically.
 - A BOM editor: part choices, variants, stock and box per line, cost with a price chart, a purchase list.
 - A parts database with typed parameters and parametric search.

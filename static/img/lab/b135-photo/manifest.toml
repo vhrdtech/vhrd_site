@@ -1,0 +1,11 @@
+title = "B135 rev B"
+alt = "The real B135 rev B board"
+
+facts = []
+
+tools = []
+
+[[images]]
+file = "b135b-photo"
+widths = [640, 1280]
+alt = "Assembled B135 rev B board on a bench: DB-9 connector, a transformer, a coin cell holder, a microSD slot and USB-C"

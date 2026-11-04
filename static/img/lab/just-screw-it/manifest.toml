@@ -1,0 +1,21 @@
+title = "Just Screw It (B156)"
+alt = "B156 Just Screw It debug adapter, 3D render"
+
+facts = [
+    "A PCB connector at no part cost: tiny screws tapped straight into the board hold it",
+    "Two alignment pins set the position and the height gap the pogo pins need",
+    "B156 carries a 6-pin SWD connection on pogo pins",
+    "First use: the B200 rePort board",
+]
+
+tools = ["KiCad", "FreeCAD"]
+
+[[images]]
+file = "b156a-header"
+widths = [640, 1280]
+alt = "3D render of the B156 Just Screw It adapter: a box header on top, two screws and the alignment pins below"
+
+[[images]]
+file = "b156a-pogo"
+widths = [640, 1280]
+alt = "3D render of the B156 Just Screw It adapter from the pogo-pin side, with six pogo pins between the alignment pins"

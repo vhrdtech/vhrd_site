@@ -49,6 +49,11 @@
 - /work, /lab, /services and /about filled (SITE-10 lab-about-services). /work shows our four boards and eleven bench projects as cards, with the facts and tools from each photo's manifest; the Granite CNC is marked as a design, not built. /lab is about the workshop: its photos and its equipment. /services is the engineering services page; /about says who makes VHRD and where it ships from. The header's Lab link is now Work; the footer has both.
 - mx3 on /software shows two of its windows: guided PCB assembly and the BOM editor, from the tab bar down (SITE-9 software-page).
 - `just test` fails when a photo is cropped: each one is shown at its own ratio or letterboxed (SITE-4 browser-checks).
+- /work: renders of B129 CANnify Micro and B133, the D600Plus pick-and-place control board, as board cards with a pitch line; the real B135 rev B next to its render; B156 Just Screw It with both its images; VG095, the first Ethernet-to-CAN prototype.
+- /lab: six equipment photos with captions: the D600Plus pick-and-place machine, the vacuum stencil printer, solder paste it printed, the reflow station, a connector reflowed in-house and the CNC router.
+- /can: the B135 rev B render next to a photo of the real board.
+- /software: a third mx3 window, BOM cost at every price break.
+- `just renders b129 b133` renders only the boards named; a stackup without colours gets the black mask and white silkscreen too.
 
 ### Changed
 

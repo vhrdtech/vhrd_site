@@ -17,7 +17,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 
 WIDTHS = [640, 1280, 1920]
 AVIF_Q = "68"
@@ -74,6 +74,8 @@ ITEMS = {
     "mx3": [
         ("p12_img00_2031x1703.png", (104, 168, 1928, 1567), "mx3-assemble", 20),
         ("p12_img01_1645x1711.png", (104, 166, 1541, 1574), "mx3-bom-editor", 20),
+        # from ~/Downloads/site: the BOM Cost tab, from the tab bar down as well
+        ("mx3 if needed one more.jpg", (0, 36, 1280, 702), "mx3-bom-cost", 12),
     ],
     "granite-cnc": [
         ("p18_img02_2021x1617.jpeg", None, "granite-cnc-1"),
@@ -84,11 +86,32 @@ ITEMS = {
         ("p17_img01_1946x836.png", None, "eskate-elongboard-1"),
         ("p17_img00_978x1303.png", None, "eskate-elongboard-2"),
     ],
+    # Photos Roman sent on 4 Nov 2026 (~/Downloads/site, REVIEW_DIR for these): shown whole, the pick-and-place
+    # machine alone cut out of its room.
+    "lab-equipment": [
+        ("lab pnp zoom and cut only the machine.jpg", (265, 170, 905, 515), "pnp-d600plus"),
+        ("vacuum stencil printer.jpg", None, "stencil-printer"),
+        ("vacuum paste printer.jpg", None, "paste-printed"),
+        ("reflow station lab.jpg", None, "reflow-station"),
+        ("in house reflow.jpg", None, "reflowed-connector"),
+        ("lab cnc.jpg", None, "cnc-router"),
+    ],
+    "b135-photo": [
+        ("b135b real photo.jpg", None, "b135b-photo"),
+    ],
+    "just-screw-it": [
+        ("b156a.jpg", None, "b156a-header"),
+        ("b156a 2.jpg", None, "b156a-pogo"),
+    ],
+    "vg095-eth-can": [
+        ("vg095 first eth to can prototype.jpg", None, "vg095"),
+    ],
 }
 
 
 def process_image(src_path: Path, crop_box, out_dir: Path, out_basename: str, radius: int = 0):
-    im = Image.open(src_path).convert("RGB")
+    # Only the pixels go on: no EXIF, GPS or camera data, upright first
+    im = ImageOps.exif_transpose(Image.open(src_path)).convert("RGB")
     if crop_box:
         im = im.crop(crop_box)
     if radius:

@@ -14,11 +14,20 @@
     {% <vh.cards> %}
     {%- for b in page.extra.boards %}
     {%- set m = load_data(path="static/img/boards/" ~ b.dir ~ "/manifest.toml") %}
-    {{ <vh.card title={m.product} href={b.href} sig={b.sig} n={loop.index ~ ""} caption={m.board}
+    {{ <vh.card title={m.product} href={b.href} sig={b.sig} n={loop.index ~ ""} caption={m.board} pitch={b.pitch | default(value="")}
        stem={"img/boards/" ~ b.dir ~ "/" ~ b.view} widths={[480, 640, 1280]} alt={m.views[0].alt}
        specs={["Board: " ~ m.board, "Revision: " ~ m.revision]} /> }}
     {%- endfor %}
     {% </vh.cards> %}
+    {%- for b in page.extra.boards %}{% if b.photo %}
+    {%- set m = load_data(path="static/img/boards/" ~ b.dir ~ "/manifest.toml") %}
+    {%- set pm = load_data(path="static/img/lab/" ~ b.photo ~ "/manifest.toml") %}
+    {%- set ph = pm.images[0] %}
+    <div class="fig-pair" id="{{ b.photo }}">
+    {{ <vh.fig stem={"img/boards/" ~ b.dir ~ "/" ~ b.view} widths={[640, 1280]} sizes="(max-width: 52rem) 100vw, 36rem" alt={m.views[0].alt} caption={m.board ~ " rev " ~ m.revision ~ ", the render"} /> }}
+    {{ <vh.fig stem={"img/lab/" ~ b.photo ~ "/" ~ ph.file} widths={ph.widths} sizes="(max-width: 52rem) 100vw, 36rem" alt={ph.alt} caption={m.board ~ " rev " ~ m.revision ~ ", the real board"} /> }}
+    </div>
+    {%- endif %}{% endfor %}
   </section>
 
   <section class="work-group" id="projects">
@@ -28,9 +37,12 @@
     {%- set nb = page.extra.boards | length %}
     {%- for it in page.extra.items %}
     {%- set m = load_data(path="static/img/lab/" ~ it.dir ~ "/manifest.toml") %}
-    {%- set img = m.images[0] %}
+    {%- set n = nb + loop.index %}
     <article class="card" id="{{ it.dir }}" style="--sig: var(--signal-{{ it.sig }})">
-      {{ <vh.fig stem={"img/lab/" ~ it.dir ~ "/" ~ img.file} widths={img.widths} sizes="(max-width: 36rem) 100vw, (max-width: 68rem) 50vw, 25rem" alt={img.alt} n={(nb + loop.index) ~ ""} /> }}
+      {%- for img in m.images %}{% if loop.first or it.all %}
+      {%- if loop.first %}{% set num = n ~ "" %}{% else %}{% set num = "" %}{% endif %}
+      {{ <vh.fig stem={"img/lab/" ~ it.dir ~ "/" ~ img.file} widths={img.widths} sizes="(max-width: 36rem) 100vw, (max-width: 68rem) 50vw, 25rem" alt={img.alt} n={num} /> }}
+      {%- endif %}{% endfor %}
       <div class="card-body">
         <h3>{{ m.title }}{% if it.badge %} <span class="v-badge">{{ it.badge }}</span>{% endif %}</h3>
         {%- if m.facts %}

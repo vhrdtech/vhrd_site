@@ -1,0 +1,50 @@
+board = "B133"
+product = "D600Plus pick-and-place control board"
+slug = "d600plus-control"
+revision = "A"
+source_file = "b133_d600plus_control_board/source/b133a/vb133_d600plus_control_board.kicad_pcb"
+hw_git_hash = "b323cb7"
+
+[[views]]
+name = "hero"
+alt = "B133 D600Plus pick-and-place control board PCB, three-quarter view"
+source = "b133_hero.png"
+web = [
+  { width = 480, webp = "b133_hero-480.webp", avif = "b133_hero-480.avif" },
+  { width = 640, webp = "b133_hero-640.webp", avif = "b133_hero-640.avif" },
+  { width = 1280, webp = "b133_hero-1280.webp", avif = "b133_hero-1280.avif" },
+  { width = 1920, webp = "b133_hero-1920.webp", avif = "b133_hero-1920.avif" },
+]
+
+[[views]]
+name = "detail"
+alt = "B133 D600Plus pick-and-place control board PCB, angled detail view"
+source = "b133_detail.png"
+web = [
+  { width = 480, webp = "b133_detail-480.webp", avif = "b133_detail-480.avif" },
+  { width = 640, webp = "b133_detail-640.webp", avif = "b133_detail-640.avif" },
+  { width = 1280, webp = "b133_detail-1280.webp", avif = "b133_detail-1280.avif" },
+  { width = 1920, webp = "b133_detail-1920.webp", avif = "b133_detail-1920.avif" },
+]
+
+[[views]]
+name = "top"
+alt = "B133 D600Plus pick-and-place control board PCB, top view"
+source = "b133_top.png"
+web = [
+  { width = 480, webp = "b133_top-480.webp", avif = "b133_top-480.avif" },
+  { width = 640, webp = "b133_top-640.webp", avif = "b133_top-640.avif" },
+  { width = 1280, webp = "b133_top-1280.webp", avif = "b133_top-1280.avif" },
+  { width = 1920, webp = "b133_top-1920.webp", avif = "b133_top-1920.avif" },
+]
+
+[[views]]
+name = "bottom"
+alt = "B133 D600Plus pick-and-place control board PCB, bottom view"
+source = "b133_bottom.png"
+web = [
+  { width = 480, webp = "b133_bottom-480.webp", avif = "b133_bottom-480.avif" },
+  { width = 640, webp = "b133_bottom-640.webp", avif = "b133_bottom-640.avif" },
+  { width = 1280, webp = "b133_bottom-1280.webp", avif = "b133_bottom-1280.avif" },
+  { width = 1920, webp = "b133_bottom-1920.webp", avif = "b133_bottom-1920.avif" },
+]
