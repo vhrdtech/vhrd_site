@@ -13,7 +13,7 @@
 <div class="crate-text">
 <header class="crate-head">
 {%- if c.logo_dark %}<span class="crate-logo"><img class="logo-dark" src="{{ get_url(path=c.logo_dark) }}" alt="" width="{{ c.logo_w }}" height="{{ c.logo_h }}" loading="lazy" decoding="async"><img class="logo-light" src="{{ get_url(path=c.logo_light) }}" alt="" width="{{ c.logo_w }}" height="{{ c.logo_h }}" loading="lazy" decoding="async"></span>{% endif %}
-<div><h3><a href="{{ c.repo }}" rel="noopener">{{ c.name }}</a>{% if c.wip %} <span class="v-badge">work in progress</span>{% endif %}</h3>
+<div><h3><a href="{{ c.repo }}" rel="noopener">{{ c.title | default(value=c.name) }}</a>{% if c.wip %} <span class="v-badge">work in progress</span>{% endif %}</h3>
 {%- if meta and meta.crate %}<a class="crate-ver" href="https://crates.io/crates/{{ c.crate }}" rel="noopener" title="crates.io, at build time">v{{ meta.crate.max_stable_version or meta.crate.max_version }} · {{ meta.crate.downloads | num_format }} downloads</a>
 {%- elif c.crate %}<a class="crate-ver" href="https://crates.io/crates/{{ c.crate }}" rel="noopener">on crates.io</a>
 {%- else %}<span class="crate-ver crate-git">{{ c.note }}</span>{% endif %}</div>
@@ -21,7 +21,8 @@
 <p>{{ c.pitch }}</p>
 <p class="crate-links"><a href="{{ c.repo }}" rel="noopener">Source</a>{% if c.docs %} · <a href="{{ c.docs }}" rel="noopener">Docs</a>{% endif %}{% if c.crate %} · <a href="https://docs.rs/{{ c.crate }}" rel="noopener">docs.rs</a>{% endif %}</p>
 </div>
-<div class="crate-code">{{ ("```" ~ c.lang ~ "\n" ~ c.code | trim ~ "\n```") | markdown | safe }}</div>
+{%- set fence = c.lang %}
+{% include "partials/code-sample.html" %}
 </article>
 </li>
 {%- endif %}{% endfor %}

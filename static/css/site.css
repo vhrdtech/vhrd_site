@@ -553,6 +553,15 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .crate h3 a { text-decoration: none; }
 .crate h3 a:hover { text-decoration: underline; text-decoration-color: var(--sig); }
 .crate .crate-code { margin-top: 0; }
+/* Code samples (partials/code-sample.html): the narrow version fits a phone, the wide one (the same code, natural
+   line breaks) shows once the code's box holds its columns: N columns of the 10.5px code face (0.39rem each) plus the
+   padding. So no sample scrolls sideways, and a wide screen is not held to the phone's line breaks. */
+.crate-code { container-type: inline-size; }
+.code-wide { display: none; }
+@container (min-width: 21.75rem) { .code-w50 .code-wide { display: block; } .code-w50 .code-narrow { display: none; } }
+@container (min-width: 25.75rem) { .code-w60 .code-wide { display: block; } .code-w60 .code-narrow { display: none; } }
+@container (min-width: 29.75rem) { .code-w70 .code-wide { display: block; } .code-w70 .code-narrow { display: none; } }
+@container (min-width: 33.75rem) { .code-w80 .code-wide { display: block; } .code-w80 .code-narrow { display: none; } }
 /* On a phone the code runs to the card's edges in a smaller face, so a sample written to 44 columns fits without a
    sideways scroll from 320px up (the browser check holds every card to it). */
 @media (max-width: 26rem) {

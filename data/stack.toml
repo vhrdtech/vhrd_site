@@ -9,10 +9,14 @@
 # - `wip`: work in progress, not finished; the card says so.
 # - `logo_dark` and `logo_light`: the logo for each theme, under static/; `logo_w` and `logo_h` its shown size in px.
 #   No logo: a text card.
+# - `title`: the product name the card shows (WireWeaver, ShrinkWrap, ExactUnits); without it the crate's name.
 # - `lang`: the code fence language of `code`.
+# - `code`: the sample at 44 columns; `code_wide`: the same code with natural line breaks, up to `wide` columns (50,
+#   60, 70 or 80). tools/samples.py checks that they are the same code.
 
 [[crate]]
 name = "wire_weaver"
+title = "WireWeaver"
 fits = true
 crate = "wire_weaver"
 layer = "API"
@@ -22,7 +26,7 @@ logo_dark = "img/oss/wire_weaver-dark.svg"
 logo_light = "img/oss/wire_weaver-light.svg"
 logo_w = 96
 logo_h = 96
-pitch = "API description language and code generator: RPC, streams and properties, backwards and forwards compatible, no_std and no alloc."
+pitch = "WireWeaver designs no_std APIs for devices: RPC, streams and properties, built from composable API traits and compatible backwards and forwards. It generates the server and the client, blocking or async, for Rust and Python, over USB, Ethernet and CAN bus. Introspection gives dynamic Python clients, and a standard library of traits covers GPIO, CAN, firmware update, logs and more. It is approaching its alpha release."
 repo = "https://github.com/vhrdtech/wire_weaver"
 docs = "https://vhrdtech.github.io/wire_weaver/"
 lang = "rust"
@@ -40,9 +44,24 @@ pub trait Uart {
     fn capabilities() -> Capabilities<'i>;
 }
 '''
+wide = 60
+code_wide = '''
+#[ww_trait]
+#[claim(exclusive)]
+pub trait Uart {
+    #[counted]
+    stream!(rx: RxChunk<'i>);
+
+    #[credit]
+    sink!(tx: MaxLen<RefVec<'i, u8>, UART_TX_MAX>);
+
+    fn capabilities() -> Capabilities<'i>;
+}
+'''
 
 [[crate]]
 name = "shrink_wrap"
+title = "ShrinkWrap"
 fits = true
 crate = "shrink_wrap"
 layer = "Wire format"
@@ -52,7 +71,7 @@ logo_dark = "img/oss/shrink_wrap-dark.svg"
 logo_light = "img/oss/shrink_wrap-light.svg"
 logo_w = 96
 logo_h = 96
-pitch = "Compact zero-copy wire format for microcontrollers. No allocator, dynamic types, packed down to the bit."
+pitch = "ShrinkWrap is the binary wire format under WireWeaver. It packs data to 1-bit, 4-bit and 1-byte alignment without compression, so useful messages fit into a CAN frame. Structs, enums with data, strings and vectors of any size work without an allocator, and reading is zero-copy. An older device and newer software read each other's data, and the other way round."
 repo = "https://github.com/vhrdtech/wire_weaver/tree/master/shrink_wrap"
 lang = "rust"
 code = '''
@@ -74,9 +93,29 @@ struct I2cWrite<'i> {
 // 50 83 be 80 ab cd 02: 7 bytes, the
 // count (02) at the back. repr(C): 20.
 '''
+wide = 80
+code_wide = '''
+// 1 + 7 or 1 + 10 bits
+#[derive_shrink_wrap(ww_repr = u1)]
+enum I2cAddress { Seven(U7), Ten(U10) }
+
+#[derive_shrink_wrap]
+struct I2cWrite<'i> {
+    // 0x50: 0 1010000
+    addr: I2cAddress,
+    stop: bool,               // 1 bit
+    fast: bool,               // 1 bit
+    retries: Nibble,          // 3: 0011
+    // Some(500): 1 0111110100
+    timeout_ms: Option<U10>,
+    data: RefVec<'i, u8>,     // ab cd
+}
+// 50 83 be 80 ab cd 02: 7 bytes, the count (02) at the back. repr(C): 20.
+'''
 
 [[crate]]
 name = "exact_units"
+title = "ExactUnits"
 fits = true
 layer = "Units"
 sig = "bus"
@@ -85,7 +124,7 @@ logo_dark = "img/oss/exact_units-dark.svg"
 logo_light = "img/oss/exact_units-light.svg"
 logo_w = 157
 logo_h = 96
-pitch = "Units of measure checked at compile time, with exact scales. The same bytes as the plain integer, no_std and no alloc."
+pitch = "ExactUnits puts a number's unit, scale and storage into its type and checks them at compile time. A conversion is exact or refused, never rounded through a float, and the type is the same bytes as the plain integer, no_std and no alloc. It covers the cases other unit crates leave out: a temperature is a point against an origin, and a voltage gain is a different kind from a power gain."
 repo = "https://github.com/romixlab/exact_units"
 docs = "https://exact.vhrd.tech/"
 note = "not on crates.io yet"
@@ -117,6 +156,27 @@ let p: Fixed<W, Milli, u16> = db!(-6);
 // V/V, A/A, Pa/Pa: a plain Ratio has no
 // level form
 '''
+wide = 80
+code_wide = '''
+// exact or refused, never rounded
+let t: Micros<u32> = Fixed::new(1500);
+assert_eq!(t.to::<Milli, u16>(), None); // 1500 µs is not a whole number of ms
+
+// V/V and W/W are different kinds, and the kind picks the dB formula
+type V = Per<Volt, Volt>;
+type W = Per<Watt, Watt>;
+Fixed::<V, One, f64>::new(2.0).to_db(); // 6.0206 dB: 20·lg 2
+Fixed::<W, One, f64>::new(2.0).to_db(); // 3.0103 dB: 10·lg 2
+
+// a threshold in dB: an integer, exact, 501 mV/V but 251 mW/W
+let v: Fixed<V, Milli, u16> = db!(-6);
+let p: Fixed<W, Milli, u16> = db!(-6);
+
+// 0.5 duty is not -3 dB: a Ratio has no dB
+// Fixed::<Ratio, One, f64>::new(0.5).to_db();
+// error[E0080]: decibels are for W/W or V/V, A/A, Pa/Pa: a plain Ratio has no
+// level form
+'''
 
 [[crate]]
 name = "embedded_bedrock"
@@ -125,7 +185,7 @@ fits = true
 layer = "Firmware"
 sig = "can"
 front = true
-pitch = "Bare-metal firmware template with ruggedizing, debugging and logging built in. Optional embassy, RTIC and HAL support."
+pitch = "A bare-metal firmware template with ruggedizing, debugging and logging built in, and optional embassy, RTIC and HAL support. The template is an agent skill that generates a firmware for a chip, with its errata notes, blink codes on the status LED when it cannot start, and a clock a host keeps in step across boards. Most STM32s and a few MCUs from other vendors are covered."
 repo = "https://github.com/romixlab/embedded_bedrock"
 note = "not on crates.io yet"
 lang = "rust"
@@ -161,6 +221,31 @@ let r = SYNC.with(|clock, now| {
 // all boards act at the same µs
 SYNC.wait_until_shared(t).await?;
 '''
+wide = 70
+code_wide = '''
+use bedrock_led::code::*;
+use bedrock_sync::{Config, Sync};
+use cortex_m::asm::delay;
+
+// A firmware that will not start says why on its status LED, then
+// waits in the ROM bootloader.
+if !guard.runs_board() {
+    let pause = |n| delay(n * KHZ);
+    blink(Code::UnknownRework, led, pause);
+    reboot_into_rom_bootloader();
+}
+
+// One clock on all boards, steered by the host over WireWeaver:
+// Acquiring, Locked within 2 ms. `ww sync` locks the boards in
+// 1.2-1.6 s. On Donguru it costs about 1.5 KB of flash.
+static SYNC: Sync = Sync::new(Config::DEFAULT);
+
+// clock.steer, once a second
+let r = SYNC.with(|clock, now| { server.steer(clock, now, &p) });
+
+// all boards act at the same µs
+SYNC.wait_until_shared(t).await?;
+'''
 
 [[crate]]
 name = "cnt"
@@ -169,7 +254,7 @@ layer = "Firmware"
 sig = "can"
 front = true
 fits = true
-pitch = "When logging is not an option, count: events and errors in a RAM array, safe in any interrupt, without a critical section. Read over the debug probe with `cnt read` or `cnt tui`."
+pitch = "When logging is not an option, count. Each count statement gets its own counter in a RAM array, through a linker trick like defmt's, without a critical section, so it is safe in any interrupt; on Cortex-M3 and up a counter shared with an interrupt never loses an update. The cnt tool reads the counters over the debug probe, once, as a watch or in a TUI, with the defmt log beside them."
 repo = "https://github.com/romixlab/cnt"
 lang = "rust"
 code = '''
@@ -179,6 +264,22 @@ fn high_frequency_irq() {
     let r = do_something();
     cnt::cnt_if!(r.is_err(),
                  unpack_errors: u64);
+}
+
+fn process_packet() {
+    cnt::cnt!(packet_count: u32);
+}
+
+// on the PC, over the debug probe:
+// $ cnt tui --chip STM32H533RE
+'''
+wide = 50
+code_wide = '''
+// one RAM counter per call site,
+// no critical section, safe in an IRQ
+fn high_frequency_irq() {
+    let r = do_something();
+    cnt::cnt_if!(r.is_err(), unpack_errors: u64);
 }
 
 fn process_packet() {
@@ -216,6 +317,21 @@ can.write_tx_buffer_pend(
     &[0xAA, 0xBB, 0xCC],
 );
 '''
+wide = 80
+code_wide = '''
+let mut can = unwrap!(can.into_config_mode());
+can.set_nominal_bit_timing(unwrap!(NominalBitTiming::new(1, 55, 8, 1)));
+unwrap!(can.set_layout(layout_fdcan1));
+can.set_automatic_bus_off_recovery(true);
+let mut can = unwrap!(can.into_normal());
+
+let id = unwrap!(StandardId::new(0x123));
+can.write_tx_buffer_pend(
+    tx_buffers.idx1,
+    TxFrameHeader::fd_brs(Id::Standard(id)),
+    &[0xAA, 0xBB, 0xCC],
+);
+'''
 
 [[crate]]
 name = "choreograph"
@@ -237,8 +353,21 @@ safe = "off"
 name = "a-3V3"
 needs = [
   { kind = "probe", state = "fw-a" },
-  { kind = "supply", state = "3V3" },
+  { kind = "supply", state = "3V3" }
 ]
+run = "10s"
+'''
+wide = 80
+code_wide = '''
+[[resource]]
+name = "supply"
+kind = "supply"
+states = ["off", "3V0", "3V3", "3V6"]
+safe = "off"
+
+[[job]]
+name = "a-3V3"
+needs = [{ kind = "probe", state = "fw-a" }, { kind = "supply", state = "3V3" }]
 run = "10s"
 '''
 
@@ -253,7 +382,7 @@ repo = "https://github.com/romixlab/egui_tabular"
 lang = "rust"
 code = '''
 let mut table = VariantTable::new([
-    ColumnDef::new("Name", VariantTy::Str),
+    ColumnDef::new("Name", VariantTy::Str)
 ]);
 let opts = TableViewOptions::default();
 let mut view = TableView::new(opts);
@@ -264,8 +393,18 @@ let output = view.show(
     ui,
     &mut table,
     &mut VariantCellUi,
-    &mut config,
+    &mut config
 );
+'''
+wide = 80
+code_wide = '''
+let mut table = VariantTable::new([ColumnDef::new("Name", VariantTy::Str)]);
+let opts = TableViewOptions::default();
+let mut view = TableView::new(opts);
+let mut config = TableViewConfig::default();
+
+// Every frame:
+let output = view.show(ui, &mut table, &mut VariantCellUi, &mut config);
 '''
 
 [[crate]]
@@ -282,9 +421,24 @@ code = '''
 let hints = SizeHints::new(
     [90.0, 30.0],
     [200.0, 80.0],
-    [360.0, 80.0],
+    [360.0, 80.0]
 )
 .tall(200.0);
+WidgetFrame::new("log")
+    .sizes(hints)
+    .show_area(ui, &mut state, |ui, area| {
+        let rows = match area.height {
+            Height::Min => 1,
+            Height::Nom => 5,
+            Height::Tall => 15,
+        };
+    });
+'''
+wide = 80
+code_wide = '''
+// min, nom and wide sizes, and a tall form
+let hints =
+    SizeHints::new([90.0, 30.0], [200.0, 80.0], [360.0, 80.0]).tall(200.0);
 WidgetFrame::new("log")
     .sizes(hints)
     .show_area(ui, &mut state, |ui, area| {

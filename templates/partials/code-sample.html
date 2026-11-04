@@ -1,0 +1,10 @@
+{#- A card's code sample, from `c` (data/stack.toml or data/repos.toml) with `fence` set to its language: the narrow
+    version (`code`, 44 columns) and, when there is one, the wide one (`code_wide`, the same code with natural line
+    breaks, up to `wide` columns). A container query on the code's box shows the wide one once it fits (site.css,
+    "Code samples"), so it never scrolls sideways and is not held to phone width on a wide screen. -#}
+<div class="crate-code{% if c.code_wide %} code-w{{ c.wide }}{% endif %}">
+<div class="code-narrow">{{ ("```" ~ fence ~ "\n" ~ c.code | trim ~ "\n```") | markdown | safe }}</div>
+{%- if c.code_wide %}
+<div class="code-wide">{{ ("```" ~ fence ~ "\n" ~ c.code_wide | trim ~ "\n```") | markdown | safe }}</div>
+{%- endif %}
+</div>

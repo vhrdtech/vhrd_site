@@ -11,7 +11,7 @@ Without BASE_URL it builds the site with zola into target/check for a local port
 
 For every page in the site map, at phone (390), tablet (820) and desktop (1440) widths, in dark and light:
 no console errors or failed requests, no sideways scroll, the open-source stack's track through every via's centre.
-A crate card marked `fits` in data/stack.toml shows its code without a sideways scroll from 320 px up. /open-source
+Every code sample is the same code in its narrow and wide version, and a card shows the narrow one on a phone\nand the wide one on a wide screen, without a sideways scroll from 320 px up. /open-source
 lists every repository of data/repos.toml, a public one linked, a private one marked as coming and not linked.
 On the front page: the theme toggle switches and the choice survives a reload, the code tabs work by keyboard
 (arrow keys), the skip link is the first tab stop.
@@ -41,6 +41,8 @@ from urllib.parse import urlsplit
 
 from playwright.sync_api import sync_playwright
 
+import samples
+
 PAGES = ["", "donguru/", "report/", "can/", "software/", "open-source/", "lab/", "services/", "about/",
          "blog/", "shop/", "no-such-page/"]
 WIDTHS = {"phone": 390, "tablet": 820, "desktop": 1440}
@@ -59,6 +61,9 @@ VIA_OFFSETS = """() => [...document.querySelectorAll('.layer')].map((l) => {
 # Crate cards marked `fits` in data/stack.toml: how far each one's code scrolls sideways, in px.
 CODE_OVERFLOW = """() => [...document.querySelectorAll('.crate[data-fits] .crate-code pre')]
   .map((p) => [p.closest('.crate').id, p.scrollWidth - p.clientWidth])"""
+# Cards with a wide version: whether it is the one shown.
+CODE_SHOWN = """() => [...document.querySelectorAll('.crate .code-wide')]
+  .map((w) => [w.closest('.crate').id, getComputedStyle(w).display !== 'none'])"""
 IMAGES_WITHOUT = """() => [...document.images]
   .filter((i) => !i.hasAttribute("alt") || !i.getAttribute("width") || !i.getAttribute("height"))
   .map((i) => i.currentSrc || i.src)"""
@@ -124,9 +129,10 @@ SCOPE_SHOWN = "getComputedStyle(document.querySelector('.scope')).display !== 'n
 
 
 def check_code_fits(browser, base):
-    """The crate cards marked `fits` show their code without a sideways scroll, from a 320px phone up."""
-    failures = []
-    for w in (320, 360, 390, 430, 820, 960, 1440):
+    """Every code sample is the same code in its narrow and wide version (tools/samples.py), and the cards show one
+    without a sideways scroll from a 320px phone up: the narrow one on a phone, the wide one on a wide screen."""
+    failures = list(samples.problems())
+    for w in (320, 360, 390, 430, 600, 820, 960, 1280, 1440):
         ctx = browser.new_context(viewport={"width": w, "height": 900}, reduced_motion="reduce")
         page = ctx.new_page()
         for path in ("", "open-source/"):
@@ -134,6 +140,11 @@ def check_code_fits(browser, base):
             for crate, px in page.evaluate(CODE_OVERFLOW):
                 if px > 0:
                     failures.append(f"{path or '/'} {w}px: the {crate} card's code scrolls sideways by {px}px")
+            for crate, wide in page.evaluate(CODE_SHOWN):
+                if w <= 430 and wide:
+                    failures.append(f"{path or '/'} {w}px: the {crate} card shows its wide code on a phone")
+                if w >= 1280 and not wide:
+                    failures.append(f"{path or '/'} {w}px: the {crate} card is held to its narrow code on a wide screen")
         ctx.close()
     return failures
 

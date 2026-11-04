@@ -44,7 +44,7 @@ check-preview url dir="target/shots":
 # No whitespace errors, the tools parse. Check only: the bytecode goes to a temp dir, never into the tree
 lint:
     git diff --check HEAD
-    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py tools/perf.py tools/fonts.py scripts/render_boards.py
+    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py tools/samples.py tools/perf.py tools/fonts.py scripts/render_boards.py
 
 # Install the pinned Zola release binary into ~/.local/bin (no root)
 install:
