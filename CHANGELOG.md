@@ -41,6 +41,7 @@
 
 ### Changed
 
+- The Donguru product card shows the same render as the hero, so a phone loads it once; with the board renders in place the first view on a phone is 187 KB of the 200 KB budget.
 - Traces between sections are routed like PCB tracks: vertical and horizontal runs, 45° corners, a via at each end and the net name on the run (they used to be stretched diagonals).
 - Headlines are in the text colour; the brand red marks one word of the hero and stays for accents.
 - Arrows after links are CSS masks instead of arrow characters, so no page loads the Pi font subsets for them; the skip link uses the medium weight, so the semibold face is not loaded either.
