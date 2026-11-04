@@ -68,6 +68,7 @@ Images go under `static/img/boards/` (board renders) and `static/img/lab/` (lab 
 - `tools/term/units_demo` is the crate behind the exact_units error, the README's first example of code that does not compile.
 - `tools/term/ww_evolution` is behind the evolution check: wire_weaver's blinky_api example with its 0.1.0 snapshot, edited once in a compatible way and once in a breaking way, both bumped to 0.1.1.
 - `steps` in captures.toml runs several commands on one screen, each on its own prompt line.
+- `show` keeps a file the run read (`data/term/ID.src`, the source the exact_units error comes from), and `vh.term` shows it above the output, with the line the compiler points at (`--> FILE:LINE`) marked.
 
 ## Board renders
 

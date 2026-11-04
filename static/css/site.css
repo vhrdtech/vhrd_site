@@ -956,6 +956,12 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 }
 .term-screen:focus-visible { outline-offset: -2px; }
 .term-prompt { color: var(--t-green); }
+/* The source a run read, above its output: the code highlighting in its dark colours, the line the output points at
+   edged in the terminal's red. */
+.term-src { border-bottom: 1px solid var(--vhrd-grey-800); }
+.term-src pre.giallo { margin: 0; border: 0; border-radius: 0; padding: 0.6rem 0.9rem; background-color: transparent !important; font-size: 0.75rem; line-height: 1.45; overflow-x: auto; }
+.term-src .giallo-ln { display: inline-block; min-width: 2ch; margin-right: 1.25ch; text-align: right; }
+.term-src .giallo-l[style*="background-color"] { background: color-mix(in oklch, var(--t-red) 16%, transparent) !important; box-shadow: inset 2px 0 var(--t-red); }
 .term-fig figcaption { align-items: baseline; text-transform: none; letter-spacing: 0.02em; }
 .term-meta { color: var(--muted); }
 .term .f-black { color: var(--t-black); } .term .f-red { color: var(--t-red); } .term .f-green { color: var(--t-green); }

@@ -6,6 +6,7 @@
 # - `cols`: the terminal's width; a program that ends by itself is kept whole, however long.
 # - `version`: the command whose first line names the version (default: the program with --version); `source`: what
 #   it ran on, when that is not the checkout `cwd` is in.
+# - `show`: a file the run read, shown above the output with the line the output points at marked.
 # - `remap`: [from, to] pairs for rustc's --remap-path-prefix, so paths read as on any machine; `target`: the cargo
 #   target dir under this repo.
 # - `cast = true`: recorded on a bench with its hardware (asciicast v2, `--cast ID=FILE`), replayed to second `at`;
@@ -38,6 +39,7 @@ cols = 200
 id = "exact-units-error"
 cmd = ["cargo", "build", "-q"]
 cwd = "tools/term/units_demo"
+show = "src/main.rs"
 repo = "vhrd_site"
 source = "tools/term/units_demo against exact_units at 1819d9f"
 cols = 200

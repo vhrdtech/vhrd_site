@@ -9,7 +9,9 @@ Usage: uv run tools/term_capture.py [ID ...] [--bin NAME=PATH ...] [--cast ID=FI
 
 The captures are listed in data/term/captures.toml: the command as typed, where it runs, the terminal's size, and for
 a full-screen program (a TUI) how long to wait before the screen is taken and the keys that end it. `steps` instead of
-`cmd` runs several commands one after the other on one screen, each on its own prompt line. `remap` turns
+`cmd` runs several commands one after the other on one screen, each on its own prompt line. `show` names a file under
+`cwd` the run read (the source a compiler failed on): it is kept as it was in data/term/ID.src, with the line the
+output points at (`--> FILE:LINE`) to mark, so the page shows the code above the error. `remap` turns
 paths under the home and the toolchain's sources into what any machine shows (rustc's --remap-path-prefix), `target`
 is the cargo target dir under this repo. Without IDs every
 capture is recorded again. `--bin` runs another binary for a command's name, e.g. one just built in a target dir.
@@ -222,10 +224,11 @@ def capture(c, bins, casts):
     commit = subprocess.run(["git", "-C", str(cwd), "describe", "--always", "--dirty", "--abbrev=8"],
                             capture_output=True, text=True).stdout.strip()
     source = c.get("source") or (f"{c['repo']} at {commit}" if commit else c["repo"])
-    return write(c, raw, c["cols"], rows, version, source, tui=bool(c.get("wait")))
+    shown = (cwd / c["show"]).read_text() if c.get("show") else None
+    return write(c, raw, c["cols"], rows, version, source, tui=bool(c.get("wait")), shown=shown)
 
 
-def write(c, raw, cols, rows, version, source, tui):
+def write(c, raw, cols, rows, version, source, tui, shown=None):
     """Feed the bytes to a terminal of cols x rows, check the screen for anything private and write it."""
     screen = Screen(cols, rows)
     pyte.ByteStream(screen).feed(raw)
@@ -239,12 +242,21 @@ def write(c, raw, cols, rows, version, source, tui):
         "recorded": datetime.date.today().isoformat(),
     }
     page = "\n".join(lines)
-    text = re.sub(r"<[^>]+>", "", page) + "\n" + "\n".join(meta.values())
+    plain = html.unescape(re.sub(r"<[^>]+>", "", page))
+    if shown is not None:
+        at = re.search(r"-->\s+" + re.escape(c["show"]) + r":(\d+)", plain)
+        if not at:
+            sys.exit(f"{c['id']}: the output points at no line of {c['show']}")
+        meta.update(file=c["show"], lang={".rs": "rust", ".toml": "toml"}.get(Path(c["show"]).suffix, "text"),
+                    mark=at.group(1))
+    text = plain + "\n" + (shown or "") + "\n" + "\n".join(meta.values())
     if bad := private(text):
         sys.exit(f"{c['id']}: not written, it holds {', '.join(sorted(set(bad)))}")
     head = (f"<!-- tools/term_capture.py {c['id']}: `{meta['cmd']}`, {meta['version']}, {meta['source']}, "
             f"{meta['size']}, recorded {meta['recorded']}. Recorded, not edited: run it again to change it. -->\n")
     (OUT / f"{c['id']}.html").write_text(head + page + "\n")
+    if shown is not None:
+        (OUT / f"{c['id']}.src").write_text(shown)
     (OUT / f"{c['id']}.toml").write_text("".join(f'{k} = "{v}"\n' for k, v in meta.items()))
     print(f"{c['id']}: {len(lines)} lines, {meta['version']}")
 
