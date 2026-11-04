@@ -91,6 +91,7 @@
 - /open-source has two new groups: Science (motor_sim, exact_units, napier and choreograph, in a category pink) and Templates, last (every firmware and board template, out of Firmware and embedded, in a category lime). The highlights also appear again in their own areas. Highlights is in the brand red, its track running into power orange, with a small sparkle in its heading and jump-row entry that twinkles (still under reduced motion).
 - choreograph's card says what it is: a scheduler for shared resources with priorities, release times and deadlines, safe allocation and wait reasons, one core for a test bench and a build merge queue, pure so the simulator, tests and executor run the same code. It is marked "early stage", and its sample is the README's "Try it" commands. Shell samples may break a line with a backslash.
 - Photos are shown whole. In card grids they are letterboxed on the dark screen colour so rows stay even; big ones keep their own ratio. The B135 render on the front page has a little more room.
+- `scripts/render_boards.py` reads VHRD's own and vendor 3D models from `~/sync/hw_tracking/vhrd-packages3D` (own/ and vendor/ subfolders), matching where they moved out of the kicad-library repo.
 
 ### Fixed
 

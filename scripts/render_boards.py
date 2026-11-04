@@ -20,7 +20,9 @@ a new width needs neither KiCad nor the 3D libraries.
 
 3D model libraries (not committed, machine-local): set KICAD6_3DMODEL_DIR..
 KICAD10_3DMODEL_DIR and VHRD_3DMODEL_DIR yourself, or rely on the defaults
-below, which match gpd-omarchy's Syncthing layout.
+below, which match gpd-omarchy's Syncthing layout: hw_tracking/kicad-packages3D
+for the stock KiCad libraries and hw_tracking/vhrd-packages3D (own/ and
+vendor/ subfolders) for VHRD's own and vendor models.
 
 Silkscreen fonts are machine-local too, not fetched by this script: see
 README.md ("Fonts used in renders") for where they come from and their
@@ -45,10 +47,12 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 HW_ROOT = Path(os.environ.get("VHRD_HW_ROOT", Path.home() / "git" / "hw"))
 OUT_ROOT = REPO_ROOT / "static" / "img" / "boards"
 
-# Machine-local 3D model libraries, not in git. Defaults match gpd-omarchy
-# (Syncthing folder hw_tracking); override with the env vars if run elsewhere.
+# Machine-local 3D model libraries, not in git. Defaults match gpd-omarchy's
+# Syncthing folder hw_tracking: kicad-packages3D for the stock KiCad libraries,
+# vhrd-packages3D (own/ and vendor/ subfolders) for VHRD's own and vendor
+# models; override with the env vars if run elsewhere.
 DEFAULT_KICAD_3DMODEL_DIR = Path.home() / "sync" / "hw_tracking" / "kicad-packages3D"
-DEFAULT_VHRD_3DMODEL_DIR = Path.home() / "git" / "kicad-library" / "3dmodels"
+DEFAULT_VHRD_3DMODEL_DIR = Path.home() / "sync" / "hw_tracking" / "vhrd-packages3D"
 for _var in ("KICAD6_3DMODEL_DIR", "KICAD7_3DMODEL_DIR", "KICAD8_3DMODEL_DIR",
              "KICAD9_3DMODEL_DIR", "KICAD10_3DMODEL_DIR"):
     os.environ.setdefault(_var, str(DEFAULT_KICAD_3DMODEL_DIR))
