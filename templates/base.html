@@ -1,6 +1,6 @@
 {%- set noindex = get_env(name="VHRD_NOINDEX", default="") -%}
 {%- if page %}{% set this = page %}{% elif section %}{% set this = section %}{% endif -%}
-{%- if this and this.title and this.path != "/" %}{% set doc_title = this.title ~ " · " ~ config.title %}{% else %}{% set doc_title = config.title ~ " · Tools for people who build hardware" %}{% endif -%}
+{%- if this and this.title and this.path != "/" %}{% set doc_title = this.title ~ " · " ~ config.title %}{% else %}{% set doc_title = config.title ~ " · Instruments for embedded development" %}{% endif -%}
 {%- if this and this.description %}{% set doc_desc = this.description %}{% else %}{% set doc_desc = config.description %}{% endif -%}
 <!doctype html>
 <html lang="{{ lang }}">

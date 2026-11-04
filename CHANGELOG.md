@@ -74,6 +74,7 @@
 - The embedded_bedrock card fits a phone without a sideways scroll (35 columns, down to 320 px wide) and shows the shared clock: steered by the host over WireWeaver, locked within 2 ms, `ww sync` locks the boards in 1.2-1.6 s, about 1.5 KB of flash on Donguru, and a task that waits for a shared instant. It compiles for a Cortex-M0+ against bedrock_sync.
 - The intro's phosphor is "P11 softened", #2f5bff instead of real P11 #0029ff, toward how a bright beam reads on camera. The beam head, the readouts and the image placeholders follow it; the readouts are 7.5:1 on the screen (5.5:1 before) and TRIG'D 13.3:1.
 - The intro's replay ends with the page at the top: it jumps there under the dark screen, so the page fades in at the top.
+- Brand words from ~/git/tpm/area/marketing/brand.md (Roman, 4 Nov 2026). The hero says "Where code meets hardware", with the lead "Instruments for embedded development, and the open-source software behind them.", which is also the meta description; the label reads "Instruments · Software · Open source". The page title is "VHRD · Instruments for embedded development". "From Norway" left the hero and the meta; Asker, Norway stays in the footer. The copyright line names the legal name, VHRD.TECH AS.
 
 ### Fixed
 
