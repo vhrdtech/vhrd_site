@@ -49,6 +49,41 @@ Tera components in `templates/components.html` work in templates and in Markdown
 
 Images go under `static/img/boards/` (board renders) and `static/img/lab/` (lab photos).
 
+## Board renders
+
+`just renders` (`scripts/render_boards.py`, run with `uv`) rebuilds `static/img/boards/<bnnn>-<slug>/` from the newest revision of each board's KiCad project in `~/git/hw` (read-only, never written to). Per board it writes four views — `hero` (whole board, 3/4 angle, with margin), `detail` (a tighter 3/4 close-up), `top` and `bottom` — as a 2400px-wide PNG source plus AVIF/WebP at 640/1280/1920px, with a `manifest.toml` (product, revision, source file, hw git hash, per-view alt text).
+
+- **Black solder mask, white silkscreen.** The real boards are mostly green; for the site every render forces a black mask with `kicad-cli pcb render --use-board-stackup-colors` against a **temporary copy** of the board's source directory whose stackup colours the script patches to black/white before rendering (`make_mask_black_copy` in the script). The files under `~/git/hw` are never changed.
+- **3D model libraries** (generic KiCad parts plus our own `vhrd_mcu_stm_h7` etc.) are machine-local, not committed: the script reads `KICAD6_3DMODEL_DIR`..`KICAD10_3DMODEL_DIR` and `VHRD_3DMODEL_DIR` from the environment, defaulting to gpd-omarchy's layout (`~/sync/hw_tracking/kicad-packages3D`, `~/git/kicad-library/3dmodels`, Syncthing folder `hw_tracking`). A PC without that library (e.g. build-1) can't run `just renders` itself until it gets one too.
+- **Cross-machine workflow**, when you're on a PC without the 3D library (never push/pull/rebase into another PC's checkout — fetch from it instead):
+  ```sh
+  # on the PC that has the library (e.g. gpd-omarchy):
+  git init -q /tmp/site-render && cd /tmp/site-render
+  git fetch -q <other-pc>:/path/to/vhrd_site <branch>
+  git checkout -q --detach FETCH_HEAD
+  just renders
+  # on the PC with the working checkout: pull the output back and commit
+  rsync -az <that-pc>:/tmp/site-render/static/img/boards/ static/img/boards/
+  git add static/img/boards/ && git commit ...
+  ```
+
+### Fonts used in renders
+
+Six of the boards' silkscreen text items name specific fonts (`(face "...")` in the `.kicad_pcb`). KiCad silently falls back to a default font when one is missing, which looks wrong without saying so, so `just renders` checks every named font against `fc-list` first and fails loudly (listing exactly what's missing and which board needs it) instead of rendering with the wrong glyphs.
+
+These fonts are machine-local (`~/.local/share/fonts` and similar), not fetched by this script or committed to this repo:
+
+| Font | Boards | Source | Notes |
+| --- | --- | --- | --- |
+| GOST type A | B135 | Roman's design-fonts library (`~/sync/design/Graphics/Fonts`, Syncthing, user-level, not installed by this repo) | |
+| GOST type B | B153, B135 | same | |
+| Venus Rising | all four | same | |
+| Parsek | B125, B135 | same | |
+| Seven Segment | B125 | same | |
+| Noto Sans JP Thin | B153 | [notofonts/noto-cjk](https://github.com/notofonts/noto-cjk), OFL-1.1 | installed at `~/.local/share/fonts/noto-sans-jp` |
+
+On gpd-omarchy, `~/.config/fontconfig/conf.d/60-sync-design-fonts.conf` includes Roman's synced folder so `fc-list` sees the five design fonts without copying them anywhere; Noto Sans JP Thin was installed separately from its official OFL source. Licensing for the five design fonts is Roman's own call (he supplied the library and the source); this repo and script only consume what `fc-list` reports, and refuse to render instead of guessing when a font is missing.
+
 ## Preview
 
 `just deploy-preview` builds with `VHRD_NOINDEX=1`, which adds `<meta name="robots" content="noindex, nofollow">` to every page and a robots.txt that disallows everything. It builds for the base URL `https://static.vhrd.tech/vhrd-site-preview/`. It then uploads with rsync to the deploy user's inbox on vhrd.tech and runs the server's mover. The last step checks that the live footer shows this build's git hash.

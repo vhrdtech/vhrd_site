@@ -21,7 +21,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 - `templates/index.html`: the landing page. `page.html` is a plain page, `section.html` is the blog list, and there are `404.html` and `robots.txt`.
 - `static/css/brand/`: `tokens.css` and `vhrd.css` from vhrd_brand (`just brand`). Never edit these here; change vhrd_brand and pull.
 - `static/css/site.css`: the site's own layer. `static/js/site.js`: theme toggle and tabs, nothing else.
-- `static/fonts/`: IBM Plex woff2 subsets and `fonts.css`. `static/img/boards/` holds board renders and `static/img/lab/` lab photos.
+- `static/fonts/`: IBM Plex woff2 subsets and `fonts.css`. `static/img/boards/` holds board renders (`just renders`, README "Board renders") and `static/img/lab/` lab photos.
 - `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check.
 - `deploy/static/`: a draft server helper for re-deploys, not installed (its README).
 
@@ -37,6 +37,8 @@ just wordmark         # redraw the wordmark and favicon from vhrd_brand's Audiow
 just check-browser    # the browser check alone
 just check-preview    # the browser check against the live preview, screenshots into target/shots
 just deploy-preview   # noindex build to https://static.vhrd.tech/vhrd-site-preview/ (README "Preview")
+just renders          # rebuild static/img/boards/ from ~/git/hw (KiCad); needs a machine-local 3D model
+                       # library and the silkscreen fonts in fc-list (README "Board renders")
 ```
 
 `just test` accepts and ignores `--changed`: the site is one unit, and a full test takes about a minute.
