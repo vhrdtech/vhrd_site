@@ -60,9 +60,9 @@
 
 {#- Product card: render, name, badge, one-line pitch, a few specs, a link; the top edge is wired in `sig`.
     Put cards in {% <vh.cards> %} ... {% </vh.cards> %} for the ruled grid. -#}
-{% component vh.card(title: string, href: string, pitch: string = "", specs: array = [], img: string = "", stem: string = "", widths: array = [640, 1280], alt: string = "", badge: string = "", badge_cls: string = "v-accent", sig: string = "usb", n: string = "", caption: string = "") %}
+{% component vh.card(title: string, href: string, pitch: string = "", specs: array = [], img: string = "", stem: string = "", widths: array = [640, 1280], alt: string = "", badge: string = "", badge_cls: string = "v-accent", sig: string = "usb", n: string = "", caption: string = "", fig_cls: string = "") %}
 <article class="card" style="--sig: var(--signal-{{ sig }})">
-{{ <vh.fig src={img} stem={stem} widths={widths} sizes="(max-width: 40rem) 100vw, (max-width: 75rem) 50vw, 25rem" alt={alt or title ~ " render"} n={n} caption={caption} /> }}
+{{ <vh.fig src={img} stem={stem} widths={widths} sizes="(max-width: 40rem) 100vw, (max-width: 75rem) 50vw, 25rem" alt={alt or title ~ " render"} n={n} caption={caption} cls={fig_cls} /> }}
 <div class="card-body">
 <h3><a href="{{ get_url(path=href) }}">{{ title }}</a>{% if badge %} <span class="v-badge {{ badge_cls }}">{{ badge }}</span>{% endif %}</h3>
 {% if pitch %}<p class="v-muted">{{ pitch }}</p>{% endif %}

@@ -1,82 +1,26 @@
-# The open-source stack on the front page, "from register to GUI", top layer first. Facts come from each crate's
-# README; code samples are taken from the crate's README, book or examples, shortened only.
+# The open-source crates, in the order the /open-source page shows them. The front page shows those with
+# `front = true`, in the same order. Facts come from each crate's README; code samples are taken from the crate's
+# README, book or examples, shortened only.
 #
-# - `crate`: the crates.io name. The page fetches its version and downloads at build time (templates/index.html);
-#   leave it out while the crate is not published, and `note` says so instead.
-# - `sig`: the signal colour that wires the layer (power, usb, can, bus, analog, ctrl).
+# - `crate`: the crates.io name. Both pages fetch its version and downloads at build time; leave it out while the
+#   crate is not published, and `note` says so instead.
+# - `layer` and `sig`: where it sits in the stack, and the signal colour that wires it (power, usb, can, bus,
+#   analog, ctrl).
+# - `wip`: work in progress, not finished; the card says so.
+# - `logo_dark` and `logo_light`: the logo for each theme, under static/; `logo_w` and `logo_h` its shown size in px.
+#   No logo: a text card.
 # - `lang`: the code fence language of `code`.
 
-[[layer]]
-name = "GUI"
-sig = "analog"
-what = "The desktop side: IOWeaver and RockFace are built from these."
-
-[[layer.crates]]
-name = "vhrd_egui"
-pitch = "egui building blocks: the widget frame every panel sits in, a dock that moves widgets between windows, an HDR phosphor scope."
-repo = "https://github.com/vhrdtech/vhrd_egui"
-note = "not on crates.io yet"
-lang = "rust"
-code = '''
-let hints = SizeHints::new([90.0, 30.0], [200.0, 80.0], [360.0, 80.0]).tall(200.0);
-WidgetFrame::new("log")
-    .sizes(hints)
-    .show_area(ui, &mut state, |ui, area| {
-        let rows = match area.height {
-            Height::Min => 1,
-            Height::Nom => 5,
-            Height::Tall => 15,
-        };
-    });
-'''
-
-[[layer.crates]]
-name = "egui_tabular"
-crate = "egui_tabular"
-pitch = "Fast table viewer and editor that only draws the visible rows. Data from vectors, files, databases or live bus traces."
-repo = "https://github.com/romixlab/egui_tabular"
-lang = "rust"
-code = '''
-let mut table = VariantTable::new([ColumnDef::new("Name", VariantTy::Str)]);
-let mut view = TableView::new(TableViewOptions::default());
-let mut config = TableViewConfig::default();
-
-// Every frame:
-let output = view.show(ui, &mut table, &mut VariantCellUi, &mut config);
-'''
-
-[[layer]]
-name = "Test bench"
-sig = "ctrl"
-what = "Runs the jobs that use the boards."
-
-[[layer.crates]]
-name = "choreograph"
-pitch = "Plans and runs jobs over shared instruments and resources, with priorities and deadlines. Says why each waiting job waits."
-repo = "https://github.com/romixlab/choreograph"
-note = "not on crates.io yet"
-lang = "toml"
-code = '''
-[[resource]]
-name = "supply"
-kind = "supply"
-states = ["off", "3V0", "3V3", "3V6"]
-safe = "off"
-
-[[job]]
-name = "a-3V3"
-needs = [{ kind = "probe", state = "fw-a" }, { kind = "supply", state = "3V3" }]
-run = "10s"
-'''
-
-[[layer]]
-name = "API"
-sig = "usb"
-what = "One definition for the device and the host, and the bytes between them."
-
-[[layer.crates]]
+[[crate]]
 name = "wire_weaver"
 crate = "wire_weaver"
+layer = "API"
+sig = "usb"
+front = true
+logo_dark = "img/oss/wire_weaver-dark.webp"
+logo_light = "img/oss/wire_weaver-light.webp"
+logo_w = 96
+logo_h = 96
 pitch = "API description language and code generator: RPC, streams and properties, backwards and forwards compatible, no_std and no alloc."
 repo = "https://github.com/vhrdtech/wire_weaver"
 docs = "https://vhrdtech.github.io/wire_weaver/"
@@ -95,9 +39,16 @@ pub trait Uart {
 }
 '''
 
-[[layer.crates]]
+[[crate]]
 name = "shrink_wrap"
 crate = "shrink_wrap"
+layer = "Wire format"
+sig = "usb"
+front = true
+logo_dark = "img/oss/shrink_wrap-dark.webp"
+logo_light = "img/oss/shrink_wrap-light.webp"
+logo_w = 96
+logo_h = 96
 pitch = "Compact zero-copy wire format for microcontrollers. No allocator, dynamic types, packed down to the bit."
 repo = "https://github.com/vhrdtech/wire_weaver/tree/master/shrink_wrap"
 lang = "rust"
@@ -110,8 +61,15 @@ let bytes = wr.finish().unwrap();
 assert_eq!(bytes, &[0x80, 0xaa]); // the bool takes one bit
 '''
 
-[[layer.crates]]
+[[crate]]
 name = "exact_units"
+layer = "Units"
+sig = "bus"
+front = true
+logo_dark = "img/oss/exact_units-dark.svg"
+logo_light = "img/oss/exact_units-light.svg"
+logo_w = 157
+logo_h = 96
 pitch = "Units of measure checked at compile time, with exact scales. The same bytes as the plain integer, no_std and no alloc."
 repo = "https://github.com/romixlab/exact_units"
 docs = "https://exact.vhrd.tech/"
@@ -126,13 +84,11 @@ assert_eq!(t.to::<Milli, u16>(), None); // 1500 µs is not a whole number of ms
 assert_eq!(size_of::<Micros<u32>>(), size_of::<u32>());
 '''
 
-[[layer]]
-name = "Firmware"
-sig = "can"
-what = "Bare metal, next to the registers."
-
-[[layer.crates]]
+[[crate]]
 name = "embedded_bedrock"
+layer = "Firmware"
+sig = "can"
+front = true
 pitch = "Bare-metal firmware template with ruggedizing, debugging and logging built in. Optional embassy, RTIC and HAL support."
 repo = "https://github.com/romixlab/embedded_bedrock"
 note = "not on crates.io yet"
@@ -148,9 +104,12 @@ if !guard.runs_board() {
 }
 '''
 
-[[layer.crates]]
+[[crate]]
 name = "canzone"
-pitch = "Stand-alone Rust driver for the Bosch M_CAN controller on STM32 G0, G4, H5, H7 and L5. No panics, no blocking waits without a timeout."
+layer = "Firmware"
+sig = "can"
+wip = true
+pitch = "Stand-alone Rust driver for the Bosch M_CAN controller, aimed at STM32 G0, G4, H5, H7 and L5. Goals: no panics, no blocking waits without a timeout, optional async."
 repo = "https://github.com/romixlab/canzone"
 note = "renamed from mcan, not on crates.io yet"
 lang = "rust"
@@ -166,4 +125,63 @@ can.write_tx_buffer_pend(
     TxFrameHeader::fd_brs(Id::Standard(unwrap!(StandardId::new(0x123)))),
     &[0xAA, 0xBB, 0xCC],
 );
+'''
+
+[[crate]]
+name = "choreograph"
+layer = "Test bench"
+sig = "ctrl"
+pitch = "Plans and runs jobs over shared instruments and resources, with priorities and deadlines. Says why each waiting job waits."
+repo = "https://github.com/romixlab/choreograph"
+note = "not on crates.io yet"
+lang = "toml"
+code = '''
+[[resource]]
+name = "supply"
+kind = "supply"
+states = ["off", "3V0", "3V3", "3V6"]
+safe = "off"
+
+[[job]]
+name = "a-3V3"
+needs = [{ kind = "probe", state = "fw-a" }, { kind = "supply", state = "3V3" }]
+run = "10s"
+'''
+
+[[crate]]
+name = "egui_tabular"
+crate = "egui_tabular"
+layer = "GUI"
+sig = "analog"
+pitch = "Fast table viewer and editor that only draws the visible rows. Data from vectors, files, databases or live bus traces."
+repo = "https://github.com/romixlab/egui_tabular"
+lang = "rust"
+code = '''
+let mut table = VariantTable::new([ColumnDef::new("Name", VariantTy::Str)]);
+let mut view = TableView::new(TableViewOptions::default());
+let mut config = TableViewConfig::default();
+
+// Every frame:
+let output = view.show(ui, &mut table, &mut VariantCellUi, &mut config);
+'''
+
+[[crate]]
+name = "vhrd_egui"
+layer = "GUI"
+sig = "analog"
+pitch = "egui building blocks: the widget frame every panel sits in, a dock that moves widgets between windows, an HDR phosphor scope."
+repo = "https://github.com/vhrdtech/vhrd_egui"
+note = "not on crates.io yet"
+lang = "rust"
+code = '''
+let hints = SizeHints::new([90.0, 30.0], [200.0, 80.0], [360.0, 80.0]).tall(200.0);
+WidgetFrame::new("log")
+    .sizes(hints)
+    .show_area(ui, &mut state, |ui, area| {
+        let rows = match area.height {
+            Height::Min => 1,
+            Height::Nom => 5,
+            Height::Tall => 15,
+        };
+    });
 '''

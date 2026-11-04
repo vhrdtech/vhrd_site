@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{#- /open-source: every public crate from data/stack.toml, in its order, wired like the front page's stack. -#}
+{% block content %}
+<article class="section page">
+  {{ <vh.label text={page.extra.label | default(value=page.title)} /> }}
+  <h1 class="v-hero">{{ page.title }}</h1>
+  <p class="v-lead">{{ page.description }}</p>
+  <div class="prose">{{ page.content | safe }}</div>
+  {%- set stack_front = false %}
+  {% include "partials/crate-stack.html" %}
+</article>
+{{ <vh.trace sig={page.extra.sig or "bus"} from={8} to={50} /> }}
+{% endblock content %}

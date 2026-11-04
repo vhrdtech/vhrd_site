@@ -23,7 +23,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 - `static/css/site.css`: the site's own layer. `static/js/site.js`: theme toggle and tabs, nothing else.
 - `static/fonts/`: IBM Plex woff2 subsets and `fonts.css`. `static/img/boards/` holds board renders (`just renders`, README "Board renders") and `static/img/lab/` lab photos.
 - `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check.
-- `data/stack.toml`: the open-source stack on the front page (layers, crates, code samples, which crates are on crates.io).
+- `data/stack.toml`: the open-source crates in their /open-source order (layer, logos per theme, code sample, which are on crates.io); `front = true` puts one on the front page too. `partials/crate-stack.html` draws them for both pages, `templates/open-source.html` is the /open-source page.
 
 ## Commands
 

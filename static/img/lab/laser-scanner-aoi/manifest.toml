@@ -28,3 +28,8 @@ alt = "Assembled laser scanner machine on a workbench"
 file = "laser-scanner-aoi-3"
 widths = [640]
 alt = "Close-up of the scanner's laser and optics head with the green line visible"
+
+[[images]]
+file = "laser-scanner-aoi-rails"
+widths = [640]
+alt = "A circuit board held between the scanner's linear rails and carriages"

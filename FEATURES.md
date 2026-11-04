@@ -6,9 +6,10 @@ Status: ✅ done · 🚧 in progress · 📋 planned · 💡 idea · 🐛 bug
 
 - ✅ SITE-1 zola-skeleton: Zola site (version pinned in AGENTS.md), `config.toml`, base template, 404, robots.txt, sitemap, blog feed
 - ✅ SITE-2 header-footer: header with the wordmark, Products, Software, Open source, Lab, Blog, theme toggle and the red "Get notified" button (a menu under 52rem); footer with Vhrd.tech AS, link columns and the build stamp (git hash and commit date)
-- 🚧 SITE-3 page-stubs: stubs for /, /donguru, /report, /can, /software, /open-source, /lab, /services, /about, /blog, /shop, each marked draft; filled by later steps
+- 🚧 SITE-3 page-stubs: stubs for /donguru, /report, /can, /software, /lab, /services, /about, /blog, /shop, each marked draft; filled by later steps
 - ✅ SITE-4 browser-checks: `tools/check_pages.py` drives every page in headless Chromium at 390, 820 and 1440 px, dark and light (console clean, no sideways scroll, theme toggle, keyboard tabs, skip link); the front page's first view on a phone stays under 200 KB on the wire, and every image has alt, width and height
-- 🚧 SITE-5 landing-page: the front page with every section of the plan: hero, products, Donguru spotlight with block diagram, software panel, from the lab, the open-source stack (crates.io version and downloads at build time, `data/stack.toml`), notify and contact. Copy is draft until Marketing and PM have read it; board renders and the IOWeaver and RockFace screenshots show as placeholders until their files land
+- 🚧 SITE-5 landing-page: the front page with every section of the plan: hero, products, Donguru spotlight with block diagram, software panel, "Work we are proud of" (B125, B135, the laser scanner, RockFace), the open-source stack (four crates with logos; crates.io version and downloads at build time, `data/stack.toml`), notify and contact. Copy is draft until Marketing and PM have read it; board renders and the IOWeaver and RockFace screenshots show as placeholders until their files land (RockFace has no screenshot yet, its icon stands in)
+- ✅ SITE-7 open-source-page: /open-source lists every public crate from `data/stack.toml` in order, wired like the front page, canzone marked work in progress
 
 ## LOOK: brand and motif
 

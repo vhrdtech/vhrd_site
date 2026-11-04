@@ -55,6 +55,8 @@ ITEMS = {
         # crop out the monitor/code on the left of the full-rig photo
         ("p14_img01_1673x1255.jpeg", (600, 0, 1673, 1255), "laser-scanner-aoi-2"),
         ("p14_img00_946x1261.jpeg", None, "laser-scanner-aoi-3"),
+        # the board on the linear rails, cut to 4:3 around the carriages
+        ("p14_img02_952x1269.jpeg", (0, 230, 952, 944), "laser-scanner-aoi-rails"),
     ],
     "granite-cnc": [
         ("p18_img02_2021x1617.jpeg", None, "granite-cnc-1"),
@@ -98,10 +100,13 @@ def process_image(src_path: Path, crop_box, out_dir: Path, out_basename: str):
 def main():
     review_dir = Path(sys.argv[1])
     out_root = Path(sys.argv[2])
+    only = set(sys.argv[3:])  # optional: build just these slugs or output names
     for slug, images in ITEMS.items():
         out_dir = out_root / slug
         out_dir.mkdir(parents=True, exist_ok=True)
         for src_name, crop_box, out_basename in images:
+            if only and slug not in only and out_basename not in only:
+                continue
             produced = process_image(review_dir / src_name, crop_box, out_dir, out_basename)
             print(f"{slug}/{out_basename}: widths {produced}")
 

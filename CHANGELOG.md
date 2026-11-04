@@ -31,10 +31,12 @@
   fonts each board names are checked against `fc-list` first, failing loudly on a missing one
   instead of silently falling back. Covers the front-page boards: Donguru (B153), rePort
   (B200), B125, B135; the rest of `~/git/hw`'s boards are a later task. (P2633#4nov-0919d)
-- The front page, every section filled (draft copy, facts from the project and crate READMEs): hero, the three products (Donguru, rePort, the CAN line), the Donguru spotlight with its block diagram, the software panel (GUI, debugger, code tabs) with IOWeaver, RockFace and WireWeaver, four pieces from the lab, the open-source stack "from register to GUI" (eight crates in four layers, each with a code sample and, where published, its crates.io version and downloads fetched at build time from `data/stack.toml`), notify and contact.
 - `vh.fig` takes images by path: `stem` and `widths` give AVIF and WebP in several widths with `sizes`; width and height come from the file; the placeholder shows until the file exists, so board renders appear when they land in `static/img/boards/`.
 - The browser check holds the first view on a phone to 200 KB on the wire and fails on an image without alt, width or height.
 - just recipes: `test`, `lint`, `install` (Zola into ~/.local/bin), `brand`, `wordmark`, `serve`, `build`, `check-browser`, `check-preview URL`, `preview TOKEN` (noindex build for a share link, https://shadow.vhrd.tech/TOKEN/, uploaded with `tpm share`).
+- The front page, every section filled (draft copy, facts from the project and crate READMEs): hero, the three products (Donguru, rePort, the CAN line), the Donguru spotlight with its block diagram, the software panel (GUI, debugger, code tabs) with IOWeaver, RockFace and WireWeaver, "Work we are proud of" from four areas (B125 Ethernet to CAN FD, B135 USB to CAN FD, the 3D laser scanner on its linear rails, RockFace with its icon), the open-source stack "from register to GUI" (wire_weaver, shrink_wrap, exact_units and embedded_bedrock, with their logos in the theme's variant, a code sample each and, where published, the crates.io version and downloads fetched at build time), notify and contact.
+- /open-source lists every public crate from `data/stack.toml` in order: wire_weaver, shrink_wrap, exact_units, embedded_bedrock, canzone (marked work in progress), choreograph, egui_tabular, vhrd_egui.
+- Lab photo of the 3D laser scanner's linear rails (portfolio page 14), and `build_lab_images.py` can build single images by name.
 
 ### Changed
 
