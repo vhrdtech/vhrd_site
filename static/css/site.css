@@ -593,18 +593,23 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 }
 .intro .view-frame { --mark: var(--trace); transition: none; }
 
-/* Intro, the front page only (partials/intro.html), like an old CRT scope powering up: a bright dot in the middle of
-   a dark screen, then the deflection ramps up and it opens into a rectangle that overshoots, wobbles and settles
-   with its corners on the view frame's crosses (1 s). With the first screen ready, the screen fades to the page
-   (0.4 s). On a slow link a sine runs with "LOADING" (.intro-wait), "SLOW LINK · CLICK TO SKIP" after 5 s
-   (.intro-slow), "TRIG'D" when it fires (.intro-trig), at most 20 s. The page is painted underneath from the start
-   (the largest paint is not held back); this layer only covers it. Without `html.intro` it never shows.
-   The trace is the CAN cyan at a fixed phosphor brightness: the brightest signal colour on the screen's #0f0f10 and
-   the colour a scope channel is read as. The screen is dark in both themes. */
+/* Intro, the front page only (partials/intro.html), like an old CRT scope powering up (2.8 s, then a 0.6 s fade):
+   the dark screen; a phosphor dot fades in at the centre (0.25-0.65 s) and holds; it spreads into a horizontal
+   baseline as the timebase starts (0.95-1.55 s), the beam sweeping it and the line persisting; the deflection comes
+   up and the baseline stretches into the screen, overshooting and settling on the view frame's crosses
+   (1.55-2.8 s), like a supply ramping up; the graticule, the readouts and the trigger marker fade in (2.2-2.7 s).
+   With the first screen ready, the screen fades to the page. On a slow link a sine runs on the same screen with
+   "LOADING" (.intro-wait), "SLOW LINK · CLICK TO SKIP" after 5 s (.intro-slow), "TRIG'D" when it fires
+   (.intro-trig), at most 20 s. The page is painted underneath from the start (the largest paint is not held back);
+   this layer only covers it. Without `html.intro` it never shows.
+   The phosphor is P31 green, the bus green at a fixed phosphor brightness: next to the CAN cyan on the screen's
+   #0f0f10 it is what reads as an oscilloscope (the green of an analog scope's beam and graticule), where the cyan
+   reads as one more UI colour. The screen is dark in both themes. */
 :root {
-  --trace: var(--signal-can);
-  --trace: oklch(from var(--signal-can) 0.82 0.14 h);
-  --beam: color-mix(in oklch, var(--trace) 40%, var(--vhrd-grey-0));
+  --trace: var(--signal-bus);
+  --trace: oklch(from var(--signal-bus) 0.87 0.2 h);
+  --beam: color-mix(in oklch, var(--trace) 35%, var(--vhrd-grey-0));
+  --glass: radial-gradient(ellipse at center, color-mix(in oklch, var(--trace) 8%, var(--vhrd-grey-950)), var(--vhrd-grey-950) 75%);
 }
 .scope { display: none; }
 .intro .scope {
@@ -615,32 +620,93 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
   background: var(--vhrd-grey-950);
   animation: scope-failsafe 0.2s 21s forwards; /* the script's CAP (20 s) plus the fade */
 }
-/* The beam's raster, placed exactly on the view frame's crosses. */
-.scope-ray {
+/* The beam's raster, placed exactly on the view frame's crosses; the beam shares its box. */
+.scope-box {
   position: absolute;
   inset: var(--header-h) max(var(--view-edge), (100% - var(--page)) / 2) var(--view-edge);
+}
+.scope-ray {
+  position: absolute;
+  inset: 0;
   border: 1.5px solid var(--trace);
   border-radius: 3px;
-  background: radial-gradient(ellipse at center, color-mix(in oklch, var(--trace) 9%, var(--vhrd-grey-950)), var(--vhrd-grey-950) 75%);
-  box-shadow: 0 0 14px color-mix(in oklch, var(--trace) 55%, transparent), inset 0 0 40px color-mix(in oklch, var(--trace) 14%, transparent);
-  animation: scope-power 1s linear both;
+  background: var(--glass);
+  box-shadow: 0 0 14px color-mix(in oklch, var(--trace) 45%, transparent), inset 0 0 40px color-mix(in oklch, var(--trace) 12%, transparent);
+  animation: scope-power 2.8s linear both;
 }
 @keyframes scope-power {
-  0% { transform: scale(0.004, 0.007); opacity: 0; background: var(--beam); }
-  8% { transform: scale(0.004, 0.007); opacity: 1; background: var(--beam); animation-timing-function: cubic-bezier(0.5, 0, 0.6, 1); }
-  30% { transform: scale(0.004, 0.007); background: var(--beam); animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1); }
-  33% { background: radial-gradient(ellipse at center, color-mix(in oklch, var(--trace) 9%, var(--vhrd-grey-950)), var(--vhrd-grey-950) 75%); }
-  58% { transform: scale(1.06, 0.42); }
-  72% { transform: scale(0.97, 1.07); }
-  84% { transform: scale(1.015, 0.97); }
-  93% { transform: scale(0.996, 1.008); }
+  0%, 54% { transform: scale(1, 0.004); opacity: 0; }
+  55% { transform: scale(1, 0.004); opacity: 1; animation-timing-function: cubic-bezier(0.35, 0, 0.45, 1); }
+  71% { transform: scale(1.012, 1.08); animation-timing-function: ease-in-out; }
+  81% { transform: scale(0.996, 0.96); animation-timing-function: ease-in-out; }
+  89% { transform: scale(1.003, 1.014); animation-timing-function: ease-in-out; }
+  95% { transform: scale(1, 0.996); }
   100% { transform: none; opacity: 1; }
 }
-.scope-crt { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity 0.3s; }
-.intro-wait .scope-crt { opacity: 1; }
-.scope-grid, .scope-axes { fill: none; vector-effect: non-scaling-stroke; stroke-width: 1; }
-.scope-grid { stroke: color-mix(in oklch, var(--trace) 14%, transparent); }
-.scope-axes { stroke: color-mix(in oklch, var(--trace) 26%, transparent); stroke-dasharray: 2 3; }
+/* The beam, in transforms and opacity only (no layout, so no layout shift): a dot with its glow fades in and
+   holds; the baseline spreads out of it (a little past the edges, then back) and stays as the trace of a channel
+   without a signal, dimming as the screen settles; the bright head sweeps it, the line persists behind. While
+   waiting the sine takes the baseline's place (the animations hold the opacity, so visibility hides it). */
+.scope-dot, .scope-line, .scope-head { position: absolute; top: 50%; pointer-events: none; }
+.scope-dot {
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--beam);
+  box-shadow: 0 0 6px 2px var(--trace), 0 0 28px 8px color-mix(in oklch, var(--trace) 40%, transparent);
+  animation: scope-dot 2.8s both;
+}
+.scope-line {
+  left: 0;
+  right: 0;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--beam);
+  box-shadow: 0 0 4px 1px var(--trace), 0 0 14px 3px color-mix(in oklch, var(--trace) 35%, transparent);
+  animation: scope-line 2.8s both;
+}
+.scope-head { left: 0; right: 0; height: 0; opacity: 0; animation: scope-sweep 0.3s linear 1.4s 4; }
+.scope-head::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: -3px;
+  width: 10px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--vhrd-grey-0);
+  box-shadow: 0 0 8px 3px var(--beam);
+}
+@keyframes scope-dot {
+  0%, 9% { opacity: 0; transform: scale(0.6); }
+  23%, 34% { opacity: 1; transform: none; }
+  46%, 100% { opacity: 0; transform: none; }
+}
+@keyframes scope-line {
+  0%, 34% { opacity: 0; transform: scaleX(0.004); animation-timing-function: cubic-bezier(0.5, 0, 0.3, 1); }
+  35% { opacity: 1; }
+  50% { transform: scaleX(1.03); }
+  56% { transform: none; opacity: 1; }
+  100% { transform: none; opacity: 0.6; }
+}
+@keyframes scope-sweep {
+  from { transform: none; opacity: 0.9; }
+  to { transform: translateX(100%); opacity: 0.9; }
+}
+.intro-wait .scope-dot, .intro-wait .scope-line, .intro-wait .scope-head { visibility: hidden; }
+.scope-crt { display: block; width: 100%; height: 100%; }
+.scope-grat, .scope-read, .scope-trig { animation: scope-grat 2.8s both; }
+@keyframes scope-grat {
+  0%, 78% { opacity: 0; }
+  96%, 100% { opacity: 1; }
+}
+.scope-sigs { opacity: 0; transition: opacity 0.3s; }
+.intro-wait .scope-sigs { opacity: 1; }
+.scope-grid, .scope-axes, .scope-ticks { fill: none; vector-effect: non-scaling-stroke; stroke-width: 1; }
+.scope-grid { stroke: color-mix(in oklch, var(--trace) 20%, transparent); }
+.scope-axes, .scope-ticks { stroke: color-mix(in oklch, var(--trace) 34%, transparent); }
 .scope-glow, .scope-trail, .scope-beam {
   fill: none;
   stroke: var(--trace);
@@ -657,23 +723,36 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .intro-wait .scope-beam { animation: scope-beam 0.9s linear infinite; }
 @keyframes scope-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes scope-beam { from { stroke-dashoffset: 0.025; } to { stroke-dashoffset: -0.975; } }
-.scope-status, .scope-hint {
-  display: none;
+/* The readouts along the bottom edge, the trigger level's marker on the left edge (at the centre: 0 V). */
+.scope-read, .scope-status, .scope-hint {
   position: absolute;
   font: 500 0.6875rem/1 var(--font-mono);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--trace);
 }
+.scope-read { bottom: 0.75rem; }
+.scope-read-ch { left: 1rem; }
+.scope-read-m { right: 1rem; }
+.scope-trig {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 7px;
+  height: 10px;
+  margin-top: -5px;
+  background: var(--trace);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+.scope-status, .scope-hint { display: none; letter-spacing: 0.12em; text-transform: uppercase; }
 .scope-status { top: 1rem; right: 1.25rem; }
-.scope-hint { left: 0; right: 0; bottom: 1.5rem; text-align: center; }
+.scope-hint { left: 0; right: 0; bottom: 2.25rem; text-align: center; }
 .intro-wait .scope-status { display: block; animation: scope-blink 1s step-end infinite; }
 .intro-trig .scope-status { animation: none; color: var(--beam); }
 .intro-slow .scope-hint { display: block; }
 .intro-trig .scope-hint { display: none; }
 @keyframes scope-blink { 50% { opacity: 0.35; } }
 @keyframes scope-failsafe { to { opacity: 0; visibility: hidden; } }
-.intro-out .scope { opacity: 0; transition: opacity 0.4s; }
+.intro-out .scope { opacity: 0; transition: opacity 0.6s; }
 .intro-skip .scope { opacity: 0; transition: opacity 0.15s; }
 @media (prefers-reduced-motion: reduce) { .intro .scope { display: none; } }
 

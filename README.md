@@ -101,13 +101,15 @@ The front page is built to show fast on a slow phone. `just perf` (`tools/perf.p
 
 The front page opens like an old CRT oscilloscope powering up (`templates/partials/intro.html`, styles under "Intro" in `site.css`):
 
-1. A dark screen, and a single bright dot appears in its centre.
-2. The deflection ramps up: the dot opens into a rectangle that overshoots, wobbles and settles with its corners on the four crosses of the view frame.
-3. With the first screen ready (the hero render loaded or failed, the fonts ready), the screen fades straight to the page.
+1. A dark screen. A phosphor dot with its glow fades in at the centre and holds a beat.
+2. The timebase starts: the dot spreads into a horizontal baseline, a little past the edges and back, with the beam's bright head sweeping it and the line persisting behind.
+3. The deflection comes up like a supply ramping: the baseline stretches into the screen, which overshoots, wobbles and settles with its corners on the four crosses of the view frame.
+4. A graticule of 10 × 8 divisions fades in, with the centre cross and its minor ticks, the readouts "CH1 1.00V/div" and "M 2.00ms" along the bottom edge and the trigger marker on the left edge.
+5. With the first screen ready (the hero render loaded or failed, the fonts ready), the screen fades to the page.
 
 On a slow link the screen waits instead:
 
-- A sine runs on it, sweep after sweep, and "LOADING" blinks in its corner.
+- A sine takes the baseline's place, sweep after sweep, and "LOADING" blinks in its corner.
 - After 5 s of waiting, "SLOW LINK · CLICK TO SKIP" shows at its foot.
 - When the first screen is in, the status says "TRIG'D" and the screen fades to the page.
 - It waits at most 20 s.
@@ -116,13 +118,13 @@ The view frame (`.view-frame` in `base.html`) is on every page: a cross at each 
 
 How it is built:
 
-- The power-on is one CSS animation of 1 s, the fade 0.4 s: about 1.4 s in all on a fast link or from the cache.
-- The inline script (about 3.7 KB with its comments) decides between the fade and the wait, and clears the layer.
+- The power-on is CSS animations of 2.8 s, the fade 0.6 s: about 3.4 s in all on a fast link or from the cache (Roman, 4 Nov 2026: 2.5 times the first version, so it reads as a scope).
+- The inline script (about 3.7 KB with its comments, unchanged by the new sequence) decides between the fade and the wait, and clears the layer.
 - The page is in the HTML and painted underneath from the start; the intro only covers it. The largest paint is the hero render either way, at the same time. The growth is a transform: no layout shift.
 - It plays on every load and refresh of the home page, but not when the URL has a #fragment (a link to a section goes straight there).
 - A click, key, wheel, touch or scroll skips it. The footer's "Replay intro" button plays it again.
 - Under reduced motion and without JavaScript there is no intro and no replay button. A CSS failsafe hides the layer after 21 s (the 20 s cap plus the fade) whatever the script does.
-- The trace and the crosses during the intro are the CAN cyan at a fixed phosphor brightness: the brightest signal colour on #0f0f10 and the colour a scope channel is read as.
+- The beam and the graticule are P31 green: the bus green at a fixed phosphor brightness. Both were tried on #0f0f10. The green reads as an analog scope's beam at once; the CAN cyan reads as one more UI colour. The image placeholders use the same colour.
 
 ## Image placeholders
 

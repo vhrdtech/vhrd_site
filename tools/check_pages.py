@@ -179,9 +179,9 @@ def check_intro(browser, base):
         if not page.locator("h1").is_visible():
             failures.append("intro: the headline is not rendered under the intro")
         try:
-            page.wait_for_function(f"!({INTRO_ON})", timeout=3000)
+            page.wait_for_function(f"!({INTRO_ON})", timeout=5000)
         except Exception:
-            failures.append(f"intro: still on 3 s after the {load}")
+            failures.append(f"intro: still on 5 s after the {load}")
         if page.evaluate("window.__waited"):
             failures.append(f"intro: waited (LOADING) on the {load} of a fast local site")
     replay = page.locator(".replay")
@@ -192,7 +192,7 @@ def check_intro(browser, base):
         if not page.evaluate(INTRO_ON):
             failures.append("intro: the replay button does not play it")
         try:
-            page.wait_for_function(f"!({INTRO_ON})", timeout=3000)
+            page.wait_for_function(f"!({INTRO_ON})", timeout=5000)
         except Exception:
             failures.append("intro: the replay does not clear")
     page.goto(base + "#notify")
@@ -219,7 +219,7 @@ def check_intro(browser, base):
         held = []
         page.route("**/b153_hero-*", lambda route: held.append(route))
         page.goto(base, wait_until="domcontentloaded")
-        page.wait_for_timeout(2000)
+        page.wait_for_timeout(3500)  # the power-on takes 2.8 s
         if not page.evaluate("document.documentElement.classList.contains('intro-wait')"):
             failures.append(f"intro: does not wait for {why}")
         elif page.locator(".scope-status").inner_text().upper() != "LOADING":

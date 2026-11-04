@@ -1,22 +1,32 @@
-{#- The front page's intro (LOOK-4 scope-intro), like an old CRT scope powering up: a dark screen, a bright dot in
-    the centre, then the deflection ramps up and the dot opens into a rectangle that overshoots, wobbles and settles
-    with its corners on the four crosses of the view frame (base.html, .view-frame). With the first screen ready
-    (the hero render loaded or failed, the fonts ready) the screen fades straight to the page. On a slow link a sine
-    runs on the screen with "LOADING", then "TRIG'D" when it fires; after 5 s "SLOW LINK · CLICK TO SKIP"; at most
-    20 s. The page is in the HTML and painted underneath from the start; this layer only covers it. It plays on every
-    load of the home page when the head script in index.html set `html.intro` (JS on, no reduced motion, no
-    #fragment), and again from the footer's replay button. Styles in site.css ("Intro"). -#}
+{#- The front page's intro (LOOK-4 scope-intro), like an old CRT scope powering up, about 3.4 s: the dark screen,
+    then a phosphor dot fades in at the centre, holds, spreads into a horizontal baseline as the timebase starts
+    (the beam sweeping it, the line persisting), and the deflection comes up: the baseline stretches into the screen,
+    overshoots and settles with its corners on the four crosses of the view frame (base.html, .view-frame). A 10 x 8
+    graticule with the centre cross and minor ticks fades in, with the readouts at the bottom (CH1 1.00V/div,
+    M 2.00ms) and the trigger marker on the left edge. With the first screen ready (the hero render loaded or failed,
+    the fonts ready) the screen fades to the page. On a slow link a sine runs on the same screen with "LOADING", then
+    "TRIG'D" when it fires; after 5 s "SLOW LINK · CLICK TO SKIP"; at most 20 s. The page is in the HTML and painted
+    underneath from the start; this layer only covers it. It plays on every load of the home page when the head
+    script in index.html set `html.intro` (JS on, no reduced motion, no #fragment), and again from the footer's
+    replay button. Styles in site.css ("Intro"). -#}
 <div class="scope" aria-hidden="true">
+<div class="scope-box">
 <div class="scope-ray">
 <svg class="scope-crt" viewBox="0 0 400 300" preserveAspectRatio="none">
 <defs><path id="scope-sig" pathLength="1" d="M0 150L5 136 10 122.8 15 111 20 101.5 25 94.6 30 90.7 35 90.2 40 92.9 45 98.8 50 107.6 55 118.7 60 131.5 65 145.3 70 159.4 75 173 80 185.3 85 195.6 90 203.5 95 208.3 100 210 105 208.3 110 203.5 115 195.6 120 185.3 125 173 130 159.4 135 145.3 140 131.5 145 118.7 150 107.6 155 98.8 160 92.9 165 90.2 170 90.7 175 94.6 180 101.5 185 111 190 122.8 195 136 200 150 205 164 210 177.2 215 189 220 198.5 225 205.4 230 209.3 235 209.8 240 207.1 245 201.2 250 192.4 255 181.3 260 168.5 265 154.7 270 140.6 275 127 280 114.7 285 104.4 290 96.5 295 91.7 300 90 305 91.7 310 96.5 315 104.4 320 114.7 325 127 330 140.6 335 154.7 340 168.5 345 181.3 350 192.4 355 201.2 360 207.1 365 209.8 370 209.3 375 205.4 380 198.5 385 189 390 177.2 395 164 400 150"/>
 <pattern id="scope-div" width="40" height="37.5" patternUnits="userSpaceOnUse"><path d="M40 0V37.5M0 37.5H40" class="scope-grid"/></pattern></defs>
-<rect width="400" height="300" fill="url(#scope-div)"/>
+<g class="scope-grat"><rect width="400" height="300" fill="url(#scope-div)"/>
 <path class="scope-axes" d="M200 0V300M0 150H400"/>
-<use href="#scope-sig" class="scope-glow"/><use href="#scope-sig" class="scope-trail"/><use href="#scope-sig" class="scope-beam"/>
+<path class="scope-ticks" d="M8 148V152 M16 148V152 M24 148V152 M32 148V152 M48 148V152 M56 148V152 M64 148V152 M72 148V152 M88 148V152 M96 148V152 M104 148V152 M112 148V152 M128 148V152 M136 148V152 M144 148V152 M152 148V152 M168 148V152 M176 148V152 M184 148V152 M192 148V152 M208 148V152 M216 148V152 M224 148V152 M232 148V152 M248 148V152 M256 148V152 M264 148V152 M272 148V152 M288 148V152 M296 148V152 M304 148V152 M312 148V152 M328 148V152 M336 148V152 M344 148V152 M352 148V152 M368 148V152 M376 148V152 M384 148V152 M392 148V152 M198 7.5H202 M198 15H202 M198 22.5H202 M198 30H202 M198 45H202 M198 52.5H202 M198 60H202 M198 67.5H202 M198 82.5H202 M198 90H202 M198 97.5H202 M198 105H202 M198 120H202 M198 127.5H202 M198 135H202 M198 142.5H202 M198 157.5H202 M198 165H202 M198 172.5H202 M198 180H202 M198 195H202 M198 202.5H202 M198 210H202 M198 217.5H202 M198 232.5H202 M198 240H202 M198 247.5H202 M198 255H202 M198 270H202 M198 277.5H202 M198 285H202 M198 292.5H202"/></g>
+<g class="scope-sigs"><use href="#scope-sig" class="scope-glow"/><use href="#scope-sig" class="scope-trail"/><use href="#scope-sig" class="scope-beam"/></g>
 </svg>
+<span class="scope-trig"></span>
+<span class="scope-read scope-read-ch">CH1 1.00V/div</span>
+<span class="scope-read scope-read-m">M 2.00ms</span>
 <span class="scope-status">Loading</span>
 <span class="scope-hint">Slow link · click to skip</span>
+</div>
+<span class="scope-dot"></span><span class="scope-line"></span><span class="scope-head"></span>
 </div>
 </div>
 <script>
@@ -55,7 +65,7 @@
       // Done when the layer's own fade ends (a child's transition bubbles here too), or a little after it anyway.
       const end = (e) => e.target === scope && (scope.removeEventListener("transitionend", end), done());
       scope.addEventListener("transitionend", end);
-      timers.push(setTimeout(done, 600));
+      timers.push(setTimeout(done, 900));
       root.classList.add("intro-out");
     };
     events.forEach((e) => addEventListener(e, skip, { capture: true, passive: true }));
