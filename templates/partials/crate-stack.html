@@ -9,7 +9,7 @@
 <li class="stack-top"><span class="v-label">Products</span><span class="stack-products">Donguru · rePort · CAN line · IOWeaver · RockFace</span></li>
 {%- endif %}
 {%- for c in stack.crate %}{% if c.front or not stack_front %}
-{%- if c.crate %}{% set meta = load_data(url="https://crates.io/api/v1/crates/" ~ c.crate, format="json", required=false, headers=["User-Agent=vhrd_site build (https://vhrd.tech, hello@vhrd.tech)"]) %}{% else %}{% set meta = "" %}{% endif %}
+{%- if c.crate %}{% set meta = load_data(url="https://crates.io/api/v1/crates/" ~ c.crate, format="json", required=false, headers=["User-Agent=vhrd_site build (https://vhrd.tech, contact@vhrd.tech)"]) %}{% else %}{% set meta = "" %}{% endif %}
 <li class="layer" style="--sig: var(--signal-{{ c.sig }})">
 <div class="layer-head"><span class="via" aria-hidden="true"></span><span class="v-label">{{ c.layer }}</span></div>
 <article class="crate{% if c.logo_dark %} has-logo{% endif %}" id="{{ c.name }}"{% if c.fits %} data-fits{% endif %}>

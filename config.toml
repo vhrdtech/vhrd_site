@@ -30,7 +30,7 @@ legal = "VHRD.TECH AS"
 # it costs the first paint about 0.1 s on a slow phone, which is fine.
 intro_trace = true
 address = "Asker, Norway"
-email = "hello@vhrd.tech"
+# Mail addresses are vh.mail components (to = contact, projects, donguru), never written into the HTML.
 github = "https://github.com/vhrdtech"
 # Header links: name, path. The red button is extra.notify.
 nav = [

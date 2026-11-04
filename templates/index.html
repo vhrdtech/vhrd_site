@@ -145,14 +145,14 @@ ww_impl!(uart[]: ww_uart::Uart)
 {% <vh.section label="Stay in the loop" n="06" id="notify" title="Hear when Donguru launches"> %}
 <div class="contact">
 <div>
-<p class="v-lead">Donguru launches on Crowd Supply. Its sign-up list opens with the pre-launch page; until then, send a line and you hear first. {{ draft | safe }}</p>
+<p class="v-lead">Donguru launches on Crowd Supply. Its sign-up list opens with the pre-launch page; until then, send a line to {{ <vh.mail to="donguru" subject="Donguru launch" /> }} and you hear first. {{ draft | safe }}</p>
 <div class="ctas">
 <a class="v-btn v-primary" href="{{ get_url(path='/donguru/#notify', trailing_slash=true) }}">Get notified</a>
 </div>
 </div>
 <div class="contact-card">
 <p class="v-label">Contact</p>
-<p>Questions about the boards, the software or a project of your own: <a href="mailto:{{ config.extra.email }}">{{ config.extra.email }}</a>.</p>
+<p>Questions about the boards, the software or a project of your own: {{ <vh.mail to="contact" /> }}.</p>
 <p class="v-muted">Engineering services are rare right now. <a class="go" href="{{ get_url(path='/services/', trailing_slash=true) }}">What I do and how I work</a></p>
 </div>
 </div>

@@ -25,6 +25,9 @@ replay button plays the slow path as a demo; never with a #fragment, under reduc
 Every text in a table cell is 4.5:1 on the cell's background, in dark and light.
 Links: every page in the site map is reached from the front page by links (no orphans), and every internal
 href on every page reached ends in '/' when it names a page and answers 200 without a redirect.
+Mail: no page or file has an address in it ('@vhrd.tech'); with JavaScript every mail link is a mailto link with
+its subject (projects@ on /services, donguru@ on /donguru and the front page, contact@ in the footer), and without
+it a mail link is plain text ("projects at vhrd.tech") and a labelled one does not show.
 A picture on its way shows as a small scope screen in its box and fades in when it comes, without a size change.
 With --shots, writes a full-page screenshot per width in dark (traces shown drawn: reduced motion).
 """
@@ -554,6 +557,49 @@ def check_table_contrast(browser, base):
 # Paths this site never generates: on vhrd.tech the old WordPress site answers them (AGENTS.md).
 FALLTHROUGH = ("shop/", "feed/", "product/", "cart/", "checkout/")
 
+# No mail address is written into the site (vh.mail puts it together in the browser).
+ADDRESS = b"@vhrd.tech"
+MAIL_LINKS = """() => [...document.querySelectorAll('a[data-mail]')].map((a) =>
+  [a.getAttribute('href'), a.textContent, a.hasAttribute('data-keep'), a.getClientRects().length > 0])"""
+# Mail links each page must have, as the script makes them.
+MAIL_WANTED = {
+    "": ["mailto:donguru@vhrd.tech?subject=Donguru%20launch", "mailto:contact@vhrd.tech"],
+    "donguru/": ["mailto:donguru@vhrd.tech?subject=Donguru%20launch"],
+    "services/": ["mailto:projects@vhrd.tech?subject=Project"],
+    "about/": ["mailto:contact@vhrd.tech"],
+}
+
+
+def check_mail(browser, base, out):
+    """No address in the built files; mail links work with JavaScript and read as text without it."""
+    failures = []
+    if out is not None:
+        for f in sorted(out.rglob("*")):
+            if f.suffix in TEXT and ADDRESS in f.read_bytes():
+                failures.append(f"mail: {f.relative_to(out)} has an address in it ({ADDRESS.decode()})")
+    for js in (True, False):
+        ctx = browser.new_context(viewport={"width": 1440, "height": 900}, java_script_enabled=js,
+                                  reduced_motion="reduce")
+        page = ctx.new_page()
+        for path in PAGES[:-1]:
+            page.goto(base + path)
+            links = page.evaluate(MAIL_LINKS)
+            if not links:
+                failures.append(f"mail: {path or '/'} has no mail link (the footer has one)")
+            for href, text, keep, shown in links:
+                if js:
+                    if not (href or "").startswith("mailto:") or (not keep and text != href[7:].split("?")[0]):
+                        failures.append(f"mail: {path or '/'}: {text!r} is {href!r} with JavaScript")
+                    if not shown:
+                        failures.append(f"mail: {path or '/'}: {text!r} does not show with JavaScript")
+                elif href is not None or (keep and shown) or (not keep and not text.endswith(" at vhrd.tech")):
+                    failures.append(f"mail: {path or '/'}: {text!r} without JavaScript: href {href!r}, shown {shown}")
+            if js:
+                hrefs = [h for h, *_ in links]
+                failures += [f"mail: {path or '/'} has no {w}" for w in MAIL_WANTED.get(path, []) if w not in hrefs]
+        ctx.close()
+    return failures
+
 
 class Hrefs(html.parser.HTMLParser):
     """The href of every <a> and <link>, the src of every <img>, <source> srcset and <script>."""
@@ -605,6 +651,8 @@ def check_links(base):
         p = Hrefs()
         p.feed(body.decode("utf-8", "replace"))
         where = urlsplit(page).path[len(root):] or "/"
+        if ADDRESS in body:
+            failures.append(f"mail: {where} has an address in its HTML ({ADDRESS.decode()})")
         for href, is_page in [(h, True) for h in p.links] + [(h, False) for h in p.files]:
             u = urlsplit(urljoin(page, href))
             if u.scheme not in ("http", "https") or u.netloc != host:
@@ -710,6 +758,7 @@ def main():
         failures += check_intro(browser, base)
         failures += check_placeholders(browser, base)
         failures += check_table_contrast(browser, base)
+        failures += check_mail(browser, base, out)
 
         # Interactions, on a desktop page in a browser that prefers light: dark all the same on a first visit (the
         # default, from the HTML, so no light flash), the toggle switches to light and remembers it, and back to dark

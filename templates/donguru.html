@@ -227,8 +227,8 @@ dg.usb.disconnect(); dg.usb.connect()   # make it re-enumerate
 {% <vh.section label="Launch" n="09" id="notify" title="Get notified"> %}
 <div class="contact">
 <div>
-<p class="v-lead">Donguru launches on CrowdSupply, coming Q1–Q2 2027. Until the campaign page is up, write to <a href="mailto:{{ config.extra.email }}?subject=Donguru">{{ config.extra.email }}</a> and we let you know.</p>
-<div class="ctas"><a class="v-btn v-primary" href="mailto:{{ config.extra.email }}?subject=Donguru">Get notified</a></div>
+<p class="v-lead">Donguru launches on CrowdSupply, coming Q1–Q2 2027. Until the campaign page is up, write to {{ <vh.mail to="donguru" subject="Donguru launch" /> }} and we let you know.</p>
+<div class="ctas">{{ <vh.mail to="donguru" subject="Donguru launch" text="Get notified" cls="v-btn v-primary" /> }}</div>
 {{ <vh.specs items={["Status: rev A built, rev B in design", "Launch: Q1–Q2 2027", "Where: CrowdSupply"]} /> }}
 </div>
 <div class="contact-card">

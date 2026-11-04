@@ -97,3 +97,11 @@
 {% endfor %}
 </div>
 {% endcomponent vh.code_tabs %}
+
+{#- A mail link with no address in the HTML, so harvesters reading the page find none (Roman, 4 Nov 2026). The page
+    carries the parts in data attributes; the inline script at the end of base.html builds the mailto link with the
+    subject. Without JavaScript it reads "projects at vhrd.tech" and is not a link. With `text` it is a labelled
+    button-like link, hidden until the script makes it work: {{ <vh.mail to="projects" subject="Project" /> }} -#}
+{% component vh.mail(to: string, subject: string = "", text: string = "", cls: string = "") %}
+<a class="mail{% if cls %} {{ cls }}{% endif %}" data-mail="{{ to }}" data-d="vhrd.tech"{% if subject %} data-s="{{ subject }}"{% endif %}{% if text %} data-keep hidden{% endif %}>{% if text %}{{ text }}{% else %}{{ to }} at vhrd.tech{% endif %}</a>
+{%- endcomponent vh.mail %}

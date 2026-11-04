@@ -51,6 +51,8 @@
 {% block content %}{% endblock content %}
 </main>
 {% include "partials/footer.html" %}
+{#- Mail links (vh.mail): the address and the mailto link are put together here, never written into the HTML. #}
+<script>for(const a of document.querySelectorAll("a[data-mail]")){const m=a.dataset.mail+"\x40"+a.dataset.d;a.href="mailto:"+m+(a.dataset.s?"?subject="+encodeURIComponent(a.dataset.s):"");if(a.hasAttribute("data-keep"))a.hidden=false;else a.textContent=m}</script>
 {%- block tail %}{% endblock tail %}
 </body>
 </html>

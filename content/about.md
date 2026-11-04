@@ -27,6 +27,6 @@ VHRD is based in Asker, Norway, and ships from there.
 
 ## Contact
 
-Mail [hello@vhrd.tech](mailto:hello@vhrd.tech). For project work, see [services](@/services.md).
+Mail {{ <vh.mail to="contact" /> }}. For project work, see [services](@/services.md).
 
 <p class="legal v-muted">VHRD.TECH AS · Asker, Norway</p>

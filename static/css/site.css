@@ -268,6 +268,9 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 .v-table tbody tr:nth-child(even) { background: var(--raised); }
 .v-table .v-badge { background: var(--bg); }
 
+/* Mail links (vh.mail): a labelled one stays hidden until the script has made it a link, whatever its display. */
+.mail[hidden] { display: none; }
+
 /* Code panel with tabs. Without the script every panel shows under its own title. */
 .code-tabs { margin-top: 2rem; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--raised); }
 .code-tabs-bar {

@@ -33,5 +33,4 @@ Examples of this work are on [the work page](@/work.md).
 
 ## Get in touch
 
-<!-- Placeholder address: hello@vhrd.tech until the services address is decided (services-draft.md, review note 1). -->
-Email [hello@vhrd.tech](mailto:hello@vhrd.tech) with a few lines about your project, the timeline and what you need from me.
+Email {{ <vh.mail to="projects" subject="Project" /> }} with a few lines about your project, the timeline and what you need from me.

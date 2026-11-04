@@ -4,7 +4,7 @@
     has no link, logo or code. -#}
 {%- set code = x.code | default(value="") and not x.private | default(value=false) %}
 {%- set url = x.repo | default(value="https://github.com/" ~ x.owner | default(value="") ~ "/" ~ x.name) %}
-{%- if x.crate %}{% set meta = load_data(url="https://crates.io/api/v1/crates/" ~ x.crate, format="json", required=false, headers=["User-Agent=vhrd_site build (https://vhrd.tech, hello@vhrd.tech)"]) %}{% else %}{% set meta = "" %}{% endif %}
+{%- if x.crate %}{% set meta = load_data(url="https://crates.io/api/v1/crates/" ~ x.crate, format="json", required=false, headers=["User-Agent=vhrd_site build (https://vhrd.tech, contact@vhrd.tech)"]) %}{% else %}{% set meta = "" %}{% endif %}
 <li class="crate repo{% if code %} repo-code{% endif %}{% if x.private %} repo-private{% endif %}{% if x.logo_dark and not x.private %} has-logo{% endif %}" id="{{ id_prefix }}{{ x.name }}"{% if code %} data-fits{% endif %}>
 <div class="crate-text">
 <header class="crate-head">

@@ -14,7 +14,7 @@
   <div class="frame footer-grid">
     <div class="footer-brand">
       <a class="brand" href="{{ get_url(path='/', trailing_slash=true) }}" aria-label="VHRD, home">{% include "partials/wordmark.html" %}</a>
-      <p>{{ config.extra.company }}<br>{{ config.extra.address }}<br><a href="mailto:{{ config.extra.email }}">{{ config.extra.email }}</a></p>
+      <p>{{ config.extra.company }}<br>{{ config.extra.address }}<br>{{ <vh.mail to="contact" /> }}</p>
     </div>
     <nav class="footer-col" aria-label="Products">
       <p class="v-label">Products</p>
