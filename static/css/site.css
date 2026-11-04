@@ -548,7 +548,8 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 /* Intro, the front page only (partials/intro.html): an oscilloscope screen sweeps a ringing step, grows out to
    FIG. 1's corners and becomes that frame while the page shows through. The page is painted underneath from the
    start (the largest paint is not held back); this layer only covers it. Without `html.intro` it never shows.
-   Timeline: power-on 0.25 s, sweep 0.7 s, growth and reveal 0.6 s, about 1.55 s in all.
+   Timeline: power-on 0.25 s, sweep 0.7 s, growth and reveal 0.6 s, about 1.55 s in all. On a slow connection the
+   growth waits for the first screen (.intro-wait: the step re-triggers, "ARMED" blinks; .intro-trig: "TRIG'D").
    The trace is the CAN cyan, the brightest signal colour on the screen's #0f0f10 and the colour a scope channel is
    read as; the brand red stays on the corner marks the screen turns into. The screen is dark in both themes, so the
    trace takes the token's hue at a fixed phosphor brightness (the light theme's CAN colour is too dark to glow). */
@@ -562,7 +563,7 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
   inset: 0;
   z-index: 200;
   background-color: var(--bg);
-  animation: scope-failsafe 0.2s 4s forwards;
+  animation: scope-failsafe 0.2s 7s forwards; /* the script's CAP (6 s) plus the reveal */
 }
 /* Centred, in the render's proportions (--hr, height over width, set by the template). */
 .scope-screen {
@@ -609,6 +610,23 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
   filter: drop-shadow(0 0 4px var(--trace));
   animation: scope-beam 0.7s 0.25s linear both;
 }
+/* Waiting for the first screen: the scope re-triggers, each sweep redrawing the step over the glow's persistence. */
+.scope-status {
+  display: none;
+  position: absolute;
+  top: 1.25rem;
+  right: 1.4rem;
+  font: 500 0.6875rem/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--trace);
+}
+.intro-wait .scope-status { display: block; animation: scope-blink 1s step-end infinite; }
+.intro-trig .scope-status { animation: none; color: var(--beam); }
+.intro-grow .scope-status { opacity: 0; transition: opacity 0.2s; }
+.intro-wait .scope-trail { animation: scope-draw 0.9s linear infinite; }
+.intro-wait .scope-beam { animation: scope-beam 0.9s linear infinite; }
+@keyframes scope-blink { 50% { opacity: 0.35; } }
 @keyframes scope-on {
   from { transform: scaleY(0.01); filter: brightness(4); }
   60% { transform: scaleY(1); filter: brightness(1.6); }

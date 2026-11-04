@@ -105,12 +105,14 @@ The front page opens like an oscilloscope (`templates/partials/intro.html`, styl
 2. A phosphor trace sweeps a step that rings and settles, with a glow, a bright beam spot and a slowly dimming trail.
 3. The screen grows out to FIG. 1's red corner marks and becomes that frame, while the cover over the page clears.
 
+On a slow connection the scope waits for the first screen before it grows out: the hero render loaded (or failed) and the fonts ready. While it waits, the step re-triggers sweep after sweep and "ARMED" blinks in the screen's corner. When everything is in, it says "TRIG'D" and grows out. It waits at most 6 s. When the first screen is ready within the normal 1.55 s, nothing changes.
+
 How it is built:
 
-- About 1.55 s in all: power-on 0.25 s, sweep 0.7 s, growth and reveal 0.6 s. The timings are CSS animations; the inline script (about 1.3 KB) only starts the growth when the sweep ends and clears the layer.
+- About 1.55 s in all: power-on 0.25 s, sweep 0.7 s, growth and reveal 0.6 s. The timings are CSS animations; the inline script (about 2.7 KB with its comments) starts the growth when the sweep has ended and the first screen is ready, and clears the layer.
 - The page is in the HTML and painted underneath from the start; the intro only covers it. The largest paint is the hero render either way, at the same time.
 - The growth is a transform (no layout shift). The screen has the render's proportions, so the corners keep their size as they land.
-- A click, key, wheel, touch or scroll skips it. It plays once per tab (sessionStorage), not when the URL has a #fragment, never under reduced motion and never without JavaScript. A CSS failsafe hides the layer after 4 s whatever the script does.
+- A click, key, wheel, touch or scroll skips it. It plays once per tab (sessionStorage), not when the URL has a #fragment, never under reduced motion and never without JavaScript. A CSS failsafe hides the layer after 7 s (the 6 s cap plus the reveal) whatever the script does.
 - The trace is the CAN cyan at a fixed phosphor brightness: the brightest signal colour on #0f0f10 and the colour a scope channel is read as. The brand red stays on the corners.
 
 ## Preview

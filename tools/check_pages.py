@@ -17,7 +17,8 @@ First-view budget: what a phone loads for the front page before scrolling (HTML,
 stays under BUDGET_KB as sent over the wire: text gzipped (as the local build would be served by a server that
 compresses), fonts and images as they are; against a deployed site, the transfer sizes the browser saw. Every image
 has alt text and its width and height.
-The front page's intro: it plays on the first visit in a tab and clears by itself, a key skips it, it does not play
+The front page's intro: it plays on the first visit in a tab and clears by itself, waits (ARMED) for a late hero
+render and reveals at its cap without one, a key skips it, it does not play
 again in the same tab, and it never shows under reduced motion or without JavaScript.
 With --shots, writes a full-page screenshot per width in dark (traces shown drawn: reduced motion).
 """
@@ -144,6 +145,30 @@ def check_intro(browser, base):
     except Exception:
         failures.append("intro: a key press did not skip it within 0.5 s")
     ctx.close()
+
+    # A slow hero render: the scope waits (ARMED), fires (TRIG'D) and reveals once the render is in; never received,
+    # it reveals at the cap anyway.
+    for release, why in ((True, "a late hero"), (False, "a hero that never comes")):
+        ctx = browser.new_context(viewport={"width": 1440, "height": 900}, color_scheme="dark")
+        page = ctx.new_page()
+        held = []
+        page.route("**/b153_hero-*", lambda route: held.append(route))
+        page.goto(base, wait_until="domcontentloaded")
+        page.wait_for_timeout(2000)
+        if not page.evaluate("document.documentElement.classList.contains('intro-wait')"):
+            failures.append(f"intro: does not wait for {why}")
+        elif page.locator(".scope-status").inner_text().upper() != "ARMED":
+            failures.append(f"intro: no ARMED status while waiting for {why}")
+        if release:
+            for r in held:
+                r.continue_()
+        try:
+            page.wait_for_function(f"!({INTRO_ON})", timeout=1500 if release else 5500)
+        except Exception:
+            failures.append(f"intro: not cleared after {why}")
+        for r in held if not release else ():
+            r.abort()
+        ctx.close()
 
     for opts, why in (({"reduced_motion": "reduce"}, "reduced motion"), ({"java_script_enabled": False}, "no JS")):
         ctx = browser.new_context(viewport={"width": 1440, "height": 900}, **opts)
