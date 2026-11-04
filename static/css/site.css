@@ -512,6 +512,14 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .crate-code pre { margin: 0; font-size: 0.75rem; line-height: 1.5; padding: 0.75rem 0.9rem; overflow-x: auto; border-radius: var(--radius); }
 .crate-links { font: 500 0.75rem/1.4 var(--font-mono); }
 
+/* /open-source's own group colours. Highlights, the hand-picked set, is in the brand red (Roman, 4 Nov 2026), its
+   track running from red into power orange, with a small sparkle that twinkles (still under reduced motion).
+   Science and Templates have no signal of their own: category colours of the brand stand in. */
+:root { --signal-highlight: var(--accent); --signal-science: var(--cat-pink); --signal-templates: var(--cat-lime); }
+#highlights.layer::before { background: linear-gradient(var(--accent), var(--signal-power)); }
+.sparkle { display: inline-block; width: 0.85em; height: 0.85em; margin-left: 0.4em; vertical-align: -0.05em; fill: var(--accent); }
+@media (prefers-reduced-motion: no-preference) { .sparkle { animation: twinkle 2.8s ease-in-out infinite; } }
+@keyframes twinkle { 0%, 70%, 100% { transform: none; opacity: 1; } 82% { transform: scale(0.6) rotate(25deg); opacity: 0.55; } }
 /* /open-source: the group selector on top, one link per group with its signal colour's via. */
 .groups { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 1rem; margin-top: 2rem; padding: 0.9rem 1.25rem; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--raised); }
 .groups .v-label { margin: 0; }

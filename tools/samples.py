@@ -2,8 +2,9 @@
 tools/check_pages.py and runnable alone. Every entry with `code` may also have `code_wide` and `wide`:
 
 - `code` is the narrow version: every line at most 44 columns.
-- `code_wide` is the same code with natural line breaks: equal to `code` once all whitespace, `//` and `#` are removed
-  (only line breaks, indentation and the re-flow of comments may differ). Every line at most 80 columns.
+- `code_wide` is the same code with natural line breaks: equal to `code` once all whitespace, `//`, `#` and a shell's
+  line continuations (a backslash before a line break) are removed (only line breaks, indentation and the re-flow of
+  comments may differ). Every line at most 80 columns.
 - `wide` is the column bucket of `code_wide`: 50, 60, 70 or 80, at least its longest line.
 - `source` (data/repos.toml): where the sample is taken from as it is, `README` (a code block of README.md) or
   `examples/NAME`. The sample is consecutive whole lines of it; only line breaks, indentation and the re-flow of
@@ -23,8 +24,9 @@ BUCKETS = (50, 60, 70, 80)
 
 
 def norm(s):
-    """Code without whitespace and comment markers (`//`, `#`), so line breaks and re-flowed comments compare equal."""
-    return re.sub(r"\s+", "", s.replace("//", "").replace("#", ""))
+    """Code without whitespace, comment markers (`//`, `#`) and shell line continuations, so line breaks and re-flowed
+    comments compare equal."""
+    return re.sub(r"\s+", "", re.sub(r"\\\n", "", s).replace("//", "").replace("#", ""))
 
 
 def readme_blocks(text):

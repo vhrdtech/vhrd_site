@@ -7,7 +7,9 @@
 # - `code`, `code_wide`, `wide`, `fence`: a short sample (tools/samples.py), with `source`: README or examples/NAME,
 #   the place it is taken from as it is (only line breaks differ). samples.py checks it against a local checkout;
 #   nothing is compiled. A public repo without an obvious sample shows "example: TBD".
-# - `wip = true`: work in progress, the card says so; `note`: shown where the crates.io version would be.
+# - `wip = true`: work in progress, the card says so (or its `badge`, e.g. "early stage"); `note`: shown where the crates.io version would be.
+# - `stack = true`: a highlight (data/stack.toml, `front = true`) shown in this area too; its card comes from
+#   data/stack.toml, and `crate` here (the same as there) only places it in the area's order.
 # - `private = true`: not public yet. The card says "coming in the future" and has no link, code or logo.
 # - Left off for now, until Roman confirms (4 Nov 2026): romixlab/dot (personal dotfiles), vhrdtech/mx3 (internal
 #   server), romixlab/shrink_wrap (an old private copy; shrink_wrap lives in wire_weaver), vhrdtech/io_weaver and
@@ -37,16 +39,26 @@ title = "Host tools and instruments"
 sig = "analog"
 
 [[area]]
+id = "science"
+title = "Science"
+sig = "science"
+
+[[area]]
 id = "eda"
 title = "EDA and hardware tools"
 sig = "power"
+
+[[area]]
+id = "templates"
+title = "Templates"
+sig = "templates"
 
 # Wire format and APIs
 
 [[repo]]
 name = "wire_weaver_template"
 owner = "vhrdtech"
-area = "wire"
+area = "templates"
 lang = "Rust"
 desc = "A starting point for a WireWeaver device on USB. One API crate is shared by the firmware and the host. Example firmware runs on Nucleo H743ZI2 and H753ZI boards and an STM32G0 board, and any board with embassy-usb should work. A Rust driver comes with a simple client example and a REPL with history and auto-complete. A rename script and a virtual device are still to do."
 
@@ -67,7 +79,7 @@ desc = "A language server for WireWeaver APIs that runs beside rust-analyzer. It
 [[repo]]
 name = "napier"
 owner = "romixlab"
-area = "wire"
+area = "science"
 lang = "Rust"
 crate = "si_dynamic"
 desc = "A Rust parser for SI quantities and units in text, at run time. It reads every SI base and derived unit and prefix, exponents, unit expressions such as m/s² or W/(m·K), percent and ppm. It also reads the resistance shorthand of schematics and BOMs, such as 4k7 and 499kR. Each unit carries its dimension and scale, and units beyond SI, such as rpm, are registered at run time."
@@ -200,7 +212,7 @@ desc = "A USB Mass Storage device class for embassy-usb, which today has only th
 [[repo]]
 name = "motor_sim"
 owner = "vhrdtech"
-area = "firmware"
+area = "science"
 lang = "Rust"
 docs = "https://ww.vhrd.tech/examples/motor_demo/"
 desc = "A deterministic no_std electric motor simulator in pure Rust, for testing motor controllers in software. It models a PMSM in dq with an average inverter, rotor mechanics and loads. The true state is kept apart from what a controller measures, with sensor offsets, noise and faults. The same parameters and seed give the same run on every target, and libm is the only dependency."
@@ -244,7 +256,7 @@ for _ in 0..25_000 {
 [[repo]]
 name = "nucleo_g0b1re_template"
 owner = "romixlab"
-area = "firmware"
+area = "templates"
 lang = "Rust"
 logo_dark = "img/oss/nucleo_g0b1re_template-dark.svg"
 logo_light = "img/oss/nucleo_g0b1re_template-light.svg"
@@ -286,7 +298,7 @@ with nucleo_g0b1re.Device() as dev:
 [[repo]]
 name = "cannify_micro_template"
 owner = "romixlab"
-area = "firmware"
+area = "templates"
 lang = "Rust"
 logo_dark = "img/oss/cannify_micro_template-dark.svg"
 logo_light = "img/oss/cannify_micro_template-light.svg"
@@ -328,7 +340,7 @@ with cannify_micro.Device() as dev:
 [[repo]]
 name = "donguru_template"
 owner = "romixlab"
-area = "firmware"
+area = "templates"
 private = true
 lang = "Rust"
 desc = "A firmware template for the B153A Donguru board (STM32G0B1). One API definition gives the embassy firmware, a typed WireWeaver API, a Rust client library, a command line and a Python module. The firmware starts with device info, crash records, a settings store in flash, a stored defmt log and reboots into the ROM bootloader. It is meant to be copied and renamed for a new device."
@@ -336,7 +348,7 @@ desc = "A firmware template for the B153A Donguru board (STM32G0B1). One API def
 [[repo]]
 name = "report_template"
 owner = "romixlab"
-area = "firmware"
+area = "templates"
 private = true
 lang = "Rust"
 desc = "A firmware template for the rePort board (RP2350B). From one WireWeaver API definition it gives the firmware, a typed Rust client, a command line and a Python module. The board talks to the PC over its own USB-C, which also powers it. The firmware starts with device info, crash records, a log kept across a reset, settings in flash and reboots into the boot ROM."
@@ -344,7 +356,7 @@ desc = "A firmware template for the rePort board (RP2350B). From one WireWeaver 
 [[repo]]
 name = "b135_template"
 owner = "romixlab"
-area = "firmware"
+area = "templates"
 private = true
 lang = "Rust"
 desc = "A firmware template for the B135B, an isolated USB high-speed to CAN FD adapter with an STM32H725. One WireWeaver API definition gives the firmware, a Rust client library, a command line and a Python module. The firmware starts with firmware info, crash records, settings in flash, event counters and a kept log. It is built but not yet run on a board."
@@ -352,7 +364,7 @@ desc = "A firmware template for the B135B, an isolated USB high-speed to CAN FD 
 [[repo]]
 name = "pico_template"
 owner = "romixlab"
-area = "firmware"
+area = "templates"
 private = true
 lang = "Rust"
 desc = "A firmware template for the Raspberry Pi Pico (RP2040). One API definition gives the embassy firmware, a typed WireWeaver API, a Rust client library, a command line and a Python module. The firmware starts with device info, crash records, a settings store in flash, a stored defmt log and reboots into BOOTSEL. It is meant to be copied and renamed for a new device."
@@ -360,7 +372,7 @@ desc = "A firmware template for the Raspberry Pi Pico (RP2040). One API definiti
 [[repo]]
 name = "pico2_template"
 owner = "romixlab"
-area = "firmware"
+area = "templates"
 private = true
 lang = "Rust"
 desc = "A firmware template for the Raspberry Pi Pico 2 (RP2350). From one WireWeaver API definition it gives the firmware, a typed Rust client, a command line and a Python module. The board talks to the PC over its own micro-USB, and BOOTSEL gives drag-and-drop UF2 flashing without a probe. The firmware starts with device info, crash records, a log kept across a reset and settings in flash."
@@ -771,38 +783,27 @@ can.write_tx_buffer_pend(
 [[repo]]
 name = "choreograph"
 owner = "romixlab"
-area = "host"
+area = "science"
 lang = "Rust"
-desc = "Plans and runs jobs over shared instruments and resources, with priorities and deadlines. Says why each waiting job waits."
+wip = true
+badge = "early stage"
 note = "not on crates.io yet"
-fence = "toml"
-code = '''
-[[resource]]
-name = "supply"
-kind = "supply"
-states = ["off", "3V0", "3V3", "3V6"]
-safe = "off"
-
-[[job]]
-name = "a-3V3"
-needs = [
-  { kind = "probe", state = "fw-a" },
-  { kind = "supply", state = "3V3" }
-]
-run = "10s"
-'''
+desc = "A scheduler for shared resources: instruments, connections, RAM, cores and machines, with priorities, release times and deadlines. A job gets all it needs at once or nothing, nothing goes over capacity, cleanup always runs, and it says why each waiting job waits. The same core runs a hardware-in-the-loop test bench and a merge queue on build machines. It is pure, with no IO and no clock, so the simulator, the tests and a real executor drive the same code, and `choreograph theory` checks recordings of real history against queueing theory."
+source = "README"
+fence = "sh"
 wide = 80
+code = '''
+cargo run -p choreograph_cli -- \
+    check examples/bench.toml
+cargo run -p choreograph_cli -- \
+    top --socket \
+    /run/choreographd/api.sock
+    # a live view of choreographd
+'''
 code_wide = '''
-[[resource]]
-name = "supply"
-kind = "supply"
-states = ["off", "3V0", "3V3", "3V6"]
-safe = "off"
-
-[[job]]
-name = "a-3V3"
-needs = [{ kind = "probe", state = "fw-a" }, { kind = "supply", state = "3V3" }]
-run = "10s"
+cargo run -p choreograph_cli -- check examples/bench.toml
+cargo run -p choreograph_cli -- top --socket /run/choreographd/api.sock
+    # a live view of choreographd
 '''
 
 [[repo]]
@@ -881,3 +882,33 @@ WidgetFrame::new("log")
         };
     });
 '''
+
+# The highlights in their areas (their cards come from data/stack.toml).
+
+[[repo]]
+name = "wire_weaver"
+area = "wire"
+stack = true
+crate = "wire_weaver"
+
+[[repo]]
+name = "shrink_wrap"
+area = "wire"
+stack = true
+crate = "shrink_wrap"
+
+[[repo]]
+name = "exact_units"
+area = "science"
+stack = true
+
+[[repo]]
+name = "embedded_bedrock"
+area = "firmware"
+stack = true
+
+[[repo]]
+name = "cnt"
+area = "firmware"
+stack = true
+crate = "cnt"

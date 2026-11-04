@@ -1,7 +1,8 @@
 {#- /open-source: every crate and repository, in groups wired down the left in their signal colours, with a jump row
     on top built from the same list (same groups, order and colours). First the highlights, hand-picked: the crates
-    marked `front` in data/stack.toml, in that order, the same set as the front page. Then one group per area of
-    data/repos.toml with its repositories. Inside an area one rule
+    marked `front` in data/stack.toml, in that order, the same set as the front page (their ids get a "highlight-"
+    prefix). Then one group per area of data/repos.toml with its repositories, the highlights again among them
+    (`stack = true`: the card comes from data/stack.toml). Inside an area one rule
     orders the cards: on crates.io first, then the other public ones, then work in progress, then the ones coming in
     the future; by name within each. A card with code spans the row, the others share it (partials/oss-card.html). -#}
 {%- set repos = load_data(path="data/repos.toml") -%}
@@ -10,16 +11,17 @@
 <nav class="groups" aria-label="Groups on this page">
   <span class="v-label">Groups</span>
   <ul>
-    <li style="--sig: var(--signal-ctrl)"><a href="#highlights"><span class="group-via" aria-hidden="true"></span>Highlights</a></li>
+    <li style="--sig: var(--signal-highlight)"><a href="#highlights"><span class="group-via" aria-hidden="true"></span>Highlights<svg class="sparkle" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M8 0C8.6 4.6 11.4 7.4 16 8 11.4 8.6 8.6 11.4 8 16 7.4 11.4 4.6 8.6 0 8 4.6 7.4 7.4 4.6 8 0Z"/></svg></a></li>
     {%- for g in repos.area %}
     <li style="--sig: var(--signal-{{ g.sig }})"><a href="#{{ g.id }}"><span class="group-via" aria-hidden="true"></span>{{ g.title }}</a></li>
     {%- endfor %}
   </ul>
 </nav>
 <ol class="stack repo-stack">
-<li class="layer repo-area" id="highlights" style="--sig: var(--signal-ctrl)">
-<div class="layer-head"><span class="via" aria-hidden="true"></span><h2 class="v-label" id="highlights-title">Highlights</h2></div>
+<li class="layer repo-area" id="highlights" style="--sig: var(--signal-highlight)">
+<div class="layer-head"><span class="via" aria-hidden="true"></span><h2 class="v-label" id="highlights-title">Highlights<svg class="sparkle" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false"><path d="M8 0C8.6 4.6 11.4 7.4 16 8 11.4 8.6 8.6 11.4 8 16 7.4 11.4 4.6 8.6 0 8 4.6 7.4 7.4 4.6 8 0Z"/></svg></h2></div>
 <ul class="repo-grid" aria-labelledby="highlights-title">
+{%- set id_prefix = "highlight-" %}
 {%- for x in stack.crate %}{% if x.front %}{% include "partials/oss-card.html" %}{% endif %}{% endfor %}
 </ul>
 </li>
@@ -27,10 +29,12 @@
 <li class="layer repo-area" id="{{ g.id }}" style="--sig: var(--signal-{{ g.sig }})">
 <div class="layer-head"><span class="via" aria-hidden="true"></span><h2 class="v-label" id="{{ g.id }}-title">{{ g.title }}</h2></div>
 <ul class="repo-grid" aria-labelledby="{{ g.id }}-title">
+{%- set id_prefix = "" %}
 {%- set members = repos.repo | sort(attribute="name") %}
 {%- for rank in [0, 1, 2, 3] %}{% for x in members %}
 {%- if x.area == g.id and ((rank == 0 and x.crate and not x.wip and not x.private) or (rank == 1 and not x.crate and not x.wip and not x.private) or (rank == 2 and x.wip and not x.private) or (rank == 3 and x.private)) %}
-{% include "partials/oss-card.html" %}
+{%- if x.stack %}{% set name = x.name %}{% for x in stack.crate %}{% if x.name == name %}{% include "partials/oss-card.html" %}{% endif %}{% endfor %}
+{%- else %}{% include "partials/oss-card.html" %}{% endif %}
 {%- endif %}
 {%- endfor %}{% endfor %}
 </ul>

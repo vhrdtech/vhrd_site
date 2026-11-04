@@ -49,7 +49,7 @@ just renders --variants  # only the missing web widths, from the PNG sources (no
 
 ## Conventions
 
-- **Colours only through tokens** (`var(--accent)`, `var(--signal-usb)`), never hex values in templates or `site.css`. The brand red is used sparingly: one word of the hero headline, the main button, the wordmark, the MCU in diagrams and figure corner marks. Headlines are in the text colour. Power is orange, never red.
+- **Colours only through tokens** (`var(--accent)`, `var(--signal-usb)`), never hex values in templates or `site.css`. The brand red is used sparingly: one word of the hero headline, the main button, the wordmark, the MCU in diagrams, figure corner marks and the Highlights group on /open-source. Headlines are in the text colour. Power is orange, never red.
 - **Dark first, light equal.** Every change is checked in both themes. Dark is the default whatever the system prefers (`<html data-theme="dark">`, Roman, 4 Nov 2026); light only when the visitor picks it with the toggle, stored in localStorage and applied by the head script before the first paint. Back to dark clears it.
 - **Almost no JavaScript, no framework.** Animation is CSS (scroll-driven for the traces), off under `prefers-reduced-motion`. The page must work without `site.js`. The front page's intro has a small inline script; without it the intro never shows.
 - **Links through `get_url`**, so the preview under a sub-path works. Internal Markdown links use `@/page.md`.

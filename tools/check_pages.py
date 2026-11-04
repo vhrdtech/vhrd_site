@@ -183,7 +183,7 @@ def check_code_fits(browser, base):
 
 def check_repos(browser, base):
     """/open-source: a Highlights group (the crates marked `front` in data/stack.toml, in that order), then one group
-    per area of data/repos.toml, every repository once. A public card links to its source and shows its code sample
+    per area of data/repos.toml, every repository once, the highlights again in their areas (`stack = true`). A public card links to its source and shows its code sample
     or "example: TBD"; a private one says it is coming and has no link or code. Inside an area the cards follow one
     rule: on crates.io, then public, then work in progress, then coming in the future, by name within each. The jump
     row on top names the same groups in the same order and colours, at a phone's and a desktop's width."""
@@ -194,20 +194,25 @@ def check_repos(browser, base):
     groups = [("highlights", [c["name"] for c in stack])] + [
         (a["id"], [r["name"] for r in sorted((r for r in repos if r["area"] == a["id"]), key=lambda r: (rank(r), r["name"]))])
         for a in data["area"]]
-    want = {c["name"]: (c["repo"], c) for c in stack} | {r["name"]: (f"https://github.com/{r['owner']}/{r['name']}", r) for r in repos}
-    failures = []
+    by_name = {c["name"]: c for c in stack}
+    want = {c["name"]: (c["repo"], c) for c in stack} | {
+        r["name"]: (f"https://github.com/{r['owner']}/{r['name']}", r) for r in repos if not r.get("stack")}
+    failures = [f"data/repos.toml: {r['name']} is stack = true but not a highlight in data/stack.toml, or its crate differs"
+                for r in repos if r.get("stack") and (r["name"] not in by_name or r.get("crate") != by_name[r["name"]].get("crate"))]
     for w in (390, 1440):
         ctx = browser.new_context(viewport={"width": w, "height": 900}, reduced_motion="reduce")
         page = ctx.new_page()
         page.goto(base + "open-source/")
         seen = page.evaluate("""() => [...document.querySelectorAll('.repo-area')].map((g) => [g.id,
           getComputedStyle(g.querySelector('.layer-head .via')).borderTopColor,
-          [...g.querySelectorAll('.repo')].map((r) => [r.id, r.querySelector('h3 a')?.href ?? null,
+          [...g.querySelectorAll('.repo')].map((r) => [r.id.replace(/^highlight-/, ''), r.querySelector('h3 a')?.href ?? null,
             !!r.querySelector('.v-badge:not(:empty)') && r.querySelector('.repo-meta .v-badge') !== null,
             !!r.querySelector('.crate-code'), !!r.querySelector('.repo-tbd')])])""")
         jump = page.evaluate("""() => [...document.querySelectorAll('.groups li')].map((li) => [
           li.querySelector('a').getAttribute('href'), getComputedStyle(li.querySelector('.group-via')).borderTopColor])""")
         products = page.locator(".stack-top").count()
+        ids = page.evaluate("() => [...document.querySelectorAll('[id]')].map((e) => e.id)")
+        failures += [f"/open-source {w}px: the id {i} is there twice" for i in sorted({i for i in ids if ids.count(i) > 1})]
         ctx.close()
         if [g[0] for g in seen] != [g[0] for g in groups]:
             failures.append(f"/open-source {w}px: the groups are {[g[0] for g in seen]}, expected {[g[0] for g in groups]}")
