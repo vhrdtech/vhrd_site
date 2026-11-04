@@ -21,7 +21,7 @@ compresses), fonts and images as they are; against a deployed site, the transfer
 has alt text and its width and height.
 The front page's intro: on every load it shows and clears by itself without waiting on a fast site, waits (LOADING)
 for a late hero render and fires (TRIG'D), says after 5 s how to skip and a click skips it, a key skips it, the
-replay button plays it again; never with a #fragment, under reduced motion or without JavaScript.
+replay button plays the slow path as a demo; never with a #fragment, under reduced motion or without JavaScript.
 A picture on its way shows as a small scope screen in its box and fades in when it comes, without a size change.
 With --shots, writes a full-page screenshot per width in dark (traces shown drawn: reduced motion).
 """
@@ -188,11 +188,23 @@ def check_intro(browser, base):
     if not replay.is_visible():
         failures.append("intro: no replay button")
     else:
+        # The replay is a demo of the slow path although everything is cached: LOADING after the power-on, the
+        # hint from 5.5 s, TRIG'D at 9 s, the page at about 10 s.
         replay.click()
         if not page.evaluate(INTRO_ON):
             failures.append("intro: the replay button does not play it")
+        page.wait_for_timeout(4000)
+        if page.locator(".scope-status").inner_text().upper() != "LOADING":
+            failures.append("intro: the replay shows no LOADING after the power-on")
+        page.wait_for_timeout(2500)
+        if not page.locator(".scope-hint").is_visible():
+            failures.append("intro: the replay shows no slow-link hint by 6.5 s")
         try:
-            page.wait_for_function(f"!({INTRO_ON})", timeout=5000)
+            page.wait_for_function("document.documentElement.classList.contains('intro-trig')", timeout=3500)
+        except Exception:
+            failures.append("intro: the replay does not fire (TRIG'D) by 10 s")
+        try:
+            page.wait_for_function(f"!({INTRO_ON})", timeout=2000)
         except Exception:
             failures.append("intro: the replay does not clear")
     page.goto(base + "#notify")

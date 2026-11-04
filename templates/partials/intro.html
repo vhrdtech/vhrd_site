@@ -8,7 +8,8 @@
     "TRIG'D" when it fires; after 5 s "SLOW LINK · CLICK TO SKIP"; at most 20 s. The page is in the HTML and painted
     underneath from the start; this layer only covers it. It plays on every load of the home page when the head
     script in index.html set `html.intro` (JS on, no reduced motion, no #fragment), and again from the footer's
-    replay button. Styles in site.css ("Intro"). -#}
+    replay button, which shows the slow path as a demo (LOADING, the hint, TRIG'D; about 10 s). Styles in site.css
+    ("Intro"). -#}
 <div class="scope" aria-hidden="true">
 <div class="scope-box">
 <div class="scope-ray">
@@ -33,10 +34,15 @@
 // Runs the intro: the power-on is CSS (.intro); when it has settled, the layer fades out (.intro-out) if the first
 // screen is ready, else the scope waits (.intro-wait, LOADING), says how to skip after HINT ms (.intro-slow) and fires
 // (.intro-trig, TRIG'D) once ready, at most CAP ms after the start. A click, key, wheel, touch or scroll skips it
-// (.intro-skip). The footer's replay button plays it again. site.css's failsafe hides the layer a little after CAP.
+// (.intro-skip). The footer's replay button plays it again as a demo of the slow path (about 10 s). site.css's
+// failsafe hides the layer a little after CAP.
 (() => {
   const CAP = 20000;
   const HINT = 5000;
+  // The replay is a demo of the slow path, whatever is cached: LOADING, the hint at 5.5 s, TRIG'D at 9 s, the page
+  // at about 10 s.
+  const DEMO_HINT = 5500;
+  const DEMO_TRIG = 9000;
   const root = document.documentElement;
   const scope = document.querySelector(".scope");
   const ray = scope.querySelector(".scope-ray");
@@ -46,7 +52,7 @@
   const ready = () => hero() && hero().complete && document.fonts.status === "loaded";
   let run = 0;
 
-  const play = () => {
+  const play = (demo = false) => {
     const me = ++run;
     const live = () => me === run && root.classList.contains("intro");
     const t0 = performance.now();
@@ -72,10 +78,11 @@
     status.textContent = "Loading";
     ray.addEventListener("animationend", (e) => {
       if (e.target !== ray || !live()) return;
-      if (ready()) return out();
+      if (!demo && ready()) return out();
       root.classList.add("intro-wait");
-      timers.push(setTimeout(() => root.classList.add("intro-slow"), HINT));
-      const loaded = new Promise((r) => (document.readyState === "loading" ? addEventListener("DOMContentLoaded", r) : r()))
+      const since = () => performance.now() - t0;
+      timers.push(setTimeout(() => root.classList.add("intro-slow"), demo ? DEMO_HINT - since() : HINT));
+      const loaded = demo ? new Promise((r) => timers.push(setTimeout(r, DEMO_TRIG - since()))) : new Promise((r) => (document.readyState === "loading" ? addEventListener("DOMContentLoaded", r) : r()))
         .then(() => Promise.all([
           hero() && !hero().complete && new Promise((r) => { hero().addEventListener("load", r); hero().addEventListener("error", r); }),
           document.fonts.ready,
@@ -102,7 +109,7 @@
       void scope.offsetWidth; // restart the CSS animations
       root.classList.add("intro");
       // The click that started it is not a skip: listen from the next task on.
-      setTimeout(play);
+      setTimeout(() => play(true));
     });
   });
   if (root.classList.contains("intro")) play();

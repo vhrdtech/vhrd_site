@@ -122,9 +122,9 @@ How it is built:
 - The inline script (about 3.7 KB with its comments, unchanged by the new sequence) decides between the fade and the wait, and clears the layer.
 - The page is in the HTML and painted underneath from the start; the intro only covers it. The largest paint is the hero render either way, at the same time. The growth is a transform: no layout shift.
 - It plays on every load and refresh of the home page, but not when the URL has a #fragment (a link to a section goes straight there).
-- A click, key, wheel, touch or scroll skips it. The footer's "Replay intro" button plays it again.
+- A click, key, wheel, touch or scroll skips it. The footer's "Replay intro" button plays it again as a demo of the slow path, even with everything cached: the power-on, LOADING, the slow-link line from 5.5 s, TRIG'D at 9 s and the page at about 10 s.
 - Under reduced motion and without JavaScript there is no intro and no replay button. A CSS failsafe hides the layer after 21 s (the 20 s cap plus the fade) whatever the script does.
-- The beam and the graticule are P31 green: the bus green at a fixed phosphor brightness. Both were tried on #0f0f10. The green reads as an analog scope's beam at once; the CAN cyan reads as one more UI colour. The image placeholders use the same colour.
+- The beam and the graticule are the blue of later scopes (P7/P11-like): the USB blue at a fixed phosphor brightness, a blue-white beam head, a cooler blue glow and persistence (Roman, 4 Nov 2026, after a P31 green). It sits apart from the brand red of the corner marks on #0f0f10; the graticule and readouts stay quiet. The image placeholders use the same colour.
 
 ## Image placeholders
 

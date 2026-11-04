@@ -602,13 +602,13 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
    "LOADING" (.intro-wait), "SLOW LINK · CLICK TO SKIP" after 5 s (.intro-slow), "TRIG'D" when it fires
    (.intro-trig), at most 20 s. The page is painted underneath from the start (the largest paint is not held back);
    this layer only covers it. Without `html.intro` it never shows.
-   The phosphor is P31 green, the bus green at a fixed phosphor brightness: next to the CAN cyan on the screen's
-   #0f0f10 it is what reads as an oscilloscope (the green of an analog scope's beam and graticule), where the cyan
-   reads as one more UI colour. The screen is dark in both themes. */
+   The phosphor is the blue of later scopes (P7/P11-like): the USB blue at a fixed phosphor brightness, with a
+   blue-white beam head and a cooler blue glow and persistence. On the screen's #0f0f10 it sits apart from the brand
+   red of the corner marks, and the graticule and readouts stay quiet in it. The screen is dark in both themes. */
 :root {
-  --trace: var(--signal-bus);
-  --trace: oklch(from var(--signal-bus) 0.87 0.2 h);
-  --beam: color-mix(in oklch, var(--trace) 35%, var(--vhrd-grey-0));
+  --trace: var(--signal-usb);
+  --trace: oklch(from var(--signal-usb) 0.76 0.14 h);
+  --beam: color-mix(in oklch, var(--trace) 30%, var(--vhrd-grey-0));
   --glass: radial-gradient(ellipse at center, color-mix(in oklch, var(--trace) 8%, var(--vhrd-grey-950)), var(--vhrd-grey-950) 75%);
 }
 .scope { display: none; }
@@ -715,7 +715,7 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
   vector-effect: non-scaling-stroke;
 }
 /* The phosphor while waiting: a wide faint glow, the trace re-drawn sweep after sweep, the beam's bright spot. */
-.scope-glow { stroke-width: 8; opacity: 0.25; stroke-dasharray: 1 1; }
+.scope-glow { stroke-width: 6; opacity: 0.18; stroke-dasharray: 1 1; }
 .scope-trail { stroke-width: 2; stroke-dasharray: 1 1; }
 .scope-beam { stroke: var(--beam); stroke-width: 3; stroke-dasharray: 0.025 1; filter: drop-shadow(0 0 4px var(--trace)); }
 .intro-wait .scope-glow { animation: scope-draw 0.9s linear both; }
