@@ -1,0 +1,24 @@
+title = "RockFace (MCU tracer - debugger)"
+portfolio_page = 9
+alt = "RockFace firmware debugger window with a timeline, a log view and defmt counters"
+
+facts = [
+    "Talks to targets over JTAG or SWD",
+    "Rust and C support",
+    "RTT and defmt logging, cdefmt in C",
+    "Timeline view with logs, events, CPU state and variable plots",
+    "Stack probing",
+    "ELF viewer, re-flashing from the GUI and the command line",
+]
+
+tools = ["Rust"]
+
+[[images]]
+file = "rockface-window"
+widths = [640, 1280]
+alt = "RockFace window: timeline view, log view and defmt counters"
+
+[[images]]
+file = "rockface-log"
+widths = [560]
+alt = "RockFace log view: timestamps, levels and defmt messages"

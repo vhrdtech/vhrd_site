@@ -481,8 +481,8 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 @media (min-width: 36rem) { #lab .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 68rem) { #lab .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 #lab .card .fig-frame img { aspect-ratio: 4 / 3; object-fit: cover; }
-/* An app icon is shown whole, centred on the card, not cut to fill it. */
-#lab .card .fig-icon .fig-frame img { object-fit: contain; padding: 12%; }
+/* A small app icon before a card title. */
+.card-icon { width: 32px; height: 32px; flex: none; }
 
 /* The open-source stack: layers top to bottom, wired down the left side in each layer's signal colour. */
 .stack { list-style: none; margin: 2rem 0 0; padding: 0; }

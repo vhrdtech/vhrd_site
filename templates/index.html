@@ -66,7 +66,7 @@
 {% <vh.code_tabs id="sw" labels={["GUI", "Debugger", "Code"]} label="FIG. 6 · Software"> %}
 {{ <vh.fig stem="img/screens/ioweaver" widths={[1280]} sizes="(max-width: 75rem) 100vw, 72rem" alt="IOWeaver screenshot" caption="IOWeaver: protocol analyzer and grapher" cls="tab-fig" /> }}
 === tab ===
-{{ <vh.fig stem="img/screens/rockface" widths={[1280]} sizes="(max-width: 75rem) 100vw, 72rem" alt="RockFace screenshot" caption="RockFace: firmware debugger" cls="tab-fig" /> }}
+{{ <vh.fig stem="img/lab/rockface/rockface-window" widths={[640, 1280]} sizes="(max-width: 75rem) 100vw, 72rem" alt="RockFace window: timeline view, log view and defmt counters" caption="RockFace: firmware debugger, timeline and logs" cls="tab-fig" /> }}
 === tab ===
 ```rust
 // The API, once, for both sides (ww_uart):
@@ -110,8 +110,9 @@ ww_impl!(uart[]: ww_uart::Uart)
    stem="img/lab/laser-scanner-aoi/laser-scanner-aoi-rails" alt="A circuit board held between the scanner's linear rails and carriages" caption="AOI"
    pitch="Optical inspection of solder paste and placed parts with a scanning green laser line."
    specs={["Resolution: 15 µm", "Optics: F-Theta, telecentric", "Stage: 2× CoreXY"]} /> }}
-{{ <vh.card title="RockFace" href="/software/" sig="ctrl" n="10" badge="draft" badge_cls="" widths={[256, 512]} fig_cls="fig-icon"
-   stem="img/software/rockface-icon" alt="RockFace app icon" caption="RockFace"
+{{ <vh.card title="RockFace" href="/software/" sig="ctrl" n="10" badge="draft" badge_cls="" widths={[560]}
+   stem="img/lab/rockface/rockface-log" alt="RockFace log view: timestamps, levels and defmt messages" caption="RockFace"
+   icon="img/software/rockface-icon-256.webp"
    pitch="A firmware debugger for running systems. First paid release planned for January 2027."
    specs={["Logs: from a fleet", "Graphs: stack, CPU use", "Profiling: zero-cost"]} /> }}
 {% </vh.cards> %}

@@ -17,13 +17,14 @@ import subprocess
 import sys
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 WIDTHS = [640, 1280, 1920]
 AVIF_Q = "68"
 WEBP_Q = 82
 
-# slug -> [(source filename in REVIEW_DIR, crop_box_or_None, output_basename), ...]
+# slug -> [(source filename in REVIEW_DIR, crop_box_or_None, output_basename[, corner_radius]), ...]
+# A corner radius (px of the cropped source) cuts the corners round and keeps them transparent: for app windows.
 ITEMS = {
     "thermocouple-afe": [
         ("p03_img06_532x982.png", None, "thermocouple-afe"),
@@ -58,6 +59,12 @@ ITEMS = {
         # the board on the linear rails, cut to 4:3 around the carriages
         ("p14_img02_952x1269.jpeg", (0, 230, 952, 944), "laser-scanner-aoi-rails"),
     ],
+    # RockFace under its old name, "MCU tracer - debugger" (page 9): the whole window for the software panel, and
+    # the log view alone for the lab card, where the whole window's text would be too small to read
+    "rockface": [
+        ("p09_img00_1830x1456.png", (112, 76, 1718, 1308), "rockface-window", 20),
+        ("p09_img00_1830x1456.png", (126, 676, 686, 1096), "rockface-log"),
+    ],
     "granite-cnc": [
         ("p18_img02_2021x1617.jpeg", None, "granite-cnc-1"),
         ("p18_img01_2021x1617.jpeg", None, "granite-cnc-2"),
@@ -70,10 +77,14 @@ ITEMS = {
 }
 
 
-def process_image(src_path: Path, crop_box, out_dir: Path, out_basename: str):
+def process_image(src_path: Path, crop_box, out_dir: Path, out_basename: str, radius: int = 0):
     im = Image.open(src_path).convert("RGB")
     if crop_box:
         im = im.crop(crop_box)
+    if radius:
+        mask = Image.new("L", im.size, 0)
+        ImageDraw.Draw(mask).rounded_rectangle((0, 0, im.size[0] - 1, im.size[1] - 1), radius, fill=255)
+        im.putalpha(mask)
     native_w, native_h = im.size
     widths = [w for w in WIDTHS if w <= native_w] or [native_w]
     produced = []
@@ -104,10 +115,10 @@ def main():
     for slug, images in ITEMS.items():
         out_dir = out_root / slug
         out_dir.mkdir(parents=True, exist_ok=True)
-        for src_name, crop_box, out_basename in images:
+        for src_name, crop_box, out_basename, *radius in images:
             if only and slug not in only and out_basename not in only:
                 continue
-            produced = process_image(review_dir / src_name, crop_box, out_dir, out_basename)
+            produced = process_image(review_dir / src_name, crop_box, out_dir, out_basename, *radius)
             print(f"{slug}/{out_basename}: widths {produced}")
 
 
