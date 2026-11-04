@@ -52,6 +52,7 @@
 
 ### Changed
 
+- The header nav lists Products, Software, Open source, Work, Lab, Services and Shop, so /lab and /services are one click from every page (Roman could not find the services page). Below 64rem the links fold into the menu instead of wrapping. /work links the lab where it is built and ends with "Need something like this? I take on design work when there's a slot." and a Services button (SITE-2 header-footer, SITE-10 lab-about-services).
 - Donguru is one board on the site, without the Main and Plus variants (Roman): no variant names, badges, columns or second part number on /donguru. A value both variants share is shown; one where they differ reads tbd: the hub's ports, USB on the header (J101 pins 8 and 9), USB over SBU on the plug, its 6 Ω switch, and the number of external USB ports. The block diagram dashes those paths as tbd, the Main-and-Plus FAQ is gone, and ordering reads "Ordering details: coming with the campaign". The datasheet is unchanged (SITE-11 donguru-page).
 - The front page's notify buttons lead to the Donguru page: "Get notified about Donguru" in the hero to /donguru/, the spotlight's and the notify section's buttons to its notify block (/donguru/#notify), like the header's red button. The mail link lives there for now.
 - The granite CNC on /work is "Modelled down to bolt level", without "ready to be built": it is not for sale.

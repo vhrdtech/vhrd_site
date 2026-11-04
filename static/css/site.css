@@ -170,7 +170,8 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 }
 .menu-panel a { display: block; padding-block: 0.75rem; }
 
-@media (max-width: 52rem) {
+/* Seven links and the button need about 59rem on one line: below 64rem they fold into the menu, never wrap. */
+@media (max-width: 64rem) {
   .nav { display: none; }
   .menu { display: block; }
 }

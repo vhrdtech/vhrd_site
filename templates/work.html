@@ -6,6 +6,7 @@
   {{ <vh.label text={page.extra.label | default(value=page.title)} /> }}
   <h1 class="v-hero">{{ page.title }}</h1>
   <p class="v-lead">{{ page.description }}</p>
+  <p>Everything here comes out of one workshop: <a class="go" href="{{ get_url(path='/lab/', trailing_slash=true) }}">the lab where it's built</a>.</p>
 
   <section class="work-group" id="boards">
     {{ <vh.label text="Boards" n="01" /> }}
@@ -42,6 +43,13 @@
     </article>
     {%- endfor %}
     </div>
+  </section>
+
+  <section class="work-group" id="services">
+    {{ <vh.label text="Services" n="03" /> }}
+    <h2>Need something like this?</h2>
+    <p>I take on design work when there's a slot.</p>
+    <div class="ctas"><a class="v-btn" href="{{ get_url(path='/services/', trailing_slash=true) }}">Services</a></div>
   </section>
 </article>
 {{ <vh.trace sig={page.extra.sig or "analog"} from={8} to={50} /> }}

@@ -38,6 +38,8 @@ nav = [
   { name = "Software", path = "/software/" },
   { name = "Open source", path = "/open-source/" },
   { name = "Work", path = "/work/" },
+  { name = "Lab", path = "/lab/" },
+  { name = "Services", path = "/services/" },
   # The shop is the old WordPress site's: on vhrd.tech every path this site does not have falls through to it.
   { name = "Shop", path = "/shop/" },
 ]
