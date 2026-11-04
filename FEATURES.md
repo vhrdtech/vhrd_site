@@ -22,6 +22,10 @@ Status: ✅ done · 🚧 in progress · 📋 planned · 💡 idea · 🐛 bug
 - ✅ BLOCK-3 fig-caption: `vh.fig` with the datasheet's red corner marks and a "FIG. n" caption; a hatched placeholder until the image exists
 - ✅ BLOCK-4 code-tabs: `vh.code_tabs`, Markdown panels as ARIA tabs (arrow keys); stacked without script
 
+## ASSET: generated site assets
+
+- ✅ ASSET-1 board-renders: `just renders` (`scripts/render_boards.py`, uv) rebuilds `static/img/boards/<bnnn>-<slug>/` from the newest revision of each board's KiCad project in `~/git/hw`: hero (3/4), top and bottom views via `kicad-cli pcb render` (transparent, raytraced), cropped tight, 2400px PNG source plus AVIF/WebP at 640/1280/1920px, with a `manifest.toml` per board (product, revision, source file, hw git hash, alt text). 3D model library paths are machine-local env vars (`KICAD6..10_3DMODEL_DIR`, `VHRD_3DMODEL_DIR`), not committed. Covers the front-page boards (Donguru, rePort, B125, B135); the rest of `~/git/hw`'s boards are a later task.
+
 ## PREVIEW: publishing
 
 - ✅ PREVIEW-1 deploy-preview: `just deploy-preview` builds with noindex (meta robots, robots.txt Disallow all) for https://static.vhrd.tech/vhrd-site-preview/ and publishes it through the server's mover; the live footer hash is checked

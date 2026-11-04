@@ -1,0 +1,36 @@
+board = "B125"
+product = "Ethernet to 2x ISO FDCAN bridge (DB-9, SD logging, optional PoE/BP)"
+slug = "eth-2fdcan"
+revision = "B"
+source_file = "b125_2fdcan_iso_eth/source/b125b/vb125b_eth_fdcan_pro.kicad_pcb"
+hw_git_hash = "05afb76"
+
+[[views]]
+name = "hero"
+alt = "B125 Ethernet to 2x ISO FDCAN bridge PCB, three-quarter view"
+source = "b125_hero.png"
+web = [
+  { width = 640, webp = "b125_hero-640.webp", avif = "b125_hero-640.avif" },
+  { width = 1280, webp = "b125_hero-1280.webp", avif = "b125_hero-1280.avif" },
+  { width = 1920, webp = "b125_hero-1920.webp", avif = "b125_hero-1920.avif" },
+]
+
+[[views]]
+name = "top"
+alt = "B125 Ethernet to 2x ISO FDCAN bridge PCB, top view"
+source = "b125_top.png"
+web = [
+  { width = 640, webp = "b125_top-640.webp", avif = "b125_top-640.avif" },
+  { width = 1280, webp = "b125_top-1280.webp", avif = "b125_top-1280.avif" },
+  { width = 1920, webp = "b125_top-1920.webp", avif = "b125_top-1920.avif" },
+]
+
+[[views]]
+name = "bottom"
+alt = "B125 Ethernet to 2x ISO FDCAN bridge PCB, bottom view"
+source = "b125_bottom.png"
+web = [
+  { width = 640, webp = "b125_bottom-640.webp", avif = "b125_bottom-640.avif" },
+  { width = 1280, webp = "b125_bottom-1280.webp", avif = "b125_bottom-1280.avif" },
+  { width = 1920, webp = "b125_bottom-1920.webp", avif = "b125_bottom-1920.avif" },
+]

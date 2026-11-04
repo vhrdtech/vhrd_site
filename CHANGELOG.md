@@ -26,3 +26,12 @@
 
 ## [Unreleased]
 
+### Added
+
+- `just renders` (`scripts/render_boards.py`, uv): rebuilds `static/img/boards/<bnnn>-<slug>/`
+  from the newest revision of each board's KiCad project in `~/git/hw` — hero (3/4), top and
+  bottom views via `kicad-cli pcb render` (transparent, raytraced), cropped tight, 2400px PNG
+  source plus AVIF/WebP at 640/1280/1920px, with a `manifest.toml` per board (product,
+  revision, source file, hw git hash, alt text). Covers the front-page boards: Donguru
+  (B153), rePort (B200), B125, B135; the rest of `~/git/hw`'s boards are a later task.
+  (P2633#4nov-0919d)
