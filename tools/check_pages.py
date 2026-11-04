@@ -18,8 +18,9 @@ stays under BUDGET_KB as sent over the wire: text gzipped (as the local build wo
 compresses), fonts and images as they are; against a deployed site, the transfer sizes the browser saw. Every image
 has alt text and its width and height.
 The front page's intro: it plays on the first visit in a tab and clears by itself, waits (ARMED) for a late hero
-render and reveals at its cap without one, a key skips it, it does not play
+render, says after 5 s how to skip and a click skips it, a key skips it, it does not play
 again in the same tab, and it never shows under reduced motion or without JavaScript.
+A picture on its way shows as a small scope screen in its box and fades in when it comes, without a size change.
 With --shots, writes a full-page screenshot per width in dark (traces shown drawn: reduced motion).
 """
 
@@ -147,7 +148,7 @@ def check_intro(browser, base):
     ctx.close()
 
     # A slow hero render: the scope waits (ARMED), fires (TRIG'D) and reveals once the render is in; never received,
-    # it reveals at the cap anyway.
+    # it says after 5 s how to skip, and a click does.
     for release, why in ((True, "a late hero"), (False, "a hero that never comes")):
         ctx = browser.new_context(viewport={"width": 1440, "height": 900}, color_scheme="dark")
         page = ctx.new_page()
@@ -159,11 +160,16 @@ def check_intro(browser, base):
             failures.append(f"intro: does not wait for {why}")
         elif page.locator(".scope-status").inner_text().upper() != "ARMED":
             failures.append(f"intro: no ARMED status while waiting for {why}")
+        if not release:
+            page.wait_for_timeout(5000)
+            if not page.locator(".scope-hint").is_visible():
+                failures.append("intro: no slow-link hint after 5 s of waiting")
+            page.mouse.click(10, 10)
         if release:
             for r in held:
                 r.continue_()
         try:
-            page.wait_for_function(f"!({INTRO_ON})", timeout=1500 if release else 5500)
+            page.wait_for_function(f"!({INTRO_ON})", timeout=1500)
         except Exception:
             failures.append(f"intro: not cleared after {why}")
         for r in held if not release else ():
@@ -177,6 +183,49 @@ def check_intro(browser, base):
         if page.evaluate(SCOPE_SHOWN) if opts.get("java_script_enabled", True) else \
                 page.locator(".scope").is_visible():
             failures.append(f"intro: shows under {why}")
+        ctx.close()
+    return failures
+
+
+FRAME = "document.querySelector('#products .card:nth-child(2) .fig-frame')"
+
+
+def check_placeholders(browser, base):
+    """A picture on its way shows as a scope screen in its own box, then fades in; the box never changes size."""
+    failures = []
+    for motion in ("no-preference", "reduce"):
+        ctx = browser.new_context(viewport={"width": 390, "height": 844}, color_scheme="light", reduced_motion=motion)
+        page = ctx.new_page()
+        held = []
+        page.route("**/b200_hero-*", lambda route: held.append(route))
+        page.goto(base)
+        page.evaluate("sessionStorage.setItem('intro', '1')")
+        page.reload()
+        if page.evaluate("document.querySelector('.hero-fig .fig-frame').matches('.img-wait, .img-in')"):
+            failures.append(f"placeholder ({motion}): the hero got one, so its largest paint waits for the fade")
+        page.evaluate(f"{FRAME}.scrollIntoView()")
+        page.wait_for_timeout(300)
+        before = page.evaluate(f"""(() => {{ const f = {FRAME}, i = f.querySelector('img');
+          return [f.className, getComputedStyle(f, '::before').content, getComputedStyle(f, '::after').animationName,
+                  getComputedStyle(i).opacity, i.getBoundingClientRect().height]; }})()""")
+        if "img-wait" not in before[0] or before[1] == "none" or before[3] != "0":
+            failures.append(f"placeholder ({motion}): a picture on its way shows no scope screen: {before[:4]}")
+        sweep = "img-sweep" if motion == "no-preference" else "none"
+        if before[2] != sweep:
+            failures.append(f"placeholder ({motion}): the sweep is {before[2]}, expected {sweep}")
+        for r in held:
+            r.continue_()
+        try:
+            page.wait_for_function(f"!{FRAME}.classList.contains('img-wait')", timeout=3000)
+            page.wait_for_timeout(600)
+        except Exception:
+            failures.append(f"placeholder ({motion}): still waiting after the picture came")
+        after = page.evaluate(f"""(() => {{ const i = {FRAME}.querySelector('img');
+          return [getComputedStyle(i).opacity, i.getBoundingClientRect().height]; }})()""")
+        if after[0] != "1":
+            failures.append(f"placeholder ({motion}): the picture did not fade in (opacity {after[0]})")
+        if abs(after[1] - before[4]) > 0.5:
+            failures.append(f"placeholder ({motion}): the box changed height {before[4]} -> {after[1]}")
         ctx.close()
     return failures
 
@@ -240,6 +289,7 @@ def main():
         ctx.close()
 
         failures += check_intro(browser, base)
+        failures += check_placeholders(browser, base)
 
         # Interactions, on a desktop page in the dark scheme (the intro skipped by the first click)
         ctx = browser.new_context(viewport={"width": 1440, "height": 900}, color_scheme="dark")

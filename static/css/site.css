@@ -549,21 +549,19 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
    FIG. 1's corners and becomes that frame while the page shows through. The page is painted underneath from the
    start (the largest paint is not held back); this layer only covers it. Without `html.intro` it never shows.
    Timeline: power-on 0.25 s, sweep 0.7 s, growth and reveal 0.6 s, about 1.55 s in all. On a slow connection the
-   growth waits for the first screen (.intro-wait: the step re-triggers, "ARMED" blinks; .intro-trig: "TRIG'D").
+   growth waits for the first screen (.intro-wait: the step re-triggers, "ARMED" blinks; .intro-slow after 5 s: how
+   to skip; .intro-trig: "TRIG'D"), at most 20 s.
    The trace is the CAN cyan, the brightest signal colour on the screen's #0f0f10 and the colour a scope channel is
    read as; the brand red stays on the corner marks the screen turns into. The screen is dark in both themes, so the
    trace takes the token's hue at a fixed phosphor brightness (the light theme's CAN colour is too dark to glow). */
 .scope { display: none; }
 .intro .scope {
-  --trace: var(--signal-can);
-  --trace: oklch(from var(--signal-can) 0.82 0.14 h);
-  --beam: color-mix(in oklch, var(--trace) 40%, var(--vhrd-grey-0));
   display: block;
   position: fixed;
   inset: 0;
   z-index: 200;
   background-color: var(--bg);
-  animation: scope-failsafe 0.2s 7s forwards; /* the script's CAP (6 s) plus the reveal */
+  animation: scope-failsafe 0.2s 21s forwards; /* the script's CAP (20 s) plus the reveal */
 }
 /* Centred, in the render's proportions (--hr, height over width, set by the template). */
 .scope-screen {
@@ -623,6 +621,20 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 }
 .intro-wait .scope-status { display: block; animation: scope-blink 1s step-end infinite; }
 .intro-trig .scope-status { animation: none; color: var(--beam); }
+.scope-hint {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1.4rem;
+  text-align: center;
+  font: 500 0.6875rem/1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--trace);
+}
+.intro-slow .scope-hint { display: block; }
+.intro-trig .scope-hint, .intro-grow .scope-hint { display: none; }
 .intro-grow .scope-status { opacity: 0; transition: opacity 0.2s; }
 .intro-wait .scope-trail { animation: scope-draw 0.9s linear infinite; }
 .intro-wait .scope-beam { animation: scope-beam 0.9s linear infinite; }
@@ -642,3 +654,49 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .intro-grow .scope { background-color: transparent; transition: background-color 0.45s 0.15s; }
 .intro-skip .scope { opacity: 0; transition: opacity 0.15s; }
 @media (prefers-reduced-motion: reduce) { .intro .scope { display: none; } }
+
+/* Image placeholders (LOOK-5 scope-placeholders): a picture still on its way shows as a small oscilloscope screen
+   in its own box, the same screen as the intro: dark glass, a faint graticule, the ringing step sweeping across.
+   The picture fades in over it when it arrives. site.js marks such frames (.img-wait, then .img-in); without the
+   script nothing changes. The box keeps the image's width and height, so nothing shifts. The trace is a mask over
+   the token colour, so it costs no request. Under reduced motion the screen stays, without the sweep. */
+.scope, .fig-frame {
+  --trace: var(--signal-can);
+  --trace: oklch(from var(--signal-can) 0.82 0.14 h);
+  --beam: color-mix(in oklch, var(--trace) 40%, var(--vhrd-grey-0));
+}
+.img-wait::before, .img-in::before, .img-wait::after, .img-in::after {
+  content: "";
+  position: absolute;
+  inset: 0.75rem;
+  border-radius: 4px;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+.img-wait::before, .img-in::before {
+  background:
+    linear-gradient(color-mix(in oklch, var(--trace) 26%, transparent), color-mix(in oklch, var(--trace) 26%, transparent)) center / 100% 1px no-repeat,
+    linear-gradient(color-mix(in oklch, var(--trace) 26%, transparent), color-mix(in oklch, var(--trace) 26%, transparent)) center / 1px 100% no-repeat,
+    linear-gradient(color-mix(in oklch, var(--trace) 13%, transparent) 1px, transparent 1px) 0 0 / 100% 12.5%,
+    linear-gradient(90deg, color-mix(in oklch, var(--trace) 13%, transparent) 1px, transparent 1px) 0 0 / 10% 100%,
+    radial-gradient(ellipse at center, color-mix(in oklch, var(--trace) 8%, var(--vhrd-grey-950)), var(--vhrd-grey-950) 75%);
+  box-shadow: 0 0 0 1px var(--vhrd-grey-800);
+}
+.img-wait::after, .img-in::after {
+  --scope-trace: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' preserveAspectRatio='none'%3E%3Cpath d='M0 220H56L64 207 72 175 80 135 88 96 96 67 104 53 112 54 120 68 128 88 136 109 144 127 152 138 160 140 168 136 176 126 184 115 192 104 200 97 208 94 216 95 224 99 232 105 240 111 248 115 256 118 264 118 272 117 280 114 288 111 296 108 304 106 312 106 320 106 328 107 336 109 344 110 352 112 360 112 368 112 376 112 384 111 392 110 400 109' fill='none' stroke='black' stroke-width='3' stroke-linejoin='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
+  background-color: var(--trace);
+  mask: var(--scope-trace) 0 0 / 100% 100% no-repeat, linear-gradient(black, black) 0 0 / 0% 100% no-repeat;
+  mask-composite: intersect;
+  filter: drop-shadow(0 0 3px var(--trace));
+  animation: img-sweep 1.4s linear infinite;
+}
+.img-wait img, .img-in img { position: relative; z-index: 1; transition: opacity 0.4s; }
+.img-wait img { opacity: 0; }
+.img-in::before, .img-in::after { opacity: 0; }
+@keyframes img-sweep {
+  70%, 100% { mask-size: 100% 100%, 100% 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .img-wait::after, .img-in::after { display: none; }
+  .img-wait img, .img-in img { transition: none; }
+}

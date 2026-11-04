@@ -2,7 +2,8 @@
     a step response that rings and settles, then the screen grows out to FIG. 1's red corners and becomes that frame
     while the page shows through. The page is in the HTML and painted underneath from the start; this layer only
     covers it. The grow-out waits for the first screen (the hero render loaded or failed, the fonts ready): until
-    then the scope re-triggers with "ARMED" in its corner, "TRIG'D" when it fires, at most until 6 s. It plays only
+    then the scope re-triggers with "ARMED" in its corner, "TRIG'D" when it fires, at most until 20 s; after 5 s of
+    waiting a line says the link is slow and how to skip. It plays only
     when the head script in index.html set `html.intro` (JS on, no reduced motion, first view in this tab);
     otherwise it is never shown. Styles in site.css ("Intro"). -#}
 {%- set hero = get_image_metadata(path="img/boards/b153-donguru/b153_hero-640.webp") %}
@@ -16,15 +17,17 @@
 <use href="#scope-sig" class="scope-glow"/><use href="#scope-sig" class="scope-trail"/><use href="#scope-sig" class="scope-beam"/>
 </svg>
 <span class="scope-status">Armed</span>
+<span class="scope-hint">Slow link · click to skip</span>
 </div>
 </div>
 <script>
 // Starts the screen's growth once the sweep has ended and the first screen is ready (hero render loaded or failed,
 // fonts ready), at most CAP ms after the start; while it waits, the scope re-triggers (.intro-wait) and says ARMED,
-// then TRIG'D. Clears the layer when done or skipped (click, key, wheel, touch, scroll). The timings live in
+// then TRIG'D; after HINT ms of waiting it says how to skip (.intro-slow). Clears the layer when done or skipped (click, key, wheel, touch, scroll). The timings live in
 // site.css; its failsafe hides the layer a little after CAP whatever happens here.
 (() => {
-  const CAP = 6000;
+  const CAP = 20000;
+  const HINT = 5000;
   const root = document.documentElement;
   if (!root.classList.contains("intro")) return;
   const t0 = performance.now();
@@ -33,7 +36,7 @@
   const status = scope.querySelector(".scope-status");
   const events = ["pointerdown", "keydown", "wheel", "touchstart", "scroll"];
   const done = () => {
-    root.classList.remove("intro", "intro-wait", "intro-trig", "intro-grow", "intro-skip");
+    root.classList.remove("intro", "intro-wait", "intro-slow", "intro-trig", "intro-grow", "intro-skip");
     events.forEach((e) => removeEventListener(e, skip, true));
   };
   const skip = () => {
@@ -63,7 +66,9 @@
   scope.querySelector(".scope-beam").addEventListener("animationend", () => {
     if (ready()) return grow();
     root.classList.add("intro-wait");
+    const slow = setTimeout(() => root.classList.add("intro-slow"), HINT);
     Promise.race([loaded, capped]).then(() => {
+      clearTimeout(slow);
       if (!root.classList.contains("intro")) return;
       status.textContent = "Trig'd";
       root.classList.add("intro-trig");

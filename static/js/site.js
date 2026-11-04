@@ -1,5 +1,5 @@
-// The site's only script: the theme toggle and the code-panel tabs. Everything works without it (the theme then
-// follows the system, every code panel shows stacked).
+// The site's only script: the theme toggle, the code-panel tabs and the image placeholders. Everything works without
+// it (the theme then follows the system, every code panel shows stacked, images show as they load).
 (() => {
   const root = document.documentElement;
   const dark = matchMedia("(prefers-color-scheme: dark)");
@@ -52,5 +52,21 @@
     box.querySelector('[role="tablist"]').hidden = false;
     box.classList.add("js-tabs");
     select(0, false);
+  }
+
+  // Pictures still on their way show as a small scope screen until they arrive, then fade in over it (site.css
+  // "Image placeholders"). One that has already arrived is left alone, and so is the eager hero: hidden while it
+  // loads, its largest paint would wait for the fade.
+  for (const img of document.querySelectorAll(".fig-frame img")) {
+    if (img.complete || img.loading === "eager") continue;
+    const frame = img.closest(".fig-frame");
+    frame.classList.add("img-wait");
+    const show = () => {
+      frame.classList.replace("img-wait", "img-in");
+      // Once faded in, the screen goes for good (its sweep stops with it).
+      frame.addEventListener("transitionend", () => frame.classList.remove("img-in"), { once: true });
+    };
+    img.addEventListener("load", show, { once: true });
+    img.addEventListener("error", show, { once: true });
   }
 })();
