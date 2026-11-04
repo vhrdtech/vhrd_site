@@ -38,8 +38,8 @@
     [".hero-fig figcaption", "under"], [".trace", "wire"], [".card", "box"],
   ];
   const DRAW = 1300; // ms for the whole pass
-  // The pass is behind config.toml's extra.intro_trace (off for the cutover, 4 Nov 2026: it costs the first paint
-  // about 100 ms on a slow phone, not yet explained); off, the screen fades straight to the page.
+  // The pass is behind config.toml's extra.intro_trace (on; it costs the first paint about 0.1 s on a slow phone);
+  // off, the screen fades straight to the page.
   const TRACE = {{ config.extra.intro_trace }};
   const svg = scope.querySelector(".scope-draw");
   const spot = svg.querySelector(".scope-spot");

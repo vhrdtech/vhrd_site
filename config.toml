@@ -26,9 +26,9 @@ dark_theme = "github-dark"
 company = "VHRD"
 # The legal name (Brreg), for the copyright line only; copy says VHRD (~/git/tpm/area/marketing/brand.md).
 legal = "VHRD.TECH AS"
-# The intro's vector pass (README "Intro"): the beam traces the first screen before the fade. Off until its cost to
-# the first paint is understood.
-intro_trace = false
+# The intro's vector pass (README "Intro"): the beam traces the first screen before the fade. On (Roman, 4 Nov 2026):
+# it costs the first paint about 0.1 s on a slow phone, which is fine.
+intro_trace = true
 address = "Asker, Norway"
 email = "hello@vhrd.tech"
 github = "https://github.com/vhrdtech"
