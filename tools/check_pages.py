@@ -44,7 +44,7 @@ from playwright.sync_api import sync_playwright
 import samples
 
 PAGES = ["", "donguru/", "report/", "can/", "software/", "open-source/", "lab/", "services/", "about/",
-         "blog/", "shop/", "no-such-page/"]
+         "no-such-page/"]
 WIDTHS = {"phone": 390, "tablet": 820, "desktop": 1440}
 BUDGET_KB = 200
 
@@ -465,6 +465,8 @@ def main():
             for name, w in WIDTHS.items():
                 ctx = browser.new_context(viewport={"width": w, "height": 900}, color_scheme=scheme,
                                           reduced_motion="reduce")
+                if scheme == "light":  # dark is the default; light is the visitor's stored choice
+                    ctx.add_init_script("try { localStorage.setItem('theme', 'light') } catch (e) {}")
                 page = ctx.new_page()
                 errors = []
                 page.on("console", lambda m: m.type == "error" and errors.append(m.text))
@@ -512,15 +514,21 @@ def main():
         failures += check_intro(browser, base)
         failures += check_placeholders(browser, base)
 
-        # Interactions, on a desktop page in the dark scheme (the intro skipped by the first click)
-        ctx = browser.new_context(viewport={"width": 1440, "height": 900}, color_scheme="dark")
+        # Interactions, on a desktop page in a browser that prefers light: dark all the same on a first visit (the
+        # default, from the HTML, so no light flash), the toggle switches to light and remembers it, and back to dark
+        # clears the choice.
+        ctx = browser.new_context(viewport={"width": 1440, "height": 900}, color_scheme="light")
         page = ctx.new_page()
         page.goto(base)
         page.wait_for_function("!document.documentElement.classList.contains('intro')")
         theme = lambda: page.evaluate(  # noqa: E731
             "getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()")
         if theme() != "#0f0f10":
-            failures.append(f"dark scheme: --bg is {theme()}")
+            failures.append(f"first visit, light-preferring browser: --bg is {theme()}, expected dark")
+        if page.evaluate("getComputedStyle(document.documentElement).colorScheme") != "dark":
+            failures.append("first visit: color-scheme is not dark (form controls and scrollbars)")
+        if 'data-theme="dark"' not in (page.request.get(base).text())[:2000]:
+            failures.append("first visit: the HTML does not start dark (a light flash before the scripts)")
         page.click(".theme-toggle")
         if theme() != "#f6f6f6":
             failures.append(f"toggle: --bg is {theme()} after one click, expected light")
@@ -530,7 +538,7 @@ def main():
         page.click(".theme-toggle")
         page.reload()
         if theme() != "#0f0f10" or page.evaluate("localStorage.getItem('theme')") is not None:
-            failures.append("toggle: back to the system theme should clear the stored choice")
+            failures.append("toggle: back to dark should clear the stored choice")
 
         page.keyboard.press("Tab")
         if page.evaluate("document.activeElement.className") != "skip":

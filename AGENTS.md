@@ -15,7 +15,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 ## Layout
 
 - `config.toml`: site settings; `[extra]` holds the company line, contact mail, header links and the notify button.
-- `content/`: one Markdown file per page (`donguru.md` is `/donguru/`), `blog/` is a section. Stubs carry `extra.stub = true`.
+- `content/`: one Markdown file per page (`donguru.md` is `/donguru/`). Stubs carry `extra.stub = true`. No blog or shop: on vhrd.tech every path this site does not have falls through to the old WordPress site (posts, /feed/, /shop/, /product/, /cart/, /checkout/), so none of those may be generated here.
 - `templates/base.html`: the page frame, with the view frame's four crosses (`.view-frame`) and an `intro` block the home page fills. `partials/header.html`, `partials/footer.html` (build stamp from `VHRD_GIT` and `VHRD_BUILT`, which the justfile sets) and `partials/wordmark.html` (generated).
 - `templates/components.html`: the `vh.*` components, usable in templates and Markdown (README "Components").
 - `templates/index.html`: the landing page; `partials/donguru-diagram.html` is its block diagram and `partials/intro.html` its oscilloscope intro, with its script in `partials/intro-script.html` at the end of the body (README "Intro"). `page.html` is a plain page, `section.html` is the blog list, and there are `404.html` and `robots.txt`.
@@ -37,6 +37,7 @@ just wordmark         # redraw the wordmark and favicon from vhrd_brand's Audiow
 just check-browser    # the browser check alone
 just perf             # first screen on a slow phone: requests, KB, FCP, LCP (median of 3 runs)
 just fonts            # Core subsets of the IBM Plex Latin1 faces, and fonts.css
+just live             # the live site for https://vhrd.tech/ into target/live (indexable, no blog or shop)
 just preview TOKEN    # noindex build for https://shadow.vhrd.tech/TOKEN/, uploaded with tpm share (README "Preview")
 just check-preview URL  # the browser check against a deployed preview, screenshots into target/shots
 just renders          # rebuild static/img/boards/ from ~/git/hw (KiCad); needs a machine-local 3D model
@@ -49,7 +50,7 @@ just renders --variants  # only the missing web widths, from the PNG sources (no
 ## Conventions
 
 - **Colours only through tokens** (`var(--accent)`, `var(--signal-usb)`), never hex values in templates or `site.css`. The brand red is used sparingly: one word of the hero headline, the main button, the wordmark, the MCU in diagrams and figure corner marks. Headlines are in the text colour. Power is orange, never red.
-- **Dark first, light equal.** Every change is checked in both themes. The theme follows `prefers-color-scheme`; the toggle stores an override in localStorage, and choosing the system's own theme clears it.
+- **Dark first, light equal.** Every change is checked in both themes. Dark is the default whatever the system prefers (`<html data-theme="dark">`, Roman, 4 Nov 2026); light only when the visitor picks it with the toggle, stored in localStorage and applied by the head script before the first paint. Back to dark clears it.
 - **Almost no JavaScript, no framework.** Animation is CSS (scroll-driven for the traces), off under `prefers-reduced-motion`. The page must work without `site.js`. The front page's intro has a small inline script; without it the intro never shows.
 - **Links through `get_url`**, so the preview under a sub-path works. Internal Markdown links use `@/page.md`.
 - **The name is VHRD; the address is vhrd.tech.** VHRD in titles, copy, product names and the footer; vhrd.tech always lowercase, for URLs and mail; VHRD.TECH AS, the legal name, only in the copyright line (`extra.legal`). Never "Vhrd.tech AS", "VHRD Tech", "VHRD.tech" or "Vhrd.Tech" (Roman, 4 Nov 2026). The wordmark is drawn, not text.

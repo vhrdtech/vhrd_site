@@ -591,10 +591,6 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .logo-light { display: none; }
 :root[data-theme="light"] .logo-light { display: block; }
 :root[data-theme="light"] .logo-dark { display: none; }
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) .logo-light { display: block; }
-  :root:not([data-theme="dark"]) .logo-dark { display: none; }
-}
 
 /* The view frame (base.html): a cross at each corner of the visible screen, on the column's edges, just under the
    header and 10px above the bottom (10px in from the sides where the column fills the screen, so a cross is never

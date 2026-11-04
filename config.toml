@@ -7,7 +7,8 @@ default_language = "en"
 compile_sass = false
 minify_html = false
 build_search_index = false
-generate_feeds = true
+# No blog or shop here yet: the old WordPress site serves its posts, /feed/ and /shop/ behind this one.
+generate_feeds = false
 # The 2400 px PNG render sources stay in the repo for re-encoding but never ship: the site uses their AVIF/WebP variants.
 ignored_static = ["img/boards/**/*.png"]
 feed_filenames = ["atom.xml"]
@@ -37,6 +38,7 @@ nav = [
   { name = "Software", path = "/software/" },
   { name = "Open source", path = "/open-source/" },
   { name = "Lab", path = "/lab/" },
-  { name = "Blog", path = "/blog/" },
+  # The shop is the old WordPress site's: on vhrd.tech every path this site does not have falls through to it.
+  { name = "Shop", path = "/shop/" },
 ]
 notify = { name = "Get notified", path = "/donguru/#notify" }

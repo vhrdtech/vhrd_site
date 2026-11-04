@@ -10,6 +10,7 @@ just serve           # http://127.0.0.1:1111 with live reload
 just test            # zola check + build, every page in headless Chromium, brand files match vhrd_brand
 just lint            # whitespace, the tools parse
 just perf            # the front page's first screen on a slow phone: requests, KB, FCP, LCP
+just live            # the live site for https://vhrd.tech/ into target/live: indexable, no blog or shop
 just preview TOKEN   # noindex build for https://shadow.vhrd.tech/TOKEN/ (README "Preview")
 ```
 

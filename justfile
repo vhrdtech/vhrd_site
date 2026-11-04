@@ -1,5 +1,6 @@
 # vhrd.tech, a Zola site: test builds and checks it, lint checks the sources, install puts the pinned Zola on this
-# PC, brand pulls the stylesheets from vhrd_brand, preview builds a noindex copy for a share link.
+# PC, brand pulls the stylesheets from vhrd_brand, live builds the site for vhrd.tech, preview a noindex copy
+# for a share link.
 
 zola_version := "0.23.6"
 brand := env("VHRD_BRAND", home_directory() / "git/vhrd_brand")
@@ -69,6 +70,15 @@ brand:
 # Redraw the wordmark outlines from vhrd_brand's Audiowide (the font itself is never published)
 wordmark:
     uv run tools/wordmark.py "{{ brand }}/typst/vhrd/fonts/Audiowide-Regular.ttf"
+
+# Build the live site for https://vhrd.tech/ into target/live: indexable (robots.txt allows it and names the sitemap,
+# every page has its canonical URL). It has no blog or shop: on vhrd.tech every path it does not have falls through
+# to the old WordPress site (posts, /feed/, /shop/, /product/, /cart/, /checkout/).
+live:
+    rm -rf target/live
+    zola check --skip-external-links
+    zola build --base-url "https://vhrd.tech/" --output-dir target/live
+    @echo "built https://vhrd.tech/ ($VHRD_GIT) in target/live"
 
 # Build a noindex preview for https://shadow.vhrd.tech/TOKEN/ into target/preview/TOKEN. TOKEN is the share link's
 # token, a fresh one per preview; the site is built for that base path, so it only works under that link. The

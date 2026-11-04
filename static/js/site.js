@@ -1,9 +1,9 @@
 // The site's only script: the theme toggle, the code-panel tabs and the image placeholders. Everything works without
-// it (the theme then follows the system, every code panel shows stacked, images show as they load).
+// it (the theme is then dark, every code panel shows stacked, images show as they load).
 (() => {
   const root = document.documentElement;
-  const dark = matchMedia("(prefers-color-scheme: dark)");
-  const current = () => root.dataset.theme || (dark.matches ? "dark" : "light");
+  // Dark is the default (base.html sets it); light is the visitor's choice, remembered.
+  const current = () => root.dataset.theme || "dark";
 
   const toggle = document.querySelector(".theme-toggle");
   const label = () => {
@@ -13,17 +13,11 @@
   };
   if (toggle) {
     label();
-    dark.addEventListener("change", label);
     toggle.addEventListener("click", () => {
       const next = current() === "dark" ? "light" : "dark";
-      // Back to the system's choice when it matches, so a later change of the system setting is followed again.
-      if (next === (dark.matches ? "dark" : "light")) {
-        delete root.dataset.theme;
-        try { localStorage.removeItem("theme"); } catch (e) {}
-      } else {
-        root.dataset.theme = next;
-        try { localStorage.setItem("theme", next); } catch (e) {}
-      }
+      root.dataset.theme = next;
+      // Back to dark clears the choice: dark is the default.
+      try { next === "light" ? localStorage.setItem("theme", "light") : localStorage.removeItem("theme"); } catch (e) {}
       label();
     });
   }
