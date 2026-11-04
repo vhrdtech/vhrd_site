@@ -124,7 +124,7 @@ jobs:
         run: |
           umask 077
           printf '%s\n' "$DEPLOY_SSH_KEY" > "$RUNNER_TEMP/deploy_key"
-          rsync --recursive --checksum --perms --chmod=D2755,F644 --omit-dir-times \
+          rsync --recursive --checksum --perms --chmod=D755,F644 --omit-dir-times \
             --delete-after --delay-updates --stats \
             -e "ssh -p $DEPLOY_PORT -i $RUNNER_TEMP/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
                 -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$GITHUB_WORKSPACE/.github/deploy/known_hosts \
