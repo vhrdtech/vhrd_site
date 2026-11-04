@@ -1,17 +1,19 @@
 # Donguru (B153): the tables of /donguru, copied from the datasheet, Preview 0.2 of 24 Oct 2026
 # (~/git/hw/b153_typec_serial/spec/datasheet/b153_datasheet.typ). The values, units and notes stay exactly as there:
 # Marketing's rule is that the specs on the page equal the datasheet. When the datasheet changes, change this file.
-# Markup in the strings: [tbd] becomes the tbd badge, [Plus] the Plus badge; <sub> and <code> pass through.
+# Markup in the strings: [tbd] becomes the tbd badge; <sub> and <code> pass through.
+# One board on the site, no variants (Roman, 4 Nov 2026): a value the datasheet's Main and Plus share is shown, a
+# value where they differ is [tbd]. The datasheet itself keeps both.
 # A spec row is [parameter, min, typ, max, unit, notes].
 
 datasheet = "Preview 0.2, 24 Oct 2026"
 
-variants = [
-  ["USB 2.0 hub", "2 ports", "4 ports"],
-  ["USB to the device (D+/D−), switchable", "✓", "✓"],
-  ["USB on the 2.54 mm header", "—", "✓"],
-  ["USB to the device over SBU, switchable with SBU I/O", "—", "✓"],
-  ["VBUS switch, meter, PD on both ports, SBU and header IO, relay, SWD probe", "✓", "✓"],
+fitted = [
+  ["USB 2.0 hub, ports", "[tbd]"],
+  ["USB to the device (D+/D−), switchable", "yes"],
+  ["USB on the 2.54 mm header", "[tbd]"],
+  ["USB to the device over SBU, switchable with SBU I/O", "[tbd]"],
+  ["VBUS switch, meter, PD on both ports, SBU and header IO, relay, SWD probe", "yes"],
 ]
 
 safe_state = [
@@ -40,8 +42,8 @@ header = [
   { pin = 5, name = "3.3 V out", kind = "power", use = "board 3.3 V" },
   { pin = 6, name = "GND", kind = "gnd", use = "" },
   { pin = 7, name = "GND", kind = "gnd", use = "" },
-  { pin = 8, name = "USB D+", kind = "usb", use = "hub port 3, [Plus]" },
-  { pin = 9, name = "USB D−", kind = "usb", use = "hub port 3, [Plus]" },
+  { pin = 8, name = "USB D+", kind = "usb", use = "hub port 3; [tbd]" },
+  { pin = 9, name = "USB D−", kind = "usb", use = "hub port 3; [tbd]" },
   { pin = 10, name = "VBUS_SW", kind = "power", use = "computer's VBUS, switched: 5 V, or up to 20 V after PD" },
   { pin = 11, name = "RL1", kind = "ctrl", use = "isolated photo-MOS contact" },
   { pin = 12, name = "RL2", kind = "ctrl", use = "" },
@@ -51,7 +53,7 @@ plug = [
   ["VBUS", "switched, measured, both directions"],
   ["D+/D− (A6/A7)", "hub port 2 through the data switch"],
   ["CC, VCONN (A5, B5)", "UCPD2: PD; pull-ups for debug-accessory mode"],
-  ["SBU1, SBU2 (A8, B8)", "UART, I2C, SWD, FDCAN, GPIO, ADC; USB on [Plus]"],
+  ["SBU1, SBU2 (A8, B8)", "UART, I2C, SWD, FDCAN, GPIO, ADC; USB [tbd]"],
   ["A2, B2", "GPIO, FDCAN2"],
 ]
 
@@ -60,11 +62,6 @@ receptacle = [
   ["D+/D−", "hub upstream, USB 2.0 Hi-Speed"],
   ["CC1, CC2", "UCPD1: PD, sink or source"],
   ["SBU1, SBU2", "Donguru's own SWD: one Donguru can flash another"],
-]
-
-ordering = [
-  ["VHRD-B153", "Donguru Main", "Dongle, quick-start card"],
-  ["VHRD-B153-PLUS", "Donguru Plus", "Dongle, quick-start card"],
 ]
 
 [[specs]]
@@ -125,8 +122,8 @@ rows = [
   ["Level", "", "1.8 or 3.3", "", "V", "selectable; adjustable range for rev B [tbd]"],
   ["Input high, low", "", "[tbd]", "", "V", "level translator"],
   ["Pull-ups", "", "3.3", "", "kΩ", "to the SBU level, switched"],
-  ["Path resistance", "", "5", "", "Ω", "protection; Plus: +6 Ω USB switch"],
-  ["USB over SBU, Plus", "", "480", "", "Mbit/s", "hub port 4"],
+  ["Path resistance", "", "5", "", "Ω", "protection; USB over SBU adds a 6 Ω switch [tbd]"],
+  ["USB over SBU", "", "480", "", "Mbit/s", "hub port 4; [tbd]"],
 ]
 
 [[specs]]
@@ -238,7 +235,7 @@ rows = [
 title = "USB"
 id = "usb"
 rows = [
-  ["Speed, external ports", "", "480", "", "Mbit/s", "USB 2.0 Hi-Speed: 1 port on Main, 3 on Plus"],
+  ["Speed, external ports", "", "480", "", "Mbit/s", "USB 2.0 Hi-Speed; number of ports [tbd]"],
   ["Speed, the MCU", "", "12", "", "Mbit/s", "USB Full Speed, hub port 1"],
   ["Connectors", "", "", "", "", "USB-C receptacle (computer), USB-C plug (device)"],
 ]

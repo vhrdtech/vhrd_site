@@ -17,13 +17,12 @@
 .dg-why { color: var(--muted); }
 .dg-why > span:first-child { font: 500 0.6875rem/1.4 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); margin-right: 0.35em; }
 
-/* Badges for the datasheet's open values and the Plus variant. */
+/* Badge for the datasheet's open values. */
 .dg-tbd { font-size: 0.625rem; padding: 0.05em 0.4em; vertical-align: 0.1em; }
-.dg-plus { font-size: 0.625rem; padding: 0.05em 0.4em; vertical-align: 0.1em; color: var(--signal-usb); border-color: var(--signal-usb); }
 
-/* The block diagram: Plus paths dashed, a legend in mono under the figure. */
+/* The block diagram: paths not settled yet (tbd) dashed, a legend in mono under the figure. */
 .dg-diagram { margin-top: 1.5rem; max-width: 60rem; }
-.bd-plus path { stroke-dasharray: 7 5; }
+.bd-tbd path { stroke-dasharray: 7 5; }
 .dg-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem; margin: 0.75rem 0 1.75rem; padding: 0; font: 500 0.6875rem/1.4 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .dg-legend li { display: inline-flex; align-items: center; gap: 0.45rem; }
 .dg-legend li::before { content: ""; width: 1.5rem; border-top: 3px solid var(--sig); }

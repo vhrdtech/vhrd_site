@@ -52,6 +52,7 @@
 
 ### Changed
 
+- Donguru is one board on the site, without the Main and Plus variants (Roman): no variant names, badges, columns or second part number on /donguru. A value both variants share is shown; one where they differ reads tbd: the hub's ports, USB on the header (J101 pins 8 and 9), USB over SBU on the plug, its 6 Ω switch, and the number of external USB ports. The block diagram dashes those paths as tbd, the Main-and-Plus FAQ is gone, and ordering reads "Ordering details: coming with the campaign". The datasheet is unchanged (SITE-11 donguru-page).
 - The front page's notify buttons lead to the Donguru page: "Get notified about Donguru" in the hero to /donguru/, the spotlight's and the notify section's buttons to its notify block (/donguru/#notify), like the header's red button. The mail link lives there for now.
 - The granite CNC on /work is "Modelled down to bolt level", without "ready to be built": it is not for sale.
 - No release dates for the paid software: RockFace's "first paid release planned for January 2027" (front page and /software) now reads "Commercial release: TBD". Commercial timing is open for now (Roman).
