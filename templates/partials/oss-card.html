@@ -15,7 +15,7 @@
 {%- elif meta and meta.crate %} · <a class="crate-ver" href="https://crates.io/crates/{{ x.crate }}" rel="noopener" title="crates.io, at build time">v{{ meta.crate.max_stable_version or meta.crate.max_version }} · {{ meta.crate.downloads | num_format }} downloads</a>
 {%- elif x.note %} · <span class="crate-git">{{ x.note }}</span>{% endif %}</p></div>
 </header>
-<p>{{ x.desc | default(value=x.pitch | default(value="")) | markdown(inline=true) | safe }}</p>
+<p>{{ <vh.linkify text={x.desc | default(value=x.pitch | default(value=""))} md={true} here={current_path} skip={x.title | default(value=x.name)} /> }}</p>
 {%- if not x.private %}
 <p class="crate-links"><a href="{{ url }}" rel="noopener">Source</a>{% if x.docs %} · <a href="{{ x.docs }}" rel="noopener">Docs</a>{% endif %}{% if x.crate %} · <a href="https://crates.io/crates/{{ x.crate }}" rel="noopener">crates.io</a> · <a href="https://docs.rs/{{ x.crate }}" rel="noopener">docs.rs</a>{% endif %}</p>
 {%- endif %}

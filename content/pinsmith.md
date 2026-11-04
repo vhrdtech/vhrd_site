@@ -8,4 +8,4 @@ sig = "bus"
 stub = true
 +++
 
-To come: what Pinsmith measures and drives, IOWeaver screenshots and the specs.
+To come: what Pinsmith measures and drives, {{ <vh.ref name="IOWeaver" /> }} screenshots and the specs.

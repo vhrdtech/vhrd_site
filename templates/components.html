@@ -59,10 +59,10 @@
 {% endcomponent vh.fig %}
 
 {#- Product card: render, name, badge, one-line pitch, a few specs, a link; the top edge is wired in `sig`.
-    `icon`: a small image (an app icon) before the title.
+    `icon`: a small image (an app icon) before the title; `id` an anchor for links to the card.
     Put cards in {% <vh.cards> %} ... {% </vh.cards> %} for the ruled grid. -#}
-{% component vh.card(title: string, href: string, pitch: string = "", specs: array = [], img: string = "", stem: string = "", widths: array = [480, 640, 1280], alt: string = "", badge: string = "", badge_cls: string = "v-accent", sig: string = "usb", n: string = "", caption: string = "", fig_cls: string = "", icon: string = "") %}
-<article class="card" style="--sig: var(--signal-{{ sig }})">
+{% component vh.card(title: string, href: string, pitch: string = "", specs: array = [], img: string = "", stem: string = "", widths: array = [480, 640, 1280], alt: string = "", badge: string = "", badge_cls: string = "v-accent", sig: string = "usb", n: string = "", caption: string = "", fig_cls: string = "", icon: string = "", id: string = "") %}
+<article class="card"{% if id %} id="{{ id }}"{% endif %} style="--sig: var(--signal-{{ sig }})">
 {{ <vh.fig src={img} stem={stem} widths={widths} sizes="(max-width: 40rem) 100vw, (max-width: 75rem) 50vw, 25rem" alt={alt or title ~ " render"} n={n} caption={caption} cls={fig_cls} /> }}
 <div class="card-body">
 <h3>{% if icon %}<img class="card-icon" src="{{ get_url(path=icon) }}" alt="" width="32" height="32" loading="lazy" decoding="async">{% endif %}<a href="{{ get_url(path=href, trailing_slash=true) }}">{{ title }}</a>{% if badge %} <span class="v-badge {{ badge_cls }}">{{ badge }}</span>{% endif %}</h3>
@@ -105,3 +105,44 @@
 {% component vh.mail(to: string, subject: string = "", text: string = "", cls: string = "") %}
 <a class="mail{% if cls %} {{ cls }}{% endif %}" data-mail="{{ to }}" data-d="vhrd.tech"{% if subject %} data-s="{{ subject }}"{% endif %}{% if text %} data-keep hidden{% endif %}>{% if text %}{{ text }}{% else %}{{ to }} at vhrd.tech{% endif %}</a>
 {%- endcomponent vh.mail %}
+
+{#- A link to one of our projects by its name, from data/links.toml: {{ <vh.ref name="WireWeaver" /> }} gives
+    <a href=".../open-source/#highlight-wire_weaver">WireWeaver</a>; `text` shows other words. Link the first mention
+    of a project in each section; the browser check holds every page's first mention to it (tools/mentions.py). -#}
+{% component vh.ref(name: string, text: string = "") %}
+{%- set links = load_data(path="data/links.toml") -%}
+{%- set url = "" -%}
+{%- for l in links.link %}{% if l.name == name %}{% set_global url = l.url %}{% endif %}{% endfor -%}
+{%- if not url %}{{ throw(message="vh.ref: " ~ name ~ " is not in data/links.toml") }}{% endif -%}
+<a href="{% if url is starting_with(pat='http') %}{{ url }}{% else %}{{ get_url(path=url, trailing_slash=true) }}{% endif %}"{% if url is starting_with(pat='http') %} rel="noopener"{% endif %}>{{ text or name }}</a>
+{%- endcomponent vh.ref %}
+
+{#- Text from data (a fact, a description, a lead) with the first mention of each project in data/links.toml
+    linked, once per address. `here` is the page's path: a name whose address is this page stays plain. `md` renders
+    the text as inline Markdown first. A name whose first occurrence is part of a longer word, code or a path
+    (B129 in B129A, cnt in cnt_core) is left alone, and so is `skip` (a card's own name). Names are tried in the
+    order of the table, so in "the B200 Pinsmith board" the board number gets the link: {{ <vh.linkify text={f} here={page.path} /> }} -#}
+{% component vh.linkify(text: string, here: string = "", md: bool = false, skip: string = "") %}
+{%- set links = load_data(path="data/links.toml") -%}
+{%- if md %}{% set t = text | markdown(inline=true) %}{% else %}{% set t = text | escape %}{% endif -%}
+{%- set used = " " -%}
+{%- for l in links.link -%}
+{%- set path = (l.url | split(pat="#"))[0] -%}
+{%- if l.name in t and path != here and l.name != skip and not (" " ~ l.url ~ " ") in used -%}
+{%- set parts = t | split(pat=l.name) -%}
+{%- if not parts[0] is matching(pat="[A-Za-z0-9_`/#.-]$") and not parts[1] is matching(pat="^[A-Za-z0-9_`-]")
+      and not parts[1] is starting_with(pat="</code>") -%}
+{%- set_global t = parts[0] ~ "⟦" ~ loop.index ~ "⟧" ~ (parts[1:] | join(sep=l.name)) -%}
+{%- set_global used = used ~ l.url ~ " " -%}
+{%- endif -%}
+{%- endif -%}
+{%- endfor -%}
+{%- for l in links.link -%}
+{%- set mark = "⟦" ~ loop.index ~ "⟧" -%}
+{%- if mark in t -%}
+{%- if l.url is starting_with(pat="http") %}{% set a = '<a href="' ~ l.url ~ '" rel="noopener">' ~ l.name ~ '</a>' %}{% else %}{% set a = '<a href="' ~ get_url(path=l.url, trailing_slash=true) ~ '">' ~ l.name ~ '</a>' %}{% endif -%}
+{%- set_global t = t | replace(from=mark, to=a) -%}
+{%- endif -%}
+{%- endfor -%}
+{{ t | safe }}
+{%- endcomponent vh.linkify %}

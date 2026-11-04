@@ -1,0 +1,97 @@
+# Our projects and where a mention of one leads: the `vh.ref` component links a name from this table
+# ({{ <vh.ref name="WireWeaver" /> }}), and the browser check (tools/mentions.py) holds every page to it: the first
+# time a name appears in a page's prose, it is a link to this address. Link the first mention in each section.
+#
+# - `name`: the name as the text writes it, case and all.
+# - `url`: a path on this site (passed through get_url, so a preview under a sub-path works) or a full URL.
+#   A page of our own when there is one; else its card on /open-source; else its repository.
+# - `repo`: its repository, as data/stack.toml has it; a link there counts as linked too (the crate cards' titles).
+
+# Boards first: in a text like "the B200 Pinsmith board" the board number takes the link (vh.linkify)
+[[link]]
+name = "B153"
+url = "/donguru/"
+
+[[link]]
+name = "B200"
+url = "/pinsmith/"
+
+[[link]]
+name = "B125"
+url = "/can/"
+
+[[link]]
+name = "B135"
+url = "/can/"
+
+[[link]]
+name = "B129"
+url = "/work/#b129-cannify-micro"
+
+[[link]]
+name = "CANnify"
+url = "/work/#b129-cannify-micro"
+
+[[link]]
+name = "B133"
+url = "/work/#b133-d600plus-control"
+
+[[link]]
+name = "FlexyRJ45"
+url = "/shop/"
+
+# Products and their software
+[[link]]
+name = "Donguru"
+url = "/donguru/"
+
+[[link]]
+name = "Pinsmith"
+url = "/pinsmith/"
+
+[[link]]
+name = "CAN line"
+url = "/can/"
+
+[[link]]
+name = "IOWeaver"
+url = "/software/#ioweaver"
+
+[[link]]
+name = "RockFace"
+url = "/software/#rockface"
+
+[[link]]
+name = "mx3"
+url = "/software/#mx3"
+
+# Open source: the highlights' cards at the top of /open-source, the others' cards in their area
+[[link]]
+name = "WireWeaver"
+url = "/open-source/#highlight-wire_weaver"
+repo = "https://github.com/vhrdtech/wire_weaver"
+
+[[link]]
+name = "ShrinkWrap"
+url = "/open-source/#highlight-shrink_wrap"
+repo = "https://github.com/vhrdtech/wire_weaver/tree/master/shrink_wrap"
+
+[[link]]
+name = "ExactUnits"
+url = "/open-source/#highlight-exact_units"
+repo = "https://github.com/romixlab/exact_units"
+
+[[link]]
+name = "embedded_bedrock"
+url = "/open-source/#highlight-embedded_bedrock"
+repo = "https://github.com/romixlab/embedded_bedrock"
+
+[[link]]
+name = "cnt"
+url = "/open-source/#highlight-cnt"
+repo = "https://github.com/romixlab/cnt"
+
+[[link]]
+name = "canzone"
+url = "/open-source/#canzone"
+repo = "https://github.com/romixlab/canzone"

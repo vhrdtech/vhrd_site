@@ -74,7 +74,7 @@
 {{ <vh.trace sig="ctrl" from={84} to={30} label="SWD" /> }}
 
 {% <vh.section label="Software" n="03" id="software" title="See what your device says"> %}
-<p class="v-muted section-lead">IOWeaver plots what your device says. RockFace debugs the firmware that says it. WireWeaver keeps both sides speaking the same API.</p>
+<p class="v-muted section-lead">{{ <vh.ref name="IOWeaver" /> }} plots what your device says. {{ <vh.ref name="RockFace" /> }} debugs the firmware that says it. {{ <vh.ref name="WireWeaver" /> }} keeps both sides speaking the same API.</p>
 {% <vh.code_tabs id="sw" labels={["GUI", "Debugger", "Code"]} label="FIG. 5 · Software"> %}
 {{ <vh.fig stem="img/screens/ioweaver" widths={[1280]} sizes="(max-width: 75rem) 100vw, 72rem" alt="IOWeaver screenshot" caption="IOWeaver: protocol analyzer and grapher" cls="tab-fig" /> }}
 === tab ===
@@ -99,7 +99,7 @@ ww_impl!(uart[]: ww_uart::Uart)
 ```
 {% </vh.code_tabs> %}
 <div class="cols">
-<div class="col" style="--sig: var(--signal-usb)"><h3>IOWeaver</h3><p>Protocol analyzer and grapher. Record, decode, plot and send. It ships with Pinsmith and Donguru.</p></div>
+<div class="col" style="--sig: var(--signal-usb)"><h3>IOWeaver</h3><p>Protocol analyzer and grapher. Record, decode, plot and send. It ships with {{ <vh.ref name="Pinsmith" /> }} and {{ <vh.ref name="Donguru" /> }}.</p></div>
 <div class="col" style="--sig: var(--signal-ctrl)"><h3>RockFace {{ draft | safe }}</h3><p>Firmware debugger: logs, stack and CPU use, zero-cost profiling, logs from a fleet. Commercial release: TBD.</p></div>
 <div class="col" style="--sig: var(--signal-bus)"><h3>WireWeaver</h3><p>One API definition for device and host: RPC, streams and properties, backwards and forwards compatible. Open source.</p></div>
 </div>

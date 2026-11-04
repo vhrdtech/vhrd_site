@@ -6,7 +6,7 @@
 {%- set stack = load_data(path="data/stack.toml") -%}
 <ol class="stack" id="stack" aria-label="The open-source stack">
 {%- if stack_front %}
-<li class="stack-top"><span class="v-label">Products</span><span class="stack-products">Donguru · Pinsmith · CAN line · IOWeaver · RockFace</span></li>
+<li class="stack-top"><span class="v-label">Products</span><span class="stack-products">{{ <vh.ref name="Donguru" /> }} · {{ <vh.ref name="Pinsmith" /> }} · {{ <vh.ref name="CAN line" /> }} · {{ <vh.ref name="IOWeaver" /> }} · {{ <vh.ref name="RockFace" /> }}</span></li>
 {%- endif %}
 {%- for c in stack.crate %}{% if c.front or not stack_front %}
 {%- if c.crate %}{% set meta = load_data(url="https://crates.io/api/v1/crates/" ~ c.crate, format="json", required=false, headers=["User-Agent=vhrd_site build (https://vhrd.tech, contact@vhrd.tech)"]) %}{% else %}{% set meta = "" %}{% endif %}
@@ -21,7 +21,7 @@
 {%- elif c.crate %}<a class="crate-ver" href="https://crates.io/crates/{{ c.crate }}" rel="noopener">on crates.io</a>
 {%- else %}<span class="crate-ver crate-git">{{ c.note }}</span>{% endif %}</div>
 </header>
-<p>{{ c.pitch }}</p>
+<p>{{ <vh.linkify text={c.pitch} here={current_path} skip={c.title | default(value=c.name)} /> }}</p>
 <p class="crate-links"><a href="{{ c.repo }}" rel="noopener">Source</a>{% if c.docs %} · <a href="{{ c.docs }}" rel="noopener">Docs</a>{% endif %}{% if c.crate %} · <a href="https://docs.rs/{{ c.crate }}" rel="noopener">docs.rs</a>{% endif %}</p>
 </div>
 {%- set fence = c.lang %}

@@ -18,12 +18,16 @@ You are still welcome to get in touch. I answer every message, even if it is "no
 
 - **Board design.** Schematic and layout in KiCad: mixed-signal, power, USB, CAN FD, Ethernet with PoE, isolated interfaces.
 - **Embedded firmware in Rust.** Bare-metal drivers and real-time firmware for STM32 and other microcontrollers, no-std and no-alloc.
-- **Device communication.** Typed, versioned protocols between a device and a PC with WireWeaver, my open-source protocol and code generator.
-- **Desktop and test tools.** GUIs, test jigs and production flashing for your boards, built on the same stack as IOWeaver and RockFace.
+- **Device communication.** Typed, versioned protocols between a device and a PC with {{ <vh.ref name="WireWeaver" /> }}, my open-source protocol and code generator.
+- **Desktop and test tools.** GUIs, test jigs and production flashing for your boards, built on the same stack as {{ <vh.ref name="IOWeaver" /> }} and {{ <vh.ref name="RockFace" /> }}.
 - **Power and motors.** BMS, power stages, 6-step and FOC motor controllers.
 - **Design review.** A second look at your schematic, layout or firmware architecture before you order boards.
 
-Examples of this work are on [the work page](@/work.md).
+## See what I've built
+
+- [Work](@/work.md): our own boards and the projects from the bench, from CAN FD bridges to motor controllers and a laser scanner.
+- [Open source](@/open-source.md): the Rust crates and tools the products stand on, from register to GUI.
+- [Software](@/software.md): {{ <vh.ref name="IOWeaver" /> }}, {{ <vh.ref name="RockFace" /> }} and {{ <vh.ref name="mx3" /> }}, with real runs of the command-line tools.
 
 ## How I work
 

@@ -49,6 +49,8 @@ Tera components in `templates/components.html` work in templates and in Markdown
 - `vh.specs`: a mono key/value list from `"Key: value"` strings.
 - `vh.fig`: a figure with the datasheet's corner marks and a "FIG. n" caption. Without `src` it shows a hatched placeholder.
 - `vh.code_tabs`: Markdown panels split by a line `=== tab ===`, shown as tabs.
+- `vh.ref`: a link to one of our projects by its name, from `data/links.toml`: `{{ <vh.ref name="WireWeaver" /> }}`. Link the first mention of a project in each section; the browser check fails a page whose first mention is not a link (`tools/mentions.py`).
+- `vh.linkify`: text from data with the first mention of each project in `data/links.toml` linked, once per address: `{{ <vh.linkify text={f} here={page.path} /> }}`. `md={true}` renders inline Markdown first; a name whose address is the page itself, or that is part of a longer word or code, stays plain.
 - `vh.mail`: a mail link without the address in the HTML: `{{ <vh.mail to="projects" subject="Project" /> }}`. The inline script in `base.html` builds the mailto link; without JavaScript it reads "projects at vhrd.tech". With `text` (and `cls`) it is a labelled button that shows only once the script has made it a link.
 
 Images go under `static/img/boards/` (board renders) and `static/img/lab/` (lab photos).

@@ -14,7 +14,7 @@
     {% <vh.cards> %}
     {%- for b in page.extra.boards %}
     {%- set m = load_data(path="static/img/boards/" ~ b.dir ~ "/manifest.toml") %}
-    {{ <vh.card title={m.product} href={b.href} sig={b.sig} n={loop.index ~ ""} caption={m.board} pitch={b.pitch | default(value="")}
+    {{ <vh.card id={b.dir} title={m.product} href={b.href} sig={b.sig} n={loop.index ~ ""} caption={m.board} pitch={b.pitch | default(value="")}
        stem={"img/boards/" ~ b.dir ~ "/" ~ b.view} widths={[480, 640, 1280]} alt={m.views[0].alt}
        specs={["Board: " ~ m.board, "Revision: " ~ m.revision]} /> }}
     {%- endfor %}
@@ -46,7 +46,7 @@
       <div class="card-body">
         <h3>{{ m.title }}{% if it.badge %} <span class="v-badge">{{ it.badge }}</span>{% endif %}</h3>
         {%- if m.facts %}
-        <ul class="work-facts">{% for f in m.facts %}<li>{{ f }}</li>{% endfor %}</ul>
+        <ul class="work-facts">{% for f in m.facts %}<li>{{ <vh.linkify text={f} here={page.path} /> }}</li>{% endfor %}</ul>
         {%- endif %}
         {%- if m.tools %}
         {{ <vh.specs items={["Tools: " ~ (m.tools | join(sep=", "))]} /> }}

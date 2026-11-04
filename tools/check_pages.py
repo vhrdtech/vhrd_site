@@ -28,7 +28,8 @@ fold and are drawn once scrolled to (to the page's end); on /lab the first click
 a footer link and the GitHub link navigates.
 Every text in a table cell is 4.5:1 on the cell's background, in dark and light.
 Links: every page in the site map is reached from the front page by links (no orphans), and every internal
-href on every page reached ends in '/' when it names a page and answers 200 without a redirect.
+href on every page reached ends in '/' when it names a page and answers 200 without a redirect. On every page reached,
+the first mention of each project in data/links.toml is a link to it (tools/mentions.py).
 Mail: no page or file has an address in it ('@vhrd.tech'); with JavaScript every mail link is a mailto link with
 its subject (projects@ on /services, donguru@ on /donguru and the front page, contact@ in the footer), and without
 it a mail link is plain text ("projects at vhrd.tech") and a labelled one does not show.
@@ -54,6 +55,7 @@ from urllib.parse import urljoin, urlsplit
 
 from playwright.sync_api import sync_playwright
 
+import mentions
 import samples
 
 PAGES = ["", "donguru/", "pinsmith/", "can/", "software/", "open-source/", "lab/", "work/", "services/", "about/", "shop/",
@@ -656,6 +658,7 @@ def check_links(base):
         where = urlsplit(page).path[len(root):] or "/"
         if ADDRESS in body:
             failures.append(f"mail: {where} has an address in its HTML ({ADDRESS.decode()})")
+        failures += mentions.problems(page, body.decode("utf-8", "replace"), base)
         for href, is_page in [(h, True) for h in p.links] + [(h, False) for h in p.files]:
             u = urlsplit(urljoin(page, href))
             if u.scheme not in ("http", "https") or u.netloc != host:

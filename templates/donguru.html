@@ -53,7 +53,7 @@
 <article class="dg-feat" style="--sig: var(--signal-bus)"><h3>Header with a relay</h3><p>4 protected GPIO with UART, I2C, SPI, FDCAN and ADC, 3.3 V out, switched VBUS and an isolated relay.</p><p class="dg-why"><span>Why</span> The relay presses a reset button, a boot strap or a power key on the device.</p></article>
 <article class="dg-feat" style="--sig: var(--signal-power)"><h3>USB Power Delivery</h3><p>A PD controller on each port, each a source or a sink. The PD stack in the firmware is planned for v1.0.</p><p class="dg-why"><span>Why</span> A small PD test tool: watch a contract, ask for another voltage, see the meter follow.</p></article>
 <article class="dg-feat" style="--sig: var(--signal-ctrl)"><h3>Safe by default</h3><p>Every enable has a pull-down. Plug VBUS, the header's VBUS_SW and the relay are off at power-up, after a reset and while the MCU is halted.</p><p class="dg-why"><span>Why</span> The hardware holds the safe state, not the firmware.</p></article>
-<article class="dg-feat" style="--sig: var(--signal-usb)"><h3>One typed API</h3><p>Rust library, Python wheel, the <code>dg</code> CLI and the IOWeaver GUI over the same API.</p><p class="dg-why"><span>Why</span> Every tool sees the same functions and the same checks, and always matches the firmware.</p></article>
+<article class="dg-feat" style="--sig: var(--signal-usb)"><h3>One typed API</h3><p>Rust library, Python wheel, the <code>dg</code> CLI and the {{ <vh.ref name="IOWeaver" /> }} GUI over the same API.</p><p class="dg-why"><span>Why</span> Every tool sees the same functions and the same checks, and always matches the firmware.</p></article>
 </div>
 {% </vh.section> %}
 
@@ -144,7 +144,7 @@
 {{ <vh.trace sig="ctrl" from={70} to={20} label="SWD" /> }}
 
 {% <vh.section label="Software" n="06" id="software" title="A CLI, a library and a GUI over one API"> %}
-<p class="v-muted section-lead">The firmware serves a typed WireWeaver API over USB, with a CMSIS-DAP interface for debug tools beside it. The Rust library is generated from the API, and the CLI, the Python wheel and the IOWeaver GUI are built on the library, so every tool sees the same functions and the same checks. A mock Donguru in the library runs test scripts without hardware.</p>
+<p class="v-muted section-lead">The firmware serves a typed {{ <vh.ref name="WireWeaver" /> }} API over USB, with a CMSIS-DAP interface for debug tools beside it. The Rust library is generated from the API, and the CLI, the Python wheel and the {{ <vh.ref name="IOWeaver" /> }} GUI are built on the library, so every tool sees the same functions and the same checks. A mock Donguru in the library runs test scripts without hardware.</p>
 {% <vh.code_tabs id="dg-code" labels={["CLI · works today", "Rust · works today", "Python · planned"]} label="FIG. 5 · Software"> %}
 ```sh
 dg device list              # every Donguru on USB: serial, path, label, API version
@@ -188,7 +188,7 @@ dg.usb.disconnect(); dg.usb.connect()   # make it re-enumerate
 <div class="cols">
 <div class="col" style="--sig: var(--signal-usb)"><h3><code>dg</code> CLI</h3><p><code>--format json</code> or <code>jsonl</code> on every command for scripts, and exit codes that tell a refused request from a missing dongle. Completion for bash, zsh and fish. Planned for v1.0: <code>dg uart</code>, <code>dg i2c</code>, <code>dg gpio</code>.</p></div>
 <div class="col" style="--sig: var(--signal-ctrl)"><h3>probe-rs and friends</h3><p>probe-rs uses the probe directly: <code>probe-rs run --chip STM32G0B1CEUx firmware.elf</code> with Donguru plugged in. OpenOCD and pyOCD find it like any other CMSIS-DAP probe.</p></div>
-<div class="col" style="--sig: var(--signal-bus)"><h3>IOWeaver <span class="v-badge">planned for v1.0</span></h3><p>The GUI for Donguru and Pinsmith: power, the meter, the switches and every bus on one screen, on the desktop or in the browser. Zero setup: Donguru brings up its own small network over USB with a start page, so any browser reaches it with nothing to install.</p></div>
+<div class="col" style="--sig: var(--signal-bus)"><h3>IOWeaver <span class="v-badge">planned for v1.0</span></h3><p>The GUI for Donguru and {{ <vh.ref name="Pinsmith" /> }}: power, the meter, the switches and every bus on one screen, on the desktop or in the browser. Zero setup: Donguru brings up its own small network over USB with a start page, so any browser reaches it with nothing to install.</p></div>
 </div>
 <p class="more"><a class="ext" href="https://vhrdtech.github.io/typec_dongle/">Documentation</a> · <a class="ext" href="https://github.com/vhrdtech/typec_dongle">Source on GitHub</a> · <a class="go" href="{{ get_url(path='/software/', trailing_slash=true) }}">IOWeaver</a></p>
 {% </vh.section> %}

@@ -5,7 +5,7 @@
   {{ <vh.label text={page.extra.label | default(value=page.title)} /> }}
   <h1 class="v-hero">{{ page.extra.headline | default(value=page.title) }}</h1>
   {%- if page.description %}
-  <p class="v-lead">{{ page.description }}</p>
+  <p class="v-lead">{{ <vh.linkify text={page.description} here={page.path} /> }}</p>
   {%- endif %}
   {%- if page.extra.stub %}
   <p class="draft-note"><span class="v-badge">draft</span> This page is a stub; its content comes in a later step.</p>
