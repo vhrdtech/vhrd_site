@@ -75,34 +75,12 @@
 
 {% <vh.section label="Software" n="03" id="software" title="See what your device says"> %}
 <p class="v-muted section-lead">{{ <vh.ref name="IOWeaver" /> }} plots what your device says. {{ <vh.ref name="RockFace" /> }} debugs the firmware that says it. {{ <vh.ref name="WireWeaver" /> }} keeps both sides speaking the same API.</p>
-{% <vh.code_tabs id="sw" labels={["GUI", "Debugger", "Code"]} label="FIG. 5 · Software"> %}
-{{ <vh.fig stem="img/screens/ioweaver" widths={[1280]} sizes="(max-width: 75rem) 100vw, 72rem" alt="IOWeaver screenshot" caption="IOWeaver: protocol analyzer and grapher" cls="tab-fig" /> }}
-=== tab ===
-{{ <vh.fig stem="img/lab/rockface/rockface-window" widths={[640, 1280]} sizes="(max-width: 75rem) 100vw, 72rem" alt="RockFace window: timeline view, log view and defmt counters" caption="RockFace: firmware debugger, timeline and logs" cls="tab-fig" /> }}
-=== tab ===
-```rust
-// The API, once, for both sides (ww_uart):
-#[ww_trait]
-#[claim(exclusive)]
-pub trait Uart {
-    #[counted]
-    stream!(rx: RxChunk<'i>);
-
-    #[credit]
-    sink!(tx: MaxLen<RefVec<'i, u8>, UART_TX_MAX>);
-
-    fn capabilities() -> Capabilities<'i>;
-}
-
-// A device with several ports lists them as one array:
-ww_impl!(uart[]: ww_uart::Uart)
-```
-{% </vh.code_tabs> %}
 <div class="cols">
 <div class="col" style="--sig: var(--signal-usb)"><h3>IOWeaver</h3><p>Protocol analyzer and grapher. Record, decode, plot and send. It ships with {{ <vh.ref name="Pinsmith" /> }} and {{ <vh.ref name="Donguru" /> }}.</p></div>
 <div class="col" style="--sig: var(--signal-ctrl)"><h3>RockFace {{ draft | safe }}</h3><p>Firmware debugger: logs, stack and CPU use, zero-cost profiling, logs from a fleet. Commercial release: TBD.</p></div>
 <div class="col" style="--sig: var(--signal-bus)"><h3>WireWeaver</h3><p>One API definition for device and host: RPC, streams and properties, backwards and forwards compatible. Open source.</p></div>
 </div>
+<p class="more"><a class="go" href="{{ get_url(path='/software/', trailing_slash=true) }}">Screens, terminal runs and code on the software page</a></p>
 {% </vh.section> %}
 
 {{ <vh.trace sig="analog" from={30} to={70} label="AIN" /> }}
@@ -110,19 +88,19 @@ ww_impl!(uart[]: ww_uart::Uart)
 {% <vh.section label="From the lab" n="04" id="lab" title="Work we are proud of"> %}
 <p class="v-muted section-lead">Four pieces from our own bench: Ethernet and USB to CAN FD, a laser scanner and a firmware debugger.</p>
 {% <vh.cards> %}
-{{ <vh.card title="Ethernet to CAN FD" href="/can/" sig="can" n="6" badge="In development" badge_cls=""
+{{ <vh.card title="Ethernet to CAN FD" href="/can/" sig="can" n="5" badge="In development" badge_cls=""
    stem="img/boards/b125-eth-2fdcan/b125_hero" alt="B125 Ethernet to two isolated CAN FD bridge, three-quarter view" caption="B125"
    pitch="Ethernet to two isolated CAN FD buses, with SD card logging."
    specs={["Bus: 2× CAN FD, DB-9", "Power: PoE, bus or USB", "Logging: SD card"]} /> }}
-{{ <vh.card title="USB to CAN FD" href="/can/" sig="usb" n="7" badge="In development" badge_cls=""
+{{ <vh.card title="USB to CAN FD" href="/can/" sig="usb" n="6" badge="In development" badge_cls=""
    stem="img/boards/b135-usb-fdcan/b135_top" alt="B135 USB to isolated CAN FD bridge, top view" caption="B135"
    pitch="USB High Speed to isolated CAN FD, with SD card logging."
    specs={["Bus: CAN FD, DB-9", "Host: USB HS", "Logging: SD card"]} /> }}
-{{ <vh.card title="3D laser scanner" href="/work/#laser-scanner-aoi" sig="analog" n="8" badge="" widths={[640]}
+{{ <vh.card title="3D laser scanner" href="/work/#laser-scanner-aoi" sig="analog" n="7" badge="" widths={[640]}
    stem="img/lab/laser-scanner-aoi/laser-scanner-aoi-rails" alt="A circuit board held between the scanner's linear rails and carriages" caption="AOI"
    pitch="Optical inspection of solder paste and placed parts with a scanning green laser line."
    specs={["Resolution: 15 µm", "Optics: F-Theta, telecentric", "Stage: 2× CoreXY"]} /> }}
-{{ <vh.card title="RockFace" href="/software/" sig="ctrl" n="9" badge="draft" badge_cls="" widths={[484]}
+{{ <vh.card title="RockFace" href="/software/" sig="ctrl" n="8" badge="draft" badge_cls="" widths={[484]}
    stem="img/lab/rockface/rockface-timeline" alt="RockFace timeline view: sleep spans and events of a running firmware over time" caption="RockFace"
    icon="img/software/rockface-icon-256.webp"
    pitch="A firmware debugger for running systems. Commercial release: TBD."

@@ -14,7 +14,7 @@ no console errors or failed requests, no sideways scroll, the open-source stack'
 Every code sample is the same code in its narrow and wide version, and a card shows the narrow one on a phone\nand the wide one on a wide screen, without a sideways scroll from 320 px up. /open-source
 lists every repository of data/repos.toml, a public one linked, a private one marked as coming and not linked.
 On the front page: the theme toggle switches and the choice survives a reload, the code tabs work by keyboard
-(arrow keys), the skip link is the first tab stop.
+(arrow keys, on /donguru), the skip link is the first tab stop.
 First-view budget: what a phone loads for the front page before scrolling (HTML, CSS, script, fonts, images)
 stays under BUDGET_KB as sent over the wire: text gzipped (as the local build would be served by a server that
 compresses), fonts and images as they are; against a deployed site, the transfer sizes the browser saw. Every image
@@ -23,8 +23,9 @@ The front page's intro: on every load it shows and clears by itself without wait
 for a late hero render and fires (TRIG'D), says after 5 s how to skip and a click skips it, a key skips it, the
 replay button plays the slow path as a demo; never with a #fragment, under reduced motion or without JavaScript.
 On every page the figures are numbered 1, 2, 3... in order, without a gap.
-In Chromium and Firefox, at phone and desktop widths: every PCB trace and the footer's bus wait undrawn below the
-fold and are drawn once scrolled to (to the page's end); on /lab the first click on each nav link, the wordmark,
+In Chromium and Firefox, on two phones and three desktops (up to 2560x1440): the PCB traces and the footer's bus draw and
+undraw with the scroll (undrawn below the fold, all drawn at the page's end, the bus falling when the page scrolls back
+up and the same at the same place either way); with --only draw, that and the clicks alone (`just check-draw URL`); on /lab the first click on each nav link, the wordmark,
 a footer link and the GitHub link navigates.
 Every text in a table cell is 4.5:1 on the cell's background, in dark and light.
 Links: every page in the site map is reached from the front page by links (no orphans), and every internal
@@ -695,13 +696,24 @@ def check_links(base):
     return failures
 
 
-# The traces (site.css "Drawn in once they are in view"): per trace and the bus, whether it is drawn, below the
-# fold, and its track's clip-path.
-TRACES = """() => [...document.querySelectorAll('.trace, .bus')].map((t) => {
-  const w = t.querySelector('.trace-wire, .bus-lines'), r = t.getBoundingClientRect();
-  return [t.classList.contains('drawn'), r.top >= innerHeight, getComputedStyle(w).clipPath];
+# The traces (site.css "Drawn as you scroll"): per trace and the bus, its draw progress as the page shows it (from
+# the computed clip-path: the track's bottom inset, the bus's right one) and whether it starts below the fold.
+PROGRESS = """() => [...document.querySelectorAll('.trace, .bus')].map((t) => {
+  const bus = t.classList.contains('bus'), w = t.querySelector(bus ? '.bus-lines' : '.trace-wire');
+  const c = getComputedStyle(w).clipPath, m = c.match(/^inset\\(([^)]*)\\)$/);
+  if (c === 'none') return [1, t.getBoundingClientRect().top >= innerHeight];
+  if (!m) return [null, c];
+  const v = m[1].split(' '), side = [v[0], v[1] ?? v[0], v[2] ?? v[0], v[3] ?? v[1] ?? v[0]][bus ? 1 : 2];
+  return [1 - (side.endsWith('%') ? parseFloat(side) / 100 : 0), t.getBoundingClientRect().top >= innerHeight];
 })"""
 FRAMES = "() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))"
+# Waits until the scroll has come to rest (three frames without a change), then one frame more for the traces.
+SETTLED = """() => new Promise((done) => { let last = -1, same = 0; const f = () => {
+  same = scrollY === last ? same + 1 : 0; last = scrollY; same >= 3 ? requestAnimationFrame(done) : requestAnimationFrame(f); };
+  requestAnimationFrame(f); })"""
+# Screens the traces are checked on: two phones and three desktops (Roman's 1920 and 2560 wide among them).
+DRAW_SIZES = [("Pixel 7", None), ("iPhone 14", None), ("desktop", (1440, 900)), ("desktop", (1920, 1080)),
+              ("desktop", (2560, 1440))]
 
 
 def browsers(p, chromium):
@@ -712,30 +724,76 @@ def browsers(p, chromium):
     firefox.close()
 
 
-def check_draw(name, browser, base):
-    """Every trace and the bus wait undrawn below the fold, and are drawn once scrolled to, down to the page's end."""
+def check_draw(name, p, browser, base):
+    """The traces follow the scroll, both ways: below the fold they start undrawn; at the page's end every one is drawn;
+    near the end the bus's progress rises as the page scrolls down to it, reaches 1 exactly at the end, falls again
+    when it scrolls back up and is the same at the same place either way. Phones scroll by script (Playwright has no
+    swipe), desktops with the mouse wheel."""
     failures = []
-    for w in (390, 1440):
-        ctx = browser.new_context(viewport={"width": w, "height": 900}, reduced_motion="no-preference")
+    for device, size in DRAW_SIZES:
+        if device == "desktop":
+            opts = {"viewport": {"width": size[0], "height": size[1]}}
+            label = f"{size[0]}x{size[1]}"
+        else:
+            opts = dict(p.devices[device])
+            if name == "firefox":  # no mobile emulation in Firefox: the phone's screen size only
+                opts = {"viewport": opts["viewport"], "device_scale_factor": opts["device_scale_factor"]}
+            label = device
+        ctx = browser.new_context(**opts, reduced_motion="no-preference")
         page = ctx.new_page()
+        where = lambda path: f"draw {name} {label}: {path or '/'}"  # noqa: E731
+
+        def scroll(dy):
+            if device == "desktop":
+                page.mouse.move(4, size[1] / 2)  # the margin: no scrolling box under the pointer
+                page.mouse.wheel(0, dy)
+            else:
+                page.evaluate(f"scrollBy(0, {dy})")
+            page.evaluate(SETTLED)
+
         for path in PAGES[:-1]:
             page.goto(base + path + "#main")  # a fragment: no intro on the front page
             page.evaluate("scrollTo(0, 0)")
-            page.evaluate(FRAMES)
-            start = page.evaluate(TRACES)
-            if not start:
-                failures.append(f"draw {name} {w}: {path or '/'} has no traces")
-            if any(drawn for drawn, below, _ in start if below):
-                failures.append(f"draw {name} {w}: {path or '/'}: a trace below the fold is drawn before it is seen")
-            while page.evaluate("scrollY + innerHeight < document.documentElement.scrollHeight - 1"):
-                page.mouse.wheel(0, 400)
-                page.evaluate(FRAMES)
-            try:
-                page.wait_for_function(f"""() => ({TRACES})().every(([d, , c]) => d && (c === 'none' || c === 'inset(0px)'))""",
-                                       timeout=5000)
-            except Exception:
-                left = [i for i, (d, _, c) in enumerate(page.evaluate(TRACES)) if not d or c not in ("none", "inset(0px)")]
-                failures.append(f"draw {name} {w}: {path or '/'}: traces {left} not drawn at the page's end")
+            page.evaluate(SETTLED)
+            start = page.evaluate(PROGRESS)
+            if not start or any(v is None for v, _ in start):
+                failures.append(f"{where(path)}: traces without a draw progress: {start}")
+                continue
+            if any(v > 0.001 for v, below in start if below):
+                failures.append(f"{where(path)}: a trace below the fold is drawn before it is seen: {start}")
+            for _ in range(400):
+                if page.evaluate("scrollY + innerHeight >= document.documentElement.scrollHeight - 1"):
+                    break
+                scroll(400)
+            end = [v for v, _ in page.evaluate(PROGRESS)]
+            if any(v < 0.999 for v in end):
+                failures.append(f"{where(path)}: not every trace is drawn at the page's end: {end}")
+            room = page.evaluate("scrollY")
+            if room < 300:
+                continue  # too short to scroll back and forth
+            bus = lambda: (page.evaluate("scrollY"), page.evaluate(PROGRESS)[-1][0])  # noqa: E731
+            up = [bus()]
+            for _ in range(6):
+                scroll(-100)
+                up.append(bus())
+            down = [up[-1]]
+            for _ in range(6):
+                scroll(100)
+                down.append(bus())
+            ups = [v for _, v in up]
+            if not any(v < 0.999 for v in ups[1:]):
+                failures.append(f"{where(path)}: the bus stays drawn when the page scrolls back up: {up}")
+            elif ups[1] >= 0.999:
+                failures.append(f"{where(path)}: the bus is drawn before the page's end: {up[:2]}")
+            if any(b > a + 0.001 for a, b in zip(ups, ups[1:])):
+                failures.append(f"{where(path)}: the bus draws in while the page scrolls up: {up}")
+            back = dict(down)
+            for y, v in up:
+                if y in back and abs(back[y] - v) > 0.01:
+                    failures.append(f"{where(path)}: the bus is {v:.3f} at {y} going up, {back[y]:.3f} coming down")
+                    break
+            if down[-1][1] < 0.999:
+                failures.append(f"{where(path)}: the bus is not drawn back at the page's end: {down}")
         ctx.close()
     return failures
 
@@ -770,9 +828,19 @@ def main():
     ap.add_argument("base", nargs="?")
     ap.add_argument("--chromium", default=shutil.which("chromium") or shutil.which("chromium-browser"))
     ap.add_argument("--shots")
+    ap.add_argument("--only", choices=["draw"], help="only the traces and the first clicks, in Chromium and Firefox")
     a = ap.parse_args()
     base, out = (a.base, None) if a.base else serve_build()
     base = base.rstrip("/") + "/"
+    if a.only:
+        failures = []
+        with sync_playwright() as p:
+            for name, b in browsers(p, p.chromium.launch(executable_path=a.chromium)):
+                failures += check_draw(name, p, b, base) + check_clicks(name, b, base)
+        for f in failures:
+            print("FAIL", f)
+        print(f"{len(failures)} failures" if failures else "all checks passed")
+        sys.exit(1 if failures else 0)
     failures = check_links(base)
 
     with sync_playwright() as p:
@@ -838,7 +906,7 @@ def main():
         failures += check_table_contrast(browser, base)
         failures += check_mail(browser, base, out)
         for name, b in browsers(p, browser):
-            failures += check_draw(name, b, base)
+            failures += check_draw(name, p, b, base)
             failures += check_clicks(name, b, base)
 
         # Interactions, on a desktop page in a browser that prefers light: dark all the same on a first visit (the
@@ -870,6 +938,7 @@ def main():
         page.keyboard.press("Tab")
         if page.evaluate("document.activeElement.className") != "skip":
             failures.append("keyboard: the skip link is not the first tab stop")
+        page.goto(base + "donguru/")  # the code tabs: the front page has none since FIG. 5 went
         tabs = page.locator('[role="tab"]')
         if tabs.count() >= 2:
             tabs.nth(0).focus()
@@ -879,7 +948,7 @@ def main():
             if not page.locator('[role="tabpanel"]').nth(0).is_hidden():
                 failures.append("tabs: the first panel still shows after switching")
         else:
-            failures.append("tabs: no code tabs on the front page")
+            failures.append("tabs: no code tabs on /donguru")
         ctx.close()
         browser.close()
 

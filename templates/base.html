@@ -51,8 +51,9 @@
 {% block content %}{% endblock content %}
 </main>
 {% include "partials/footer.html" %}
-{#- The traces draw themselves once wholly in view (site.css "Drawn in once they are in view"). #}
-<script>(()=>{const io=new IntersectionObserver((es)=>{for(const e of es)if(e.intersectionRatio>0.98){e.target.classList.add("drawn");io.unobserve(e.target)}},{threshold:[0,0.99]});for(const t of document.querySelectorAll(".trace, .bus"))io.observe(t)})()</script>
+{#- The traces' draw progress follows the scroll, both ways (site.css "Drawn as you scroll"): from a fifth in view
+    (s) to the middle of the screen or, for one that never gets there, the page's end (e); the bus always to the page's end. #}
+<script>(()=>{if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;const ts=[...document.querySelectorAll(".trace, .bus")];let q=0;const up=()=>{q=0;const vh=innerHeight,y=scrollY,max=document.documentElement.scrollHeight-vh;for(const t of ts){const r=t.getBoundingClientRect(),s=vh-0.2*r.height,e=t.classList.contains("bus")?r.top-(max-y):Math.max(vh/2-r.height/2,r.top-(max-y)),p=s-e<1?(r.top<=s?1:0):(s-r.top)/(s-e);t.style.setProperty("--p",Math.min(1,Math.max(0,p)).toFixed(3))}},go=()=>{q||(q=requestAnimationFrame(up))};addEventListener("scroll",go,{passive:true});addEventListener("resize",go);addEventListener("load",go);up()})()</script>
 {#- Mail links (vh.mail): the address and the mailto link are put together here, never written into the HTML. #}
 <script>for(const a of document.querySelectorAll("a[data-mail]")){const m=a.dataset.mail+"\x40"+a.dataset.d;a.href="mailto:"+m+(a.dataset.s?"?subject="+encodeURIComponent(a.dataset.s):"");if(a.hasAttribute("data-keep"))a.hidden=false;else a.textContent=m}</script>
 {%- block tail %}{% endblock tail %}

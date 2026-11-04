@@ -378,18 +378,17 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 .bus { position: relative; height: 48px; border-top: 1px solid var(--line); }
 .bus-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
 
-/* Drawn in once they are in view: the track is uncovered from its top pad down, then the bottom via and the net
-   name fade in; the bus over the footer runs across. The script at the end of base.html marks each one .drawn when
-   it is wholly on screen, which every trace reaches on every page and width, the bus at the page's end too. In every
-   browser, on time rather than on the scroll position (scroll-driven animations stalled on a tall screen, where the
-   bus never reached the middle of the view, and Firefox has none). Without JavaScript (no .js on <html>) and under
-   reduced motion the traces are simply drawn. */
+/* Drawn as you scroll, and undrawn as you scroll back (Roman): the track is uncovered from its top pad down, the
+   bottom via and the net name fade in over the last fifth; the bus over the footer runs across. The draw progress
+   --p (0 to 1) is set per trace by the script at the end of base.html from where the trace is on screen: 0 when a
+   fifth of it has come into view, 1 when its middle reaches the middle of the screen, or at the page's end for the
+   traces that never get that far; the bus always completes exactly at the page's end, on any screen. One
+   way in every browser: scroll-driven CSS (animation-timeline) stalled the bus on tall screens and is missing in
+   Firefox. Without JavaScript (no --p) and under reduced motion the traces are simply drawn. */
 @media (prefers-reduced-motion: no-preference) {
-  .js .trace:not(.drawn) .trace-wire { clip-path: inset(0 0 100% 0); }
-  .js .bus:not(.drawn) .bus-lines { clip-path: inset(0 100% 0 0); }
-  .js .trace:not(.drawn) .via-bottom, .js .trace:not(.drawn) .trace-label { opacity: 0; }
-  .js .trace-wire, .js .bus-lines { transition: clip-path 0.9s cubic-bezier(0.4, 0, 0.3, 1); }
-  .js .via-bottom, .js .trace-label { transition: opacity 0.3s 0.75s; }
+  .trace-wire { clip-path: inset(0 -10% calc((1 - var(--p, 1)) * 100%) -10%); }
+  .bus-lines { clip-path: inset(0 calc((1 - var(--p, 1)) * 100%) 0 0); }
+  .via-bottom, .trace-label { opacity: clamp(0, calc((var(--p, 1) - 0.8) * 5), 1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -484,7 +483,7 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .bd-text .bd-mcu-t { fill: var(--accent); }
 .bd-text .bd-net-t { fill: var(--muted); font-size: 9.5px; letter-spacing: 0.1em; }
 
-/* Software: a figure inside a tab, and three short columns under the panel. */
+/* Software: three short columns, then a link on to /software (.more, like the other sections). */
 .tab-fig { padding: 1rem; }
 .tab-fig .fig-placeholder { aspect-ratio: 16 / 9; }
 .cols { display: grid; gap: 1px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); margin-top: 2rem; background: var(--line); border: 1px solid var(--line); }
