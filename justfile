@@ -73,3 +73,7 @@ deploy-preview:
     rsync -rlz --delete --chmod=D755,F644 --info=progress2 -e "ssh -p 7722" target/preview/vhrd-site-preview deploy@vhrd.tech:/home/deploy/to_static/
     ssh -p 7722 deploy@vhrd.tech "sudo /root/move_to_www_fix_perms.sh"
     curl -fsS "{{ preview_url }}" | grep -qF "built from <code>$VHRD_GIT</code>" && echo "live: {{ preview_url }} ($VHRD_GIT)"
+
+# Rebuild board product renders in static/img/boards/ from ~/git/hw (KiCad)
+renders:
+    uv run scripts/render_boards.py
