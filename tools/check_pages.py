@@ -82,8 +82,24 @@ def serve_build():
 
 
 class Quiet(http.server.SimpleHTTPRequestHandler):
+    """Serves the build like a web server would: text gzipped when the browser accepts it, no request log."""
+
     def log_message(self, *args):
         pass
+
+    def do_GET(self):
+        f = Path(self.translate_path(self.path))
+        if f.is_dir() and self.path.split("?")[0].endswith("/"):
+            f = f / "index.html"
+        if f.suffix not in TEXT or not f.is_file() or "gzip" not in self.headers.get("Accept-Encoding", ""):
+            return super().do_GET()
+        body = gzip.compress(f.read_bytes(), 6)
+        self.send_response(200)
+        self.send_header("Content-Type", self.guess_type(str(f)))
+        self.send_header("Content-Encoding", "gzip")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
 
 def main():

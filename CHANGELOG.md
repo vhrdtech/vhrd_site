@@ -4,6 +4,10 @@
 
 ### Added
 
+- Fast first load (SITE-8 fast-first-load). On a phone the front page's first view went from 187 KB to 143 KB and from 14 to 10 requests; on a slow 4G phone the first paint came at 484 ms instead of 724 ms and the largest paint at 1400 ms instead of 1592 ms. All CSS is inline, the hero render is preloaded with high priority, three Core font subsets are preloaded, and the PNG render sources no longer ship with the site (54 MB to 17 MB built).
+- `just perf` (`tools/perf.py`): the front page's first screen on a slow phone, as Lighthouse's mobile run measures it.
+- `just fonts` (`tools/fonts.py`): Core subsets of the IBM Plex Latin1 faces, about 30 % smaller.
+- Board renders at 480 px for the cards, and `just renders --variants` to make missing widths from the PNG sources without KiCad.
 - Zola site skeleton (Zola 0.23.6, Tera 2 components): base template, header, footer with the build stamp, 404, robots.txt, sitemap and blog feed.
 - Brand from vhrd_brand: `tokens.css` and `vhrd.css` pulled by `just brand` (v0.9.9), IBM Plex Sans, Mono and Serif self-hosted (OFL, woff2 subsets), the VHRD.TECH wordmark and favicon as Audiowide outlines (`just wordmark`).
 - Dark and light theme: follows the system, a toggle in the header remembers the choice.

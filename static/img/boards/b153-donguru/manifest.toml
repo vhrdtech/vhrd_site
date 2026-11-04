@@ -10,6 +10,7 @@ name = "hero"
 alt = "B153 Donguru PCB, three-quarter view"
 source = "b153_hero.png"
 web = [
+  { width = 480, webp = "b153_hero-480.webp", avif = "b153_hero-480.avif" },
   { width = 640, webp = "b153_hero-640.webp", avif = "b153_hero-640.avif" },
   { width = 1280, webp = "b153_hero-1280.webp", avif = "b153_hero-1280.avif" },
   { width = 1920, webp = "b153_hero-1920.webp", avif = "b153_hero-1920.avif" },
@@ -20,6 +21,7 @@ name = "detail"
 alt = "B153 Donguru PCB, angled detail view"
 source = "b153_detail.png"
 web = [
+  { width = 480, webp = "b153_detail-480.webp", avif = "b153_detail-480.avif" },
   { width = 640, webp = "b153_detail-640.webp", avif = "b153_detail-640.avif" },
   { width = 1280, webp = "b153_detail-1280.webp", avif = "b153_detail-1280.avif" },
   { width = 1920, webp = "b153_detail-1920.webp", avif = "b153_detail-1920.avif" },
@@ -30,6 +32,7 @@ name = "top"
 alt = "B153 Donguru PCB, top view"
 source = "b153_top.png"
 web = [
+  { width = 480, webp = "b153_top-480.webp", avif = "b153_top-480.avif" },
   { width = 640, webp = "b153_top-640.webp", avif = "b153_top-640.avif" },
   { width = 1280, webp = "b153_top-1280.webp", avif = "b153_top-1280.avif" },
   { width = 1920, webp = "b153_top-1920.webp", avif = "b153_top-1920.avif" },
@@ -40,6 +43,7 @@ name = "bottom"
 alt = "B153 Donguru PCB, bottom view"
 source = "b153_bottom.png"
 web = [
+  { width = 480, webp = "b153_bottom-480.webp", avif = "b153_bottom-480.avif" },
   { width = 640, webp = "b153_bottom-640.webp", avif = "b153_bottom-640.avif" },
   { width = 1280, webp = "b153_bottom-1280.webp", avif = "b153_bottom-1280.avif" },
   { width = 1920, webp = "b153_bottom-1920.webp", avif = "b153_bottom-1920.avif" },

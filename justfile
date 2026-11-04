@@ -44,13 +44,21 @@ check-preview url dir="target/shots":
 # No whitespace errors, the tools parse. Check only: the bytecode goes to a temp dir, never into the tree
 lint:
     git diff --check HEAD
-    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py
+    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py tools/perf.py tools/fonts.py scripts/render_boards.py
 
 # Install the pinned Zola release binary into ~/.local/bin (no root)
 install:
     mkdir -p ~/.local/bin
     curl -fsSL "https://github.com/getzola/zola/releases/download/v{{ zola_version }}/zola-v{{ zola_version }}-$(uname -m)-unknown-linux-gnu.tar.gz" | tar xz -C ~/.local/bin zola
     zola --version
+
+# The front page's first screen on a slow phone (slow 4G, CPU / 4): requests, bytes, FCP, LCP, layout shift
+perf *args:
+    uv run tools/perf.py {{ args }}
+
+# Cut the Core subset out of each IBM Plex Latin1 face and update fonts.css (after a change to the Latin1 files)
+fonts:
+    uv run tools/fonts.py
 
 # Pull tokens.css and vhrd.css from the vhrd_brand checkout (never edit them here) and note its version
 brand:
@@ -73,6 +81,7 @@ preview token:
     @echo "built {{ preview_host }}/{{ token }}/ ($VHRD_GIT) in target/preview/{{ token }}"
     @echo "upload: tpm share target/preview/{{ token }} --token {{ token }} -e 3m -t 'vhrd.tech preview $VHRD_GIT'"
 
-# Rebuild board product renders in static/img/boards/ from ~/git/hw (KiCad)
-renders:
-    uv run scripts/render_boards.py
+# Rebuild board product renders in static/img/boards/ from ~/git/hw (KiCad). With --variants: only the missing web
+# widths, from the PNG sources already here (no KiCad needed)
+renders *args:
+    uv run scripts/render_boards.py {{ args }}

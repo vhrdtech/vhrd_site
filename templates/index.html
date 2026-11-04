@@ -2,6 +2,11 @@
 {#- The landing page, top to bottom as in the P2633 plan: hero, products, the Donguru spotlight, software, the lab,
     the open-source stack, notify and contact. Facts come from the project and crate READMEs; anything not yet
     confirmed carries a draft badge. Board renders and lab photos are taken by path and show once the files exist. -#}
+{% block preload -%}
+{#- The hero render, before anything else: the largest paint on every width. Same candidates as its <picture>. #}
+{%- set hero = "img/boards/b153-donguru/b153_hero" %}
+<link rel="preload" as="image" type="image/avif" fetchpriority="high" imagesrcset="{% for w in [640, 1280, 1920] %}{{ get_url(path=hero ~ '-' ~ w ~ '.avif') }} {{ w }}w{% if not loop.last %}, {% endif %}{% endfor %}" imagesizes="(max-width: 52rem) calc(100vw - 2rem), 34rem">
+{%- endblock preload %}
 {% block content %}
 {%- set draft = '<span class="v-badge">draft</span>' -%}
 <section class="section hero">
@@ -98,11 +103,11 @@ ww_impl!(uart[]: ww_uart::Uart)
 {% <vh.section label="From the lab" n="04" id="lab" title="Work we are proud of"> %}
 <p class="v-muted section-lead">Four pieces from four areas: Ethernet and USB to CAN FD, optics and motion, and a firmware debugger.</p>
 {% <vh.cards> %}
-{{ <vh.card title="Ethernet to CAN FD" href="/can/" sig="can" n="7" badge="In development" badge_cls="" widths={[640, 1280]}
+{{ <vh.card title="Ethernet to CAN FD" href="/can/" sig="can" n="7" badge="In development" badge_cls=""
    stem="img/boards/b125-eth-2fdcan/b125_hero" alt="B125 Ethernet to two isolated CAN FD bridge, three-quarter view" caption="B125"
    pitch="Ethernet to two isolated CAN FD buses, with SD card logging."
    specs={["Bus: 2× CAN FD, DB-9", "Power: PoE, bus or USB", "Logging: SD card"]} /> }}
-{{ <vh.card title="USB to CAN FD" href="/can/" sig="usb" n="8" badge="In development" badge_cls="" widths={[640, 1280]}
+{{ <vh.card title="USB to CAN FD" href="/can/" sig="usb" n="8" badge="In development" badge_cls=""
    stem="img/boards/b135-usb-fdcan/b135_top" alt="B135 USB to isolated CAN FD bridge, top view" caption="B135"
    pitch="USB High Speed to isolated CAN FD, with SD card logging."
    specs={["Bus: CAN FD, DB-9", "Host: USB HS", "Logging: SD card"]} /> }}

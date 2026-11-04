@@ -10,8 +10,13 @@ newest source/<bnnn><rev> revision, renders a hero (whole board, 3/4 angle),
 a detail (tight 3/4 close-up), a top and a bottom view with kicad-cli (black
 solder mask / white silkscreen, forced on a temp copy of the board so
 ~/git/hw is never touched), crops the transparent canvas tight to the board,
-and writes a 2400px-wide PNG plus AVIF/WebP web variants at 640/1280/1920px
-into static/img/boards/<bnnn>-<slug>/, with a manifest.toml next to them.
+and writes a 2400px-wide PNG plus AVIF/WebP web variants at 480/640/1280/1920px
+into static/img/boards/<bnnn>-<slug>/, with a manifest.toml next to them. The PNG
+sources stay in the repo but never ship with the site (config.toml ignored_static).
+
+With --variants it renders nothing: it makes the web variants that are missing
+from the PNG sources already in static/img/boards/ and updates the manifests, so
+a new width needs neither KiCad nor the 3D libraries.
 
 3D model libraries (not committed, machine-local): set KICAD6_3DMODEL_DIR..
 KICAD10_3DMODEL_DIR and VHRD_3DMODEL_DIR yourself, or rely on the defaults
@@ -30,6 +35,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -49,7 +55,7 @@ for _var in ("KICAD6_3DMODEL_DIR", "KICAD7_3DMODEL_DIR", "KICAD8_3DMODEL_DIR",
 os.environ.setdefault("VHRD_3DMODEL_DIR", str(DEFAULT_VHRD_3DMODEL_DIR))
 
 SRC_WIDTH = 2400
-WEB_WIDTHS = (640, 1280, 1920)
+WEB_WIDTHS = (480, 640, 1280, 1920)
 RENDER_CANVAS = 3600
 CROP_PAD_FRAC = 0.04
 AVIF_QUALITY = 50
@@ -213,9 +219,12 @@ def crop_and_resize(raw_png: Path, out_png: Path) -> Image.Image:
     return img
 
 
-def write_web_variants(master: Image.Image, stem: Path) -> dict[int, dict[str, int]]:
+def write_web_variants(master: Image.Image, stem: Path, missing_only: bool = False) -> dict[int, dict[str, int]]:
     sizes: dict[int, dict[str, int]] = {}
     for width in WEB_WIDTHS:
+        if missing_only and stem.with_name(f"{stem.name}-{width}.avif").exists() \
+                and stem.with_name(f"{stem.name}-{width}.webp").exists():
+            continue
         height = round(master.height * width / master.width)
         resized = master if width == master.width else master.resize((width, height), Image.LANCZOS)
         webp_path = stem.with_name(f"{stem.name}-{width}.webp")
@@ -235,14 +244,14 @@ def write_web_variants(master: Image.Image, stem: Path) -> dict[int, dict[str, i
     return sizes
 
 
-def write_manifest(board: Board, rev: str, pcb: Path, git_hash: str,
+def write_manifest(board: Board, rev: str, source_file: str, git_hash: str,
                     out_dir: Path, view_sizes: dict[str, dict]) -> None:
     lines = [
         f'board = "{board.number.upper()}"',
         f'product = "{board.product}"',
         f'slug = "{board.slug}"',
         f'revision = "{rev}"',
-        f'source_file = "{pcb.relative_to(HW_ROOT)}"',
+        f'source_file = "{source_file}"',
         f'hw_git_hash = "{git_hash}"',
         "",
     ]
@@ -302,10 +311,26 @@ def main() -> None:
             )
         shutil.rmtree(render_pcb.parent.parent)
 
-        write_manifest(board, rev, pcb, git_hash, out_dir, view_sizes)
+        write_manifest(board, rev, str(pcb.relative_to(HW_ROOT)), git_hash, out_dir, view_sizes)
 
     print("\n".join(report))
 
 
+def variants_only() -> None:
+    """The web variants missing next to the committed PNG sources, and the manifests updated to list them."""
+    require_tool("avifenc")
+    for board in BOARDS:
+        out_dir = OUT_ROOT / f"{board.number}-{board.slug}"
+        old = tomllib.loads((out_dir / "manifest.toml").read_text())
+        view_sizes: dict[str, dict] = {}
+        for view in VIEWS:
+            png = out_dir / f"{board.number}_{view}.png"
+            sizes = write_web_variants(Image.open(png).convert("RGBA"), out_dir / png.stem, missing_only=True)
+            view_sizes[view] = {"source": png, "sizes": sizes}
+            for w, s in sizes.items():
+                print(f"{board.number} {view}: {w}w webp {s['webp'] // 1024} KB / avif {s['avif'] // 1024} KB")
+        write_manifest(board, old["revision"], old["source_file"], old["hw_git_hash"], out_dir, view_sizes)
+
+
 if __name__ == "__main__":
-    main()
+    variants_only() if sys.argv[1:] == ["--variants"] else main()

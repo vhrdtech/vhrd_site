@@ -20,9 +20,9 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 - `templates/components.html`: the `vh.*` components, usable in templates and Markdown (README "Components").
 - `templates/index.html`: the landing page; `partials/donguru-diagram.html` is its block diagram. `page.html` is a plain page, `section.html` is the blog list, and there are `404.html` and `robots.txt`.
 - `static/css/brand/`: `tokens.css` and `vhrd.css` from vhrd_brand (`just brand`). Never edit these here; change vhrd_brand and pull.
-- `static/css/site.css`: the site's own layer. `static/js/site.js`: theme toggle and tabs, nothing else.
+- `static/css/site.css`: the site's own layer. `base.html` inlines all the CSS (fonts.css, the brand files and site.css) into each page with `load_data`, so there is no render-blocking request. `static/js/site.js`: theme toggle and tabs, nothing else.
 - `static/fonts/`: IBM Plex woff2 subsets and `fonts.css`. `static/img/boards/` holds board renders (`just renders`, README "Board renders") and `static/img/lab/` lab photos.
-- `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check.
+- `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check, `tools/perf.py` measures the first screen on a slow phone, `tools/fonts.py` cuts the Core font subsets.
 - `data/stack.toml`: the open-source crates in their /open-source order (layer, logos per theme, code sample, which are on crates.io); `front = true` puts one on the front page too. `partials/crate-stack.html` draws them for both pages, `templates/open-source.html` is the /open-source page.
 
 ## Commands
@@ -35,10 +35,13 @@ just lint             # git diff --check, the tools parse
 just brand            # pull tokens.css and vhrd.css from ~/git/vhrd_brand ($VHRD_BRAND)
 just wordmark         # redraw the wordmark and favicon from vhrd_brand's Audiowide
 just check-browser    # the browser check alone
+just perf             # first screen on a slow phone: requests, KB, FCP, LCP (median of 3 runs)
+just fonts            # Core subsets of the IBM Plex Latin1 faces, and fonts.css
 just preview TOKEN    # noindex build for https://shadow.vhrd.tech/TOKEN/, uploaded with tpm share (README "Preview")
 just check-preview URL  # the browser check against a deployed preview, screenshots into target/shots
 just renders          # rebuild static/img/boards/ from ~/git/hw (KiCad); needs a machine-local 3D model
                        # library and the silkscreen fonts in fc-list (README "Board renders")
+just renders --variants  # only the missing web widths, from the PNG sources (no KiCad)
 ```
 
 `just test` accepts and ignores `--changed`: the site is one unit, and a full test takes about a minute.

@@ -24,12 +24,19 @@
 <link rel="icon" href="{{ get_url(path='favicon.svg') }}" type="image/svg+xml">
 {#- The saved theme is applied before the first paint, so a light-theme visitor never sees a dark flash. #}
 <script>try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
-<link rel="preload" href="{{ get_url(path='fonts/IBMPlexSans-Regular-Latin1.woff2') }}" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="{{ get_url(path='fonts/IBMPlexSerif-MediumItalic-Latin1.woff2') }}" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="{{ get_url(path='fonts/fonts.css', cachebust=true) }}">
-<link rel="stylesheet" href="{{ get_url(path='css/brand/tokens.css', cachebust=true) }}">
-<link rel="stylesheet" href="{{ get_url(path='css/brand/vhrd.css', cachebust=true) }}">
-<link rel="stylesheet" href="{{ get_url(path='css/site.css', cachebust=true) }}">
+{%- block preload %}{% endblock preload %}
+{#- The three faces the first screen sets text in (body, labels and buttons, the headline), Core subsets only. #}
+<link rel="preload" href="{{ get_url(path='fonts/IBMPlexSans-Regular-Core.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ get_url(path='fonts/IBMPlexSerif-MediumItalic-Core.woff2') }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ get_url(path='fonts/IBMPlexMono-Medium-Core.woff2') }}" as="font" type="font/woff2" crossorigin>
+{#- All the CSS inline (about 11 KB gzipped): no render-blocking request before the first paint. The font URLs are
+    relative to fonts.css, so they are made absolute here. #}
+<style>
+{{ load_data(path="static/fonts/fonts.css", format="plain") | replace(from='url("', to='url("' ~ get_url(path='fonts') ~ '/') | safe }}
+{{ load_data(path="static/css/brand/tokens.css", format="plain") | safe }}
+{{ load_data(path="static/css/brand/vhrd.css", format="plain") | safe }}
+{{ load_data(path="static/css/site.css", format="plain") | safe }}
+</style>
 <link rel="alternate" type="application/atom+xml" title="VHRD Tech blog" href="{{ get_url(path='blog/atom.xml') }}">
 <script src="{{ get_url(path='js/site.js', cachebust=true) }}" defer></script>
 </head>

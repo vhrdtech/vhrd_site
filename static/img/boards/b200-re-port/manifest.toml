@@ -10,6 +10,7 @@ name = "hero"
 alt = "B200 rePort PCB, three-quarter view"
 source = "b200_hero.png"
 web = [
+  { width = 480, webp = "b200_hero-480.webp", avif = "b200_hero-480.avif" },
   { width = 640, webp = "b200_hero-640.webp", avif = "b200_hero-640.avif" },
   { width = 1280, webp = "b200_hero-1280.webp", avif = "b200_hero-1280.avif" },
   { width = 1920, webp = "b200_hero-1920.webp", avif = "b200_hero-1920.avif" },
@@ -20,6 +21,7 @@ name = "detail"
 alt = "B200 rePort PCB, angled detail view"
 source = "b200_detail.png"
 web = [
+  { width = 480, webp = "b200_detail-480.webp", avif = "b200_detail-480.avif" },
   { width = 640, webp = "b200_detail-640.webp", avif = "b200_detail-640.avif" },
   { width = 1280, webp = "b200_detail-1280.webp", avif = "b200_detail-1280.avif" },
   { width = 1920, webp = "b200_detail-1920.webp", avif = "b200_detail-1920.avif" },
@@ -30,6 +32,7 @@ name = "top"
 alt = "B200 rePort PCB, top view"
 source = "b200_top.png"
 web = [
+  { width = 480, webp = "b200_top-480.webp", avif = "b200_top-480.avif" },
   { width = 640, webp = "b200_top-640.webp", avif = "b200_top-640.avif" },
   { width = 1280, webp = "b200_top-1280.webp", avif = "b200_top-1280.avif" },
   { width = 1920, webp = "b200_top-1920.webp", avif = "b200_top-1920.avif" },
@@ -40,6 +43,7 @@ name = "bottom"
 alt = "B200 rePort PCB, bottom view"
 source = "b200_bottom.png"
 web = [
+  { width = 480, webp = "b200_bottom-480.webp", avif = "b200_bottom-480.avif" },
   { width = 640, webp = "b200_bottom-640.webp", avif = "b200_bottom-640.avif" },
   { width = 1280, webp = "b200_bottom-1280.webp", avif = "b200_bottom-1280.avif" },
   { width = 1920, webp = "b200_bottom-1920.webp", avif = "b200_bottom-1920.avif" },

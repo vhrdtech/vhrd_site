@@ -8,6 +8,8 @@ compile_sass = false
 minify_html = false
 build_search_index = false
 generate_feeds = true
+# The 2400 px PNG render sources stay in the repo for re-encoding but never ship: the site uses their AVIF/WebP variants.
+ignored_static = ["img/boards/**/*.png"]
 feed_filenames = ["atom.xml"]
 
 [markdown]

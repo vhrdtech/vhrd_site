@@ -9,6 +9,7 @@ just install         # Zola (the version pinned in AGENTS.md) into ~/.local/bin,
 just serve           # http://127.0.0.1:1111 with live reload
 just test            # zola check + build, every page in headless Chromium, brand files match vhrd_brand
 just lint            # whitespace, the tools parse
+just perf            # the front page's first screen on a slow phone: requests, KB, FCP, LCP
 just preview TOKEN   # noindex build for https://shadow.vhrd.tech/TOKEN/ (README "Preview")
 ```
 
@@ -21,6 +22,7 @@ Colours, type and the web stylesheet come from [vhrd_brand](https://github.com/v
 - `static/css/brand/tokens.css` and `vhrd.css` are copies of vhrd_brand's `web/` files. `just brand` pulls them from `~/git/vhrd_brand` (or `$VHRD_BRAND`) and writes the vhrd_brand version to `static/css/brand/VERSION`. `just test` fails when they differ from that checkout.
 - `static/css/site.css` is this site's layer on top: grid, frame, traces, components. It uses tokens only, never hex values.
 - Fonts are IBM Plex Sans, Mono and Serif, self-hosted as woff2 under `static/fonts/` (OFL, `OFL-IBMPlex.txt`). They are the Latin1, Latin2 and Pi subsets of IBM's npm releases (`@ibm/plex-sans` 1.1.0, `plex-mono` 2.5.0, `plex-serif` 2.0.0). The browser loads a subset only when a page uses one of its characters.
+- Each Latin1 face also has a Core subset: ASCII and the few marks the site uses (· © – × µ, the smart quotes), about 30 % smaller. `just fonts` (`tools/fonts.py`) writes the Core files and their @font-face blocks and narrows the Latin1 ranges to the rest, so an English page loads only Core.
 - The VHRD.TECH wordmark and the favicon are Audiowide outlines (OFL), so the font itself is never published. `just wordmark` redraws them from vhrd_brand's `Audiowide-Regular.ttf` with `tools/wordmark.py`. The output is `templates/partials/wordmark.html` (inline, coloured by CSS), `static/img/wordmark.svg` (stand-alone, dark colours) and `static/favicon.svg`.
 
 ## Components
@@ -51,8 +53,10 @@ Images go under `static/img/boards/` (board renders) and `static/img/lab/` (lab 
 
 ## Board renders
 
-`just renders` (`scripts/render_boards.py`, run with `uv`) rebuilds `static/img/boards/<bnnn>-<slug>/` from the newest revision of each board's KiCad project in `~/git/hw` (read-only, never written to). Per board it writes four views — `hero` (whole board, 3/4 angle, with margin), `detail` (a tighter 3/4 close-up), `top` and `bottom` — as a 2400px-wide PNG source plus AVIF/WebP at 640/1280/1920px, with a `manifest.toml` (product, revision, source file, hw git hash, per-view alt text).
+`just renders` (`scripts/render_boards.py`, run with `uv`) rebuilds `static/img/boards/<bnnn>-<slug>/` from the newest revision of each board's KiCad project in `~/git/hw` (read-only, never written to). Per board it writes four views — `hero` (whole board, 3/4 angle, with margin), `detail` (a tighter 3/4 close-up), `top` and `bottom` — as a 2400px-wide PNG source plus AVIF/WebP at 480/640/1280/1920px, with a `manifest.toml` (product, revision, source file, hw git hash, per-view alt text).
 
+- **The PNG sources never ship.** `config.toml` leaves them out of the build (`ignored_static`); the pages use the AVIF/WebP variants. Cards take 480/640/1280, the hero 640/1280/1920.
+- **A new width without KiCad.** `just renders --variants` makes only the web variants that are missing, from the PNG sources in the repo, and updates the manifests.
 - **Black solder mask, white silkscreen.** The real boards are mostly green; for the site every render forces a black mask with `kicad-cli pcb render --use-board-stackup-colors` against a **temporary copy** of the board's source directory whose stackup colours the script patches to black/white before rendering (`make_mask_black_copy` in the script). The files under `~/git/hw` are never changed.
 - **3D model libraries** (generic KiCad parts plus our own `vhrd_mcu_stm_h7` etc.) are machine-local, not committed: the script reads `KICAD6_3DMODEL_DIR`..`KICAD10_3DMODEL_DIR` and `VHRD_3DMODEL_DIR` from the environment, defaulting to gpd-omarchy's layout (`~/sync/hw_tracking/kicad-packages3D`, `~/git/kicad-library/3dmodels`, Syncthing folder `hw_tracking`). A PC without that library (e.g. build-1) can't run `just renders` itself until it gets one too.
 - **Cross-machine workflow**, when you're on a PC without the 3D library (never push/pull/rebase into another PC's checkout — fetch from it instead):
@@ -83,6 +87,15 @@ These fonts are machine-local (`~/.local/share/fonts` and similar), not fetched 
 | Noto Sans JP Thin | B153 | [notofonts/noto-cjk](https://github.com/notofonts/noto-cjk), OFL-1.1 | installed at `~/.local/share/fonts/noto-sans-jp` |
 
 On gpd-omarchy, `~/.config/fontconfig/conf.d/60-sync-design-fonts.conf` includes Roman's synced folder so `fc-list` sees the five design fonts without copying them anywhere; Noto Sans JP Thin was installed separately from its official OFL source. Licensing for the five design fonts is Roman's own call (he supplied the library and the source); this repo and script only consume what `fc-list` reports, and refuse to render instead of guessing when a font is missing.
+
+## Speed
+
+The front page is built to show fast on a slow phone. `just perf` (`tools/perf.py`) loads it at 390 px under Lighthouse's mobile throttling (150 ms round trip, 1.6 Mbit/s, CPU four times slower), with an empty cache, and prints the median requests, bytes, first and largest contentful paint and layout shift. The browser check keeps the first view on a phone under 200 KB.
+
+- All CSS is inline in each page (about 11 KB gzipped): nothing blocks the first paint but the HTML.
+- Only the hero render is eager, with `fetchpriority="high"` and a preload; every other image is `loading="lazy"`.
+- Three font faces are preloaded, the ones the first screen sets text in, as Core subsets, with `font-display: swap`.
+- The local server of the checks gzips text, as a real server would.
 
 ## Preview
 

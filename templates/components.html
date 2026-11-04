@@ -61,7 +61,7 @@
 {#- Product card: render, name, badge, one-line pitch, a few specs, a link; the top edge is wired in `sig`.
     `icon`: a small image (an app icon) before the title.
     Put cards in {% <vh.cards> %} ... {% </vh.cards> %} for the ruled grid. -#}
-{% component vh.card(title: string, href: string, pitch: string = "", specs: array = [], img: string = "", stem: string = "", widths: array = [640, 1280], alt: string = "", badge: string = "", badge_cls: string = "v-accent", sig: string = "usb", n: string = "", caption: string = "", fig_cls: string = "", icon: string = "") %}
+{% component vh.card(title: string, href: string, pitch: string = "", specs: array = [], img: string = "", stem: string = "", widths: array = [480, 640, 1280], alt: string = "", badge: string = "", badge_cls: string = "v-accent", sig: string = "usb", n: string = "", caption: string = "", fig_cls: string = "", icon: string = "") %}
 <article class="card" style="--sig: var(--signal-{{ sig }})">
 {{ <vh.fig src={img} stem={stem} widths={widths} sizes="(max-width: 40rem) 100vw, (max-width: 75rem) 50vw, 25rem" alt={alt or title ~ " render"} n={n} caption={caption} cls={fig_cls} /> }}
 <div class="card-body">
