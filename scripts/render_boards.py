@@ -6,20 +6,30 @@
 """Rebuild board product renders in static/img/boards/ from the KiCad projects in ~/git/hw.
 
 Reads ~/git/hw (or VHRD_HW_ROOT), never writes there. For each board, finds the
-newest source/<bnnn><rev> revision, renders a hero (3/4), top and bottom view
-with kicad-cli, crops the transparent canvas tight to the board, and writes a
-2400px-wide PNG plus AVIF/WebP web variants at 640/1280/1920px into
-static/img/boards/<bnnn>-<slug>/, with a manifest.toml next to them.
+newest source/<bnnn><rev> revision, renders a hero (whole board, 3/4 angle),
+a detail (tight 3/4 close-up), a top and a bottom view with kicad-cli (black
+solder mask / white silkscreen, forced on a temp copy of the board so
+~/git/hw is never touched), crops the transparent canvas tight to the board,
+and writes a 2400px-wide PNG plus AVIF/WebP web variants at 640/1280/1920px
+into static/img/boards/<bnnn>-<slug>/, with a manifest.toml next to them.
 
 3D model libraries (not committed, machine-local): set KICAD6_3DMODEL_DIR..
 KICAD10_3DMODEL_DIR and VHRD_3DMODEL_DIR yourself, or rely on the defaults
 below, which match gpd-omarchy's Syncthing layout.
+
+Silkscreen fonts are machine-local too, not fetched by this script: see
+README.md ("Fonts used in renders") for where they come from and their
+licences. Before rendering, every font a board's silkscreen names is checked
+with fc-list; a missing one fails loudly instead of silently falling back to
+the wrong font.
 """
 
 import os
+import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -67,12 +77,17 @@ BOARDS = [
 
 VIEWS = {
     # name: (kicad-cli --side, extra args)
-    "hero": ("top", ["--perspective", "--rotate", "-45,0,45", "--floor"]),
+    # zoom 1 (kicad-cli's default fit) clips the board under --perspective
+    # --rotate at this angle, so hero explicitly zooms out for full-board
+    # margin; detail keeps the tighter framing at the same angle.
+    "hero": ("top", ["--perspective", "--rotate", "-45,0,45", "--floor", "--zoom", "0.75"]),
+    "detail": ("top", ["--perspective", "--rotate", "-45,0,45", "--floor"]),
     "top": ("top", []),
     "bottom": ("bottom", []),
 }
 ALT_SUFFIX = {
     "hero": "three-quarter view",
+    "detail": "angled detail view",
     "top": "top view",
     "bottom": "bottom view",
 }
@@ -81,6 +96,65 @@ ALT_SUFFIX = {
 def require_tool(name: str) -> None:
     if shutil.which(name) is None:
         sys.exit(f"error: {name} not found on PATH")
+
+
+def fonts_used(pcb: Path) -> set[str]:
+    return set(re.findall(r'\(face "([^"]+)"\)', pcb.read_text()))
+
+
+def installed_font_families() -> set[str]:
+    out = subprocess.run(["fc-list", "--format", "%{family}\n"], capture_output=True, text=True, check=True)
+    families: set[str] = set()
+    for line in out.stdout.splitlines():
+        families.update(name.strip() for name in line.split(","))
+    return families
+
+
+def check_fonts(boards_pcbs: list[tuple["Board", Path]]) -> None:
+    """Fail loudly if a board's silkscreen names a font that isn't installed,
+    rather than let kicad-cli silently substitute the wrong one."""
+    available = installed_font_families()
+    missing: dict[str, set[str]] = {}
+    for board, pcb in boards_pcbs:
+        absent = fonts_used(pcb) - available
+        if absent:
+            missing[board.number] = absent
+    if missing:
+        lines = [f"  {b}: {', '.join(sorted(fonts))}" for b, fonts in sorted(missing.items())]
+        sys.exit(
+            "error: fonts missing from fc-list (see README.md \"Fonts used in renders\"):\n"
+            + "\n".join(lines)
+        )
+
+
+def make_mask_black_copy(pcb: Path) -> Path:
+    """Copy the board's whole source revision dir to a temp dir and force its
+    stackup to black solder mask / white silkscreen there, so the real board
+    files under ~/git/hw are never touched. Returns the copied .kicad_pcb.
+    Every board's stackup already has a (color ...) on these 4 layers, so a
+    straight replace is enough (verified against all 4 front-page boards)."""
+    tmp_dir = Path(tempfile.mkdtemp(prefix="vhrd-render-"))
+    shutil.copytree(pcb.parent, tmp_dir / pcb.parent.name)
+    tmp_pcb = tmp_dir / pcb.parent.name / pcb.name
+    text = tmp_pcb.read_text()
+
+    def fix_layer(m: re.Match) -> str:
+        target = "Black" if "Mask" in m.group(1) else "White"
+        return re.sub(r'\(color "[^"]+"\)', f'(color "{target}")', m.group(0))
+
+    # Anchored on the stackup's own (type "Top/Bottom Solder Mask"|"Silk Screen")
+    # child, not just the layer name: a bare (layer "F.SilkS") also appears on
+    # every individual silkscreen item (a different shape, no (type ...) child),
+    # and a loose match swallows hundreds of those instead of the 4 stackup ones.
+    text, n = re.subn(
+        r'\(layer "([FB]\.(?:Mask|SilkS))"\s*\(type "[^"]*"\)\s*'
+        r'(?:\(color "[^"]+"\)\s*)?(?:\(thickness [^)]+\)\s*)?\)',
+        fix_layer, text,
+    )
+    if n != 4:
+        sys.exit(f"error: expected 4 F/B Mask+SilkS stackup layers in {pcb}, patched {n}")
+    tmp_pcb.write_text(text)
+    return tmp_pcb
 
 
 def latest_revision_pcb(board: Board) -> tuple[str, Path]:
@@ -113,6 +187,7 @@ def render_view(pcb: Path, view: str, out_png: Path) -> None:
         "--side", side,
         "--background", "transparent",
         "--quality", "high",
+        "--use-board-stackup-colors",
         *extra,
         str(pcb),
     ]
@@ -193,23 +268,27 @@ def write_manifest(board: Board, rev: str, pcb: Path, git_hash: str,
 def main() -> None:
     require_tool("kicad-cli")
     require_tool("avifenc")
+    require_tool("fc-list")
     if not HW_ROOT.is_dir():
         sys.exit(f"error: hw repo not found at {HW_ROOT}")
     git_hash = hw_git_hash()
 
+    resolved = [(board, *latest_revision_pcb(board)) for board in BOARDS]
+    check_fonts([(board, pcb) for board, _rev, pcb in resolved])
+
     report: list[str] = []
-    for board in BOARDS:
-        rev, pcb = latest_revision_pcb(board)
+    for board, rev, pcb in resolved:
         out_dir = OUT_ROOT / f"{board.number}-{board.slug}"
         out_dir.mkdir(parents=True, exist_ok=True)
         print(f"== {board.number.upper()} {board.product} (rev {rev}) ==")
 
+        render_pcb = make_mask_black_copy(pcb)
         view_sizes: dict[str, dict] = {}
         for view in VIEWS:
             raw_png = out_dir / f"_raw_{view}.png"
             out_png = out_dir / f"{board.number}_{view}.png"
             print(f"  rendering {view}...")
-            render_view(pcb, view, raw_png)
+            render_view(render_pcb, view, raw_png)
             master = crop_and_resize(raw_png, out_png)
             raw_png.unlink()
             sizes = write_web_variants(master, out_dir / f"{board.number}_{view}")
@@ -221,6 +300,7 @@ def main() -> None:
                     for w, s in sizes.items()
                 )
             )
+        shutil.rmtree(render_pcb.parent.parent)
 
         write_manifest(board, rev, pcb, git_hash, out_dir, view_sizes)
 
