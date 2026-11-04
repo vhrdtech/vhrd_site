@@ -39,6 +39,11 @@ title = "Host tools and instruments"
 sig = "analog"
 
 [[area]]
+id = "gui"
+title = "GUI"
+sig = "ctrl"
+
+[[area]]
 id = "science"
 title = "Science"
 sig = "science"
@@ -605,7 +610,7 @@ meter.disconnect().await?;
 [[repo]]
 name = "rvariant"
 owner = "romixlab"
-area = "host"
+area = "gui"
 lang = "Rust"
 crate = "rvariant"
 desc = "A dynamically typed value for Rust, inspired by Qt's QVariant: a Variant plus a type descriptor with an SI unit, enum variants or a currency. Text is parsed strictly and printed so it reads back: 4k7 with an ohm type is 4700 Ω. Conversions never lose information silently, and a vendor-text parser reads distributor and BOM values like 13.7 kOhms. Used for table cells, CSV import and stored parameters."
@@ -809,7 +814,7 @@ cargo run -p choreograph_cli -- top --socket /run/choreographd/api.sock
 [[repo]]
 name = "egui_tabular"
 owner = "romixlab"
-area = "host"
+area = "gui"
 lang = "Rust"
 crate = "egui_tabular"
 desc = "Fast table viewer and editor that only draws the visible rows. Data from vectors, files, databases or live bus traces."
@@ -844,7 +849,7 @@ let output = view.show(ui, &mut table, &mut VariantCellUi, &mut config);
 [[repo]]
 name = "vhrd_egui"
 owner = "vhrdtech"
-area = "host"
+area = "gui"
 lang = "Rust"
 desc = "egui building blocks: the widget frame every panel sits in, a dock that moves widgets between windows, an HDR phosphor scope."
 note = "not on crates.io yet"
