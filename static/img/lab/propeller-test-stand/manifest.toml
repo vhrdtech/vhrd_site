@@ -1,0 +1,18 @@
+title = "Propeller Test Stand"
+portfolio_page = 8
+alt = "Netted test cage with a motor and propeller mount on a stand inside it"
+
+facts = [
+    "Torque",
+    "Thrust",
+    "RPM",
+    "Temperature",
+    "Vibration",
+]
+
+tools = []
+
+[[images]]
+file = "propeller-test-stand"
+widths = [640, 1280]
+alt = "Propeller test stand, netted enclosure with motor mount and control panel"

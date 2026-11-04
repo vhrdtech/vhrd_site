@@ -1,6 +1,6 @@
 title = "CAN Servo Controller"
 portfolio_page = 3
-alt = "Small blue hobby servo with a CAN bus controller board built into it"
+alt = "Small PCB of a CAN bus servo controller"
 
 facts = [
     "STM32F0",
@@ -10,11 +10,6 @@ facts = [
 tools = []
 
 [[images]]
-file = "can-servo-controller-1"
-widths = [640]
-alt = "Turnigy TG9e micro servo fitted with a custom CAN bus controller board"
-
-[[images]]
-file = "can-servo-controller-2"
+file = "can-servo-controller"
 widths = [466]
-alt = "CAN servo controller PCB layout render"
+alt = "CAN servo controller board, top view of the PCB layout"

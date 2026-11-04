@@ -29,8 +29,7 @@ ITEMS = {
         ("p03_img06_532x982.png", None, "thermocouple-afe"),
     ],
     "can-servo-controller": [
-        ("p03_img04_778x548.png", (35, 15, 745, 525), "can-servo-controller-1"),
-        ("p03_img05_466x566.png", None, "can-servo-controller-2"),
+        ("p03_img05_466x566.png", None, "can-servo-controller"),
     ],
     "raspberry-pi-carrier": [
         ("p03_img07_606x458.png", None, "raspberry-pi-carrier"),
@@ -44,8 +43,8 @@ ITEMS = {
     "motor-controller-6step-foc": [
         ("p08_img02_588x294.png", None, "motor-controller-6step-foc"),
     ],
-    "drone-motor-test-stand": [
-        ("p08_img05_1280x960.jpeg", None, "drone-motor-test-stand"),
+    "propeller-test-stand": [
+        ("p08_img05_1280x960.jpeg", None, "propeller-test-stand"),
     ],
     "lab": [
         ("p13_img01_1867x1400.jpeg", None, "lab-1"),
