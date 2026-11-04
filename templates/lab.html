@@ -11,7 +11,7 @@
   {%- set desk = lab.images[2] %}
   {{ <vh.fig stem={"img/lab/lab/" ~ desk.file} widths={desk.widths} sizes="(max-width: 75rem) 100vw, 72rem" alt={desk.alt} n="1" caption="The main desk" eager={true} cls="lab-hero" /> }}
   <div class="prose">{{ page.content | safe }}</div>
-  <div class="lab-photos">
+  <div class="fig-pair">
   {%- set captions = ["The workbench", "Pick and place and the parts store"] %}
   {%- for img in lab.images[:2] %}
   {{ <vh.fig stem={"img/lab/lab/" ~ img.file} widths={img.widths} sizes="(max-width: 52rem) 100vw, 36rem" alt={img.alt} n={(loop.index + 1) ~ ""} caption={captions[loop.index0]} /> }}

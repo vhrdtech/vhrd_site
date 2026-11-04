@@ -29,6 +29,13 @@ A tracer and debugger for embedded firmware, for systems that are running. The f
 
 The electronics side of an in-house lab system: from a BOM to parts on the shelf to an assembled board.
 
+<div class="fig-pair">
+
+{{ <vh.fig stem="img/lab/mx3/mx3-assemble" widths={[640, 1280]} sizes="(max-width: 52rem) 100vw, 36rem" alt="mx3 PCB Assemble tab: each BOM line with its designators, the part to place and the stock left" n="3" caption="mx3: guided PCB assembly" /> }}
+{{ <vh.fig stem="img/lab/mx3/mx3-bom-editor" widths={[640, 1280]} sizes="(max-width: 52rem) 100vw, 36rem" alt="mx3 BOM Editor tab: a capacitor line with its part choices, stock and Digi-Key parameters" n="4" caption="mx3: BOM editor" /> }}
+
+</div>
+
 - BOM import from CSV or XLSX, with each line mapped to a part automatically.
 - A BOM editor: part choices, variants, stock and box per line, cost with a price chart, a purchase list.
 - A parts database with typed parameters and parametric search.

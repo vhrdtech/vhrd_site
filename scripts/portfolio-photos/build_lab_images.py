@@ -69,6 +69,11 @@ ITEMS = {
         ("p09_img00_1830x1456.png", (126, 676, 686, 1096), "rockface-log"),
         ("p09_img00_1830x1456.png", (126, 188, 610, 551), "rockface-timeline"),
     ],
+    # mx3 (page 12): its PCB assembly and BOM editor windows, electronics only (Roman, 4 Nov 2026).
+    "mx3": [
+        ("p12_img00_2031x1703.png", (104, 69, 1928, 1567), "mx3-assemble", 20),
+        ("p12_img01_1645x1711.png", (104, 70, 1541, 1574), "mx3-bom-editor", 20),
+    ],
     "granite-cnc": [
         ("p18_img02_2021x1617.jpeg", None, "granite-cnc-1"),
         ("p18_img01_2021x1617.jpeg", None, "granite-cnc-2"),

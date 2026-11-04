@@ -482,6 +482,10 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 @media (min-width: 36rem) { #lab .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 68rem) { #lab .cards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 #lab .card .fig-frame img { aspect-ratio: 4 / 3; object-fit: cover; }
+/* Photos (img/lab/) in card grids are shown whole: letterboxed on the scope screen's dark, so rows stay even. Renders
+   keep their framing; the B135 top view touches its edges, so it gets a little room. */
+:is(#lab, .work-page) .card .fig-frame img[src*="/img/lab/"] { object-fit: contain; background: var(--vhrd-grey-950); }
+#lab .card .fig-frame img[src*="b135_top"] { object-fit: contain; padding: 5%; box-sizing: border-box; }
 /* A small app icon before a card title. */
 .card-icon { width: 32px; height: 32px; flex: none; }
 
@@ -875,12 +879,11 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .work-page .cards { grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 36rem) { .work-page .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 68rem) { .work-page .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.work-page .card .fig-frame img { aspect-ratio: 4 / 3; object-fit: cover; }
+.work-page .card .fig-frame img { aspect-ratio: 4 / 3; object-fit: contain; }
 .work-facts { margin: 0.75rem 0 0; padding-left: 1.1rem; font-size: 0.875rem; color: var(--muted); }
 .work-facts li + li { margin-top: 0.25rem; }
 
-/* /lab: the desk across the column, then the other photos two by two. */
+/* /lab: the desk across the column, then the other photos two by two, each in its own ratio (also mx3 on /software). */
 .lab-hero { margin-top: 2rem; }
-.lab-photos { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); margin-top: 2rem; }
-@media (min-width: 52rem) { .lab-photos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.lab-photos .fig-frame img { aspect-ratio: 4 / 3; object-fit: cover; }
+.fig-pair { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); align-items: start; margin: 2rem 0; }
+@media (min-width: 52rem) { .fig-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

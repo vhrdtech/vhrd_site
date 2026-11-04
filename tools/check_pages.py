@@ -68,6 +68,19 @@ IMAGES_WITHOUT = """() => [...document.images]
   .filter((i) => !i.hasAttribute("alt") || !i.getAttribute("width") || !i.getAttribute("height"))
   .map((i) => i.currentSrc || i.src)"""
 
+# Photos (img/lab/) and the B135 render are never cropped: shown at their own ratio or letterboxed (contain).
+CROPPED = """() => [...document.images]
+  .filter((i) => ["/img/lab/", "b135_"].some((k) => (i.getAttribute("src") || "").includes(k)))
+  .filter((i) => i.getBoundingClientRect().width > 0)
+  .filter((i) => {
+    const cs = getComputedStyle(i);
+    if (cs.objectFit === "contain" || cs.objectFit === "scale-down") return false;
+    const r = i.getBoundingClientRect(), box = r.width / r.height;
+    const natural = i.getAttribute("width") / i.getAttribute("height");
+    return Math.abs(box - natural) / natural > 0.02;
+  })
+  .map((i) => i.getAttribute("src"))"""
+
 
 def wire_bytes(fetched, base, out):
     """Bytes as sent: for the local build, text files gzipped and the rest as they are; else the transfer sizes."""
@@ -488,6 +501,8 @@ def main():
                     if sideways > 0:
                         failures.append(f"{path or '/'} {name} {scheme}: scrolls sideways by {sideways}px")
                     page.wait_for_load_state("load")
+                    for src in page.evaluate(CROPPED):
+                        failures.append(f"{path or '/'} {name} {scheme}: image cropped: {src}")
                     if any(abs(d) > 0.5 for d in page.evaluate(VIA_OFFSETS)):
                         failures.append(f"{path or '/'} {name} {scheme}: a stack via is off its track's centre")
                     for e in errors:
