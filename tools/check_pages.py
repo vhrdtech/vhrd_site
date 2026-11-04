@@ -56,7 +56,7 @@ from playwright.sync_api import sync_playwright
 
 import samples
 
-PAGES = ["", "donguru/", "report/", "can/", "software/", "open-source/", "lab/", "work/", "services/", "about/", "shop/",
+PAGES = ["", "donguru/", "pinsmith/", "can/", "software/", "open-source/", "lab/", "work/", "services/", "about/", "shop/",
          "no-such-page/"]
 WIDTHS = {"phone": 390, "tablet": 820, "desktop": 1440}
 BUDGET_KB = 200

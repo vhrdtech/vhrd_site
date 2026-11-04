@@ -13,7 +13,7 @@ Three tools for the bench: one plots what a device says, one debugs the firmware
 
 {{ <vh.fig stem="img/screens/ioweaver" widths={[1280]} sizes="(max-width: 75rem) 100vw, 72rem" alt="IOWeaver screenshot" n="1" caption="IOWeaver: protocol analyzer and grapher" /> }}
 
-A protocol analyzer and grapher for the desktop: it records, decodes, shows on a timeline and sends the traffic of a device. It is the GUI for rePort and Donguru and ships with them.
+A protocol analyzer and grapher for the desktop: it records, decodes, shows on a timeline and sends the traffic of a device. It is the GUI for Pinsmith and Donguru and ships with them.
 
 {{ <vh.specs items={["Record: I2C, CAN, UART, GPIO, WireWeaver", "Decode: the same protocols", "Show: on a timeline, and plot", "Send: back to the device"]} /> }}
 

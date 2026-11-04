@@ -10,7 +10,7 @@ sig = "ctrl"
 
 ## Availability
 
-Right now most of my time goes into our own products: [Donguru](@/donguru.md), [rePort](@/report.md), [the CAN line](@/can.md) and [the software tools](@/software.md). I take on outside work only when a slot opens up, so I can't promise a start date.
+Right now most of my time goes into our own products: [Donguru](@/donguru.md), [Pinsmith](@/pinsmith.md), [the CAN line](@/can.md) and [the software tools](@/software.md). I take on outside work only when a slot opens up, so I can't promise a start date.
 
 You are still welcome to get in touch. I answer every message, even if it is "not right now". Sometimes a short call or a pointer to the right part is all a project needs.
 

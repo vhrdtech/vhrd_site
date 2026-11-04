@@ -5,7 +5,7 @@ facts = [
     "A PCB connector at no part cost: tiny screws tapped straight into the board hold it",
     "Two alignment pins set the position and the height gap the pogo pins need",
     "B156 carries a 6-pin SWD connection on pogo pins",
-    "First use: the B200 rePort board",
+    "First use: the B200 Pinsmith board",
 ]
 
 tools = ["KiCad", "FreeCAD"]

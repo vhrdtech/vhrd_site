@@ -1,6 +1,6 @@
 # Working on vhrd_site
 
-vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates in `templates/`, hand-written CSS. It is the home for Donguru's launch, rePort, the CAN line and the software, so every page answers: what it is, why it is good, what to do next.
+vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates in `templates/`, hand-written CSS. It is the home for Donguru's launch, Pinsmith, the CAN line and the software, so every page answers: what it is, why it is good, what to do next.
 
 ## Zola version
 

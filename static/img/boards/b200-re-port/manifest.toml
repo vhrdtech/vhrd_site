@@ -1,5 +1,5 @@
 board = "B200"
-product = "rePort (RePort Lite)"
+product = "Pinsmith"
 slug = "re-port"
 revision = "A"
 source_file = "b200_re_port/source/b200a/b200_re_port.kicad_pcb"
@@ -7,7 +7,7 @@ hw_git_hash = "05afb76"
 
 [[views]]
 name = "hero"
-alt = "B200 rePort PCB, three-quarter view"
+alt = "B200 Pinsmith PCB, three-quarter view"
 source = "b200_hero.png"
 web = [
   { width = 480, webp = "b200_hero-480.webp", avif = "b200_hero-480.avif" },
@@ -18,7 +18,7 @@ web = [
 
 [[views]]
 name = "detail"
-alt = "B200 rePort PCB, angled detail view"
+alt = "B200 Pinsmith PCB, angled detail view"
 source = "b200_detail.png"
 web = [
   { width = 480, webp = "b200_detail-480.webp", avif = "b200_detail-480.avif" },
@@ -29,7 +29,7 @@ web = [
 
 [[views]]
 name = "top"
-alt = "B200 rePort PCB, top view"
+alt = "B200 Pinsmith PCB, top view"
 source = "b200_top.png"
 web = [
   { width = 480, webp = "b200_top-480.webp", avif = "b200_top-480.avif" },
@@ -40,7 +40,7 @@ web = [
 
 [[views]]
 name = "bottom"
-alt = "B200 rePort PCB, bottom view"
+alt = "B200 Pinsmith PCB, bottom view"
 source = "b200_bottom.png"
 web = [
   { width = 480, webp = "b200_bottom-480.webp", avif = "b200_bottom-480.avif" },

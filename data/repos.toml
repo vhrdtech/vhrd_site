@@ -356,7 +356,7 @@ owner = "romixlab"
 area = "templates"
 private = true
 lang = "Rust"
-desc = "A firmware template for the rePort board (RP2350B). From one WireWeaver API definition it gives the firmware, a typed Rust client, a command line and a Python module. The board talks to the PC over its own USB-C, which also powers it. The firmware starts with device info, crash records, a log kept across a reset, settings in flash and reboots into the boot ROM."
+desc = "A firmware template for the Pinsmith board (RP2350B). From one WireWeaver API definition it gives the firmware, a typed Rust client, a command line and a Python module. The board talks to the PC over its own USB-C, which also powers it. The firmware starts with device info, crash records, a log kept across a reset, settings in flash and reboots into the boot ROM."
 
 [[repo]]
 name = "b135_template"

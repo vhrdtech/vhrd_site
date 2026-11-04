@@ -20,4 +20,4 @@ The old shop on vhrd.tech is closed, and a new one is on its way. Until it opens
 ## What we make next
 
 - [Donguru](@/donguru.md): one cable from your PC to your board, coming Q1–Q2 2027.
-- [rePort](@/report.md) and [the CAN line](@/can.md): instruments for USB, I/O and CAN FD.
+- [Pinsmith](@/pinsmith.md) and [the CAN line](@/can.md): instruments for USB, I/O and CAN FD.
