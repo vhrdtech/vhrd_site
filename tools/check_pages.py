@@ -23,6 +23,9 @@ The front page's intro: on every load it shows and clears by itself without wait
 for a late hero render and fires (TRIG'D), says after 5 s how to skip and a click skips it, a key skips it, the
 replay button plays the slow path as a demo; never with a #fragment, under reduced motion or without JavaScript.
 On every page the figures are numbered 1, 2, 3... in order, without a gap.
+In Chromium and Firefox, at phone and desktop widths: every PCB trace and the footer's bus wait undrawn below the
+fold and are drawn once scrolled to (to the page's end); on /lab the first click on each nav link, the wordmark,
+a footer link and the GitHub link navigates.
 Every text in a table cell is 4.5:1 on the cell's background, in dark and light.
 Links: every page in the site map is reached from the front page by links (no orphans), and every internal
 href on every page reached ends in '/' when it names a page and answers 200 without a redirect.
@@ -689,6 +692,76 @@ def check_links(base):
     return failures
 
 
+# The traces (site.css "Drawn in once they are in view"): per trace and the bus, whether it is drawn, below the
+# fold, and its track's clip-path.
+TRACES = """() => [...document.querySelectorAll('.trace, .bus')].map((t) => {
+  const w = t.querySelector('.trace-wire, .bus-lines'), r = t.getBoundingClientRect();
+  return [t.classList.contains('drawn'), r.top >= innerHeight, getComputedStyle(w).clipPath];
+})"""
+FRAMES = "() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))"
+
+
+def browsers(p, chromium):
+    """Chromium and Firefox (Playwright's own build: `uv run --with playwright playwright install firefox`)."""
+    yield "chromium", chromium
+    firefox = p.firefox.launch()
+    yield "firefox", firefox
+    firefox.close()
+
+
+def check_draw(name, browser, base):
+    """Every trace and the bus wait undrawn below the fold, and are drawn once scrolled to, down to the page's end."""
+    failures = []
+    for w in (390, 1440):
+        ctx = browser.new_context(viewport={"width": w, "height": 900}, reduced_motion="no-preference")
+        page = ctx.new_page()
+        for path in PAGES[:-1]:
+            page.goto(base + path + "#main")  # a fragment: no intro on the front page
+            page.evaluate("scrollTo(0, 0)")
+            page.evaluate(FRAMES)
+            start = page.evaluate(TRACES)
+            if not start:
+                failures.append(f"draw {name} {w}: {path or '/'} has no traces")
+            if any(drawn for drawn, below, _ in start if below):
+                failures.append(f"draw {name} {w}: {path or '/'}: a trace below the fold is drawn before it is seen")
+            while page.evaluate("scrollY + innerHeight < document.documentElement.scrollHeight - 1"):
+                page.mouse.wheel(0, 400)
+                page.evaluate(FRAMES)
+            try:
+                page.wait_for_function(f"""() => ({TRACES})().every(([d, , c]) => d && (c === 'none' || c === 'inset(0px)'))""",
+                                       timeout=5000)
+            except Exception:
+                left = [i for i, (d, _, c) in enumerate(page.evaluate(TRACES)) if not d or c not in ("none", "inset(0px)")]
+                failures.append(f"draw {name} {w}: {path or '/'}: traces {left} not drawn at the page's end")
+        ctx.close()
+    return failures
+
+
+def check_clicks(name, browser, base):
+    """On /lab, at desktop width: the first click on each nav link, the wordmark, a footer link and the GitHub link
+    navigates (a sanity check that nothing of the site's sits over them or swallows the click)."""
+    failures = []
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900})
+    ctx.route("https://github.com/**", lambda r: r.fulfill(status=200, body="github", content_type="text/html"))
+    page = ctx.new_page()
+    targets = [f".site-header .nav a >> nth={i}" for i in range(page.goto(base + "lab/") and page.locator(".site-header .nav a").count())]
+    targets += [".site-header .brand", ".site-footer a[href*='/about/']", ".site-footer a[href^='https://github.com']"]
+    for sel in targets:
+        page.goto(base + "lab/")
+        link = page.locator(sel)
+        href = link.get_attribute("href")
+        link.scroll_into_view_if_needed()
+        page.evaluate(FRAMES)
+        box = link.bounding_box()
+        try:
+            with page.expect_navigation(timeout=5000):
+                page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+        except Exception:
+            failures.append(f"click {name}: on /lab/ the first click on {href} did not navigate")
+    ctx.close()
+    return failures
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("base", nargs="?")
@@ -761,6 +834,9 @@ def main():
         failures += check_placeholders(browser, base)
         failures += check_table_contrast(browser, base)
         failures += check_mail(browser, base, out)
+        for name, b in browsers(p, browser):
+            failures += check_draw(name, b, base)
+            failures += check_clicks(name, b, base)
 
         # Interactions, on a desktop page in a browser that prefers light: dark all the same on a first visit (the
         # default, from the HTML, so no light flash), the toggle switches to light and remembers it, and back to dark

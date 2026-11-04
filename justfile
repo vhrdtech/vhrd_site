@@ -24,7 +24,7 @@ build:
     zola check --skip-external-links
     zola build
 
-# The site builds, internal links resolve, the old WordPress paths redirect to its pages (deploy/redirects.map), every
+# The site builds (Firefox for the browser check comes with `just install`), internal links resolve, the old WordPress paths redirect to its pages (deploy/redirects.map), every
 # page passes the browser checks, the brand files match vhrd_brand (when it is checked out here)
 test *args:
     zola --version | grep -qF "{{ zola_version }}" || { echo "zola {{ zola_version }} expected: just install"; exit 1; }
@@ -56,6 +56,7 @@ install:
     mkdir -p ~/.local/bin
     curl -fsSL "https://github.com/getzola/zola/releases/download/v{{ zola_version }}/zola-v{{ zola_version }}-$(uname -m)-unknown-linux-gnu.tar.gz" | tar xz -C ~/.local/bin zola
     zola --version
+    uv run --with "playwright>=1.47" playwright install firefox
 
 # The front page's first screen on a slow phone (slow 4G, CPU / 4): requests, bytes, FCP, LCP, layout shift
 perf *args:

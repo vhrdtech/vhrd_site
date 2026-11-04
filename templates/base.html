@@ -24,7 +24,7 @@
 {#- Dark is the default whatever the system prefers (Roman, 4 Nov 2026), set on <html> above, so there is no light
     flash and no-JS visitors get it too. Light only when the visitor picked it with the toggle: applied here, before
     the first paint. #}
-<script>try{if(localStorage.getItem("theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
+<script>document.documentElement.classList.add("js");try{if(localStorage.getItem("theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>
 {%- block head %}{% endblock head %}
 {#- The three faces the first screen sets text in (body, labels and buttons, the headline), Core subsets only. #}
 <link rel="preload" href="{{ get_url(path='fonts/IBMPlexSans-Regular-Core.woff2') }}" as="font" type="font/woff2" crossorigin>
@@ -51,6 +51,8 @@
 {% block content %}{% endblock content %}
 </main>
 {% include "partials/footer.html" %}
+{#- The traces draw themselves once wholly in view (site.css "Drawn in once they are in view"). #}
+<script>(()=>{const io=new IntersectionObserver((es)=>{for(const e of es)if(e.intersectionRatio>0.98){e.target.classList.add("drawn");io.unobserve(e.target)}},{threshold:[0,0.99]});for(const t of document.querySelectorAll(".trace, .bus"))io.observe(t)})()</script>
 {#- Mail links (vh.mail): the address and the mailto link are put together here, never written into the HTML. #}
 <script>for(const a of document.querySelectorAll("a[data-mail]")){const m=a.dataset.mail+"\x40"+a.dataset.d;a.href="mailto:"+m+(a.dataset.s?"?subject="+encodeURIComponent(a.dataset.s):"");if(a.hasAttribute("data-keep"))a.hidden=false;else a.textContent=m}</script>
 {%- block tail %}{% endblock tail %}
