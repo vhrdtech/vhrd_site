@@ -24,7 +24,7 @@
     {{ <vh.trace sig="usb" from={72} to={8} label="USB 2.0" /> }} -#}
 {% component vh.trace(sig: string = "usb", from: integer = 12, to: integer = 12, label: string = "") %}
 <div class="trace" style="--sig: var(--signal-{{ sig }}); --from: {{ from }}%; --to: {{ to }}%" aria-hidden="true">
-<svg viewBox="0 0 100 96" preserveAspectRatio="none" focusable="false"><path class="trace-line" d="M{{ from }} 0 V28 L{{ to }} 68 V96" pathLength="1"/></svg>
+<svg viewBox="0 0 100 96" preserveAspectRatio="none" focusable="false"><path class="trace-line" d="M{{ from }} 0 V28 L{{ to }} 68 V96"/></svg>
 <span class="pad pad-top"></span><span class="pad pad-bottom"></span>{% if label %}<span class="trace-label">{{ label }}</span>{% endif %}
 </div>
 {% endcomponent vh.trace %}

@@ -12,7 +12,7 @@
   scroll-padding-top: calc(var(--header-h) + 1rem);
 }
 
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; overflow-x: clip; }
 /* The toggle's choice also steers light-dark(), which the code highlighting uses. */
 :root[data-theme="dark"] { color-scheme: dark; }
 :root[data-theme="light"] { color-scheme: light; }
@@ -253,7 +253,7 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 .specs dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
 
 /* Code panel with tabs. Without the script every panel shows under its own title. */
-.code-tabs { margin-top: 2rem; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); }
+.code-tabs { margin-top: 2rem; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--raised); }
 .code-tabs-bar {
   display: flex;
   flex-wrap: wrap;
@@ -312,8 +312,10 @@ main > .section:first-child::before, main > .section:first-child::after { displa
   font: 500 0.625rem/1 var(--font-mono);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--sig);
+  color: var(--muted); /* the signal colours are too light for small text on the light background */
   white-space: nowrap;
+  padding-left: 0.5em;
+  border-left: 2px solid var(--sig);
 }
 .trace + .section { border-top-color: transparent; }
 .trace + .section::before, .trace + .section::after { display: none; }
@@ -322,20 +324,21 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 .bus { position: relative; height: 48px; border-top: 1px solid var(--line); }
 .bus-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
 
-/* Drawn in as they scroll into view, with CSS scroll-driven animations (no script); browsers without them, and
-   everyone who asks for reduced motion, see the traces already drawn. */
+/* Drawn in as they scroll into view, with CSS scroll-driven animations (no script): the track is uncovered from
+   its top pad down. Browsers without them, and everyone who asks for reduced motion, see the traces already drawn. */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .trace-line {
-      stroke-dasharray: 1;
+    .trace svg, .bus-lines {
       animation: draw linear both;
       animation-timeline: view();
-      animation-range: entry 10% cover 45%;
+      animation-range: entry 20% cover 50%;
     }
-    .pad, .trace-label { animation: fade linear both; animation-timeline: view(); animation-range: entry 30% cover 45%; }
+    .bus-lines { animation-name: draw-across; }
+    .pad-bottom, .trace-label { animation: fade linear both; animation-timeline: view(); animation-range: cover 40% cover 50%; }
   }
 }
-@keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes draw { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes draw-across { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 
 @media (prefers-reduced-motion: reduce) {
@@ -374,3 +377,10 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 }
 .footer-stamp code { font-size: 1em; color: var(--text); }
 @media (max-width: 52rem) { .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .footer-brand { grid-column: 1 / -1; } }
+.section .section { padding-inline: 0; }
+.section .section::before, .section .section::after { display: none; }
+
+/* Highlighted code: giallo pins color-scheme inline; follow the page (and so the theme toggle) instead, on the
+   page's own surface. */
+pre.giallo { color-scheme: inherit !important; background-color: var(--surface) !important; }
+.tabpanel pre.giallo { background-color: transparent !important; }

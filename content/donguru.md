@@ -9,3 +9,9 @@ stub = true
 +++
 
 To come: the pitch, features, block diagram, the draft spec and the CrowdSupply notify button (id `notify`).
+
+{% <vh.section label="Launch" id="notify" title="Get notified"> %}
+Donguru launches on CrowdSupply. Until the campaign page is up, write to [hello@vhrd.tech](mailto:hello@vhrd.tech) and we let you know.
+
+{{ <vh.specs items={["Status: prototype, rev B", "Launch: Q1–Q2 2027", "Where: CrowdSupply"]} /> }}
+{% </vh.section> %}
