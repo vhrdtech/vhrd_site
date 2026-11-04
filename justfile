@@ -41,10 +41,10 @@ check-browser:
 check-preview dir="target/shots":
     uv run tools/check_pages.py "{{ preview_url }}" --shots "{{ dir }}"
 
-# No whitespace errors, the tools parse
+# No whitespace errors, the tools parse. Check only: the bytecode goes to a temp dir, never into the tree
 lint:
     git diff --check HEAD
-    uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py
+    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py
 
 # Install the pinned Zola release binary into ~/.local/bin (no root)
 install:
