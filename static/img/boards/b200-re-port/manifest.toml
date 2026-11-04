@@ -16,6 +16,16 @@ web = [
 ]
 
 [[views]]
+name = "detail"
+alt = "B200 rePort PCB, angled detail view"
+source = "b200_detail.png"
+web = [
+  { width = 640, webp = "b200_detail-640.webp", avif = "b200_detail-640.avif" },
+  { width = 1280, webp = "b200_detail-1280.webp", avif = "b200_detail-1280.avif" },
+  { width = 1920, webp = "b200_detail-1920.webp", avif = "b200_detail-1920.avif" },
+]
+
+[[views]]
 name = "top"
 alt = "B200 rePort PCB, top view"
 source = "b200_top.png"

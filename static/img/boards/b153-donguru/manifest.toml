@@ -16,6 +16,16 @@ web = [
 ]
 
 [[views]]
+name = "detail"
+alt = "B153 Donguru PCB, angled detail view"
+source = "b153_detail.png"
+web = [
+  { width = 640, webp = "b153_detail-640.webp", avif = "b153_detail-640.avif" },
+  { width = 1280, webp = "b153_detail-1280.webp", avif = "b153_detail-1280.avif" },
+  { width = 1920, webp = "b153_detail-1920.webp", avif = "b153_detail-1920.avif" },
+]
+
+[[views]]
 name = "top"
 alt = "B153 Donguru PCB, top view"
 source = "b153_top.png"

@@ -16,6 +16,16 @@ web = [
 ]
 
 [[views]]
+name = "detail"
+alt = "B135 USB HS to ISO FDCAN bridge PCB, angled detail view"
+source = "b135_detail.png"
+web = [
+  { width = 640, webp = "b135_detail-640.webp", avif = "b135_detail-640.avif" },
+  { width = 1280, webp = "b135_detail-1280.webp", avif = "b135_detail-1280.avif" },
+  { width = 1920, webp = "b135_detail-1920.webp", avif = "b135_detail-1920.avif" },
+]
+
+[[views]]
 name = "top"
 alt = "B135 USB HS to ISO FDCAN bridge PCB, top view"
 source = "b135_top.png"

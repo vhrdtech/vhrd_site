@@ -16,6 +16,16 @@ web = [
 ]
 
 [[views]]
+name = "detail"
+alt = "B125 Ethernet to 2x ISO FDCAN bridge PCB, angled detail view"
+source = "b125_detail.png"
+web = [
+  { width = 640, webp = "b125_detail-640.webp", avif = "b125_detail-640.avif" },
+  { width = 1280, webp = "b125_detail-1280.webp", avif = "b125_detail-1280.avif" },
+  { width = 1920, webp = "b125_detail-1920.webp", avif = "b125_detail-1920.avif" },
+]
+
+[[views]]
 name = "top"
 alt = "B125 Ethernet to 2x ISO FDCAN bridge PCB, top view"
 source = "b125_top.png"

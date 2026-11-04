@@ -24,7 +24,7 @@ Status: ✅ done · 🚧 in progress · 📋 planned · 💡 idea · 🐛 bug
 
 ## ASSET: generated site assets
 
-- ✅ ASSET-1 board-renders: `just renders` (`scripts/render_boards.py`, uv) rebuilds `static/img/boards/<bnnn>-<slug>/` from the newest revision of each board's KiCad project in `~/git/hw`: hero (3/4), top and bottom views via `kicad-cli pcb render` (transparent, raytraced), cropped tight, 2400px PNG source plus AVIF/WebP at 640/1280/1920px, with a `manifest.toml` per board (product, revision, source file, hw git hash, alt text). 3D model library paths are machine-local env vars (`KICAD6..10_3DMODEL_DIR`, `VHRD_3DMODEL_DIR`), not committed. Covers the front-page boards (Donguru, rePort, B125, B135); the rest of `~/git/hw`'s boards are a later task.
+- ✅ ASSET-1 board-renders: `just renders` (`scripts/render_boards.py`, uv) rebuilds `static/img/boards/<bnnn>-<slug>/` from the newest revision of each board's KiCad project in `~/git/hw`: hero (whole board, 3/4 angle, with margin), detail (tighter 3/4 close-up), top and bottom views via `kicad-cli pcb render` (transparent, raytraced, black solder mask / white silkscreen forced on a temp copy so `~/git/hw` is never touched), cropped tight, 2400px PNG source plus AVIF/WebP at 640/1280/1920px, with a `manifest.toml` per board (product, revision, source file, hw git hash, per-view alt text). Silkscreen fonts are checked against `fc-list` before rendering, failing loudly on a missing one. 3D model library paths are machine-local env vars (`KICAD6..10_3DMODEL_DIR`, `VHRD_3DMODEL_DIR`), not committed. Covers the front-page boards (Donguru, rePort, B125, B135); the rest of `~/git/hw`'s boards are a later task.
 
 ## PREVIEW: publishing
 

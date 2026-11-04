@@ -23,15 +23,13 @@
   Raspberry Pi carrier board, BMS (6-10S, 50A/100A), torque sensor AFE, 6-step and
   FOC motor controller, propeller test stand, the lab, 3D laser scanner (AOI),
   granite CNC, eSkate. No employer work included. (P2633#4nov-0920)
-
-## [Unreleased]
-
-### Added
-
 - `just renders` (`scripts/render_boards.py`, uv): rebuilds `static/img/boards/<bnnn>-<slug>/`
-  from the newest revision of each board's KiCad project in `~/git/hw` — hero (3/4), top and
-  bottom views via `kicad-cli pcb render` (transparent, raytraced), cropped tight, 2400px PNG
-  source plus AVIF/WebP at 640/1280/1920px, with a `manifest.toml` per board (product,
-  revision, source file, hw git hash, alt text). Covers the front-page boards: Donguru
-  (B153), rePort (B200), B125, B135; the rest of `~/git/hw`'s boards are a later task.
-  (P2633#4nov-0919d)
+  from the newest revision of each board's KiCad project in `~/git/hw` — hero (whole board,
+  3/4 angle, with margin), detail (tighter 3/4 close-up), top and bottom views via
+  `kicad-cli pcb render` (transparent, raytraced), cropped tight, 2400px PNG source plus
+  AVIF/WebP at 640/1280/1920px, with a `manifest.toml` per board (product, revision, source
+  file, hw git hash, per-view alt text). Every render forces a black solder mask / white
+  silkscreen on a temp copy of the board source, never touching `~/git/hw`; the silkscreen
+  fonts each board names are checked against `fc-list` first, failing loudly on a missing one
+  instead of silently falling back. Covers the front-page boards: Donguru (B153), rePort
+  (B200), B125, B135; the rest of `~/git/hw`'s boards are a later task. (P2633#4nov-0919d)
