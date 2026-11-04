@@ -182,38 +182,55 @@ def check_code_fits(browser, base):
 
 
 def check_repos(browser, base):
-    """/open-source lists every repository of data/repos.toml: a public one links to it on GitHub and shows its code
-    sample or "example: TBD", a private one says it is coming and has no link or code. The group selector on top
-    jumps to the stack and every area, and the products line of the front page's stack is not there."""
+    """/open-source: a Highlights group (the crates marked `front` in data/stack.toml, in that order), then one group
+    per area of data/repos.toml, every repository once. A public card links to its source and shows its code sample
+    or "example: TBD"; a private one says it is coming and has no link or code. Inside an area the cards follow one
+    rule: on crates.io, then public, then work in progress, then coming in the future, by name within each. The jump
+    row on top names the same groups in the same order and colours, at a phone's and a desktop's width."""
+    stack = [c for c in tomllib.loads(Path("data/stack.toml").read_text())["crate"] if c.get("front")]
     data = tomllib.loads(Path("data/repos.toml").read_text())
-    want = {r["name"]: r for r in data["repo"]}
-    ctx = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
-    page = ctx.new_page()
-    page.goto(base + "open-source/")
-    seen = page.evaluate("""() => [...document.querySelectorAll('.repo')].map((r) => [r.id,
-      r.querySelector('h4 a')?.href ?? null, !!r.querySelector('.v-badge'), !!r.querySelector('.crate-code'),
-      !!r.querySelector('.repo-tbd')])""")
-    groups = page.evaluate("""() => [...document.querySelectorAll('.groups a')].map((a) => a.getAttribute('href'))""")
-    targets = page.evaluate("""(ids) => ids.filter((id) => !document.getElementById(id))""", [g[1:] for g in groups])
-    products = page.locator(".stack-top").count()
-    ctx.close()
+    repos = data["repo"]
+    rank = lambda r: 3 if r.get("private") else 2 if r.get("wip") else 0 if r.get("crate") else 1
+    groups = [("highlights", [c["name"] for c in stack])] + [
+        (a["id"], [r["name"] for r in sorted((r for r in repos if r["area"] == a["id"]), key=lambda r: (rank(r), r["name"]))])
+        for a in data["area"]]
+    want = {c["name"]: (c["repo"], c) for c in stack} | {r["name"]: (f"https://github.com/{r['owner']}/{r['name']}", r) for r in repos}
     failures = []
-    for name, href, badge, code, tbd in seen:
-        r = want.pop(name, None)
-        if r is None:
-            failures.append(f"/open-source: {name} is not in data/repos.toml")
-        elif r.get("private") and (href or not badge or code or tbd):
-            failures.append(f"/open-source: private {name} has a link, code or no 'coming in the future' badge")
-        elif not r.get("private") and href != f"https://github.com/{r['owner']}/{name}":
-            failures.append(f"/open-source: {name} links to {href}")
-        elif not r.get("private") and code != bool(r.get("code")) or (not r.get("private") and tbd == code):
-            failures.append(f"/open-source: {name} shows {'its code' if code else 'no code'}{' and example: TBD' if tbd else ''}")
-    failures += [f"/open-source: {name} is missing" for name in want]
-    if groups != ["#stack"] + [f"#{a['id']}" for a in data["area"]]:
-        failures.append(f"/open-source: the group selector links {groups}, not the stack and every area")
-    failures += [f"/open-source: the group link #{t} has no target" for t in targets]
-    if products:
-        failures.append("/open-source: the stack still has the products line on top")
+    for w in (390, 1440):
+        ctx = browser.new_context(viewport={"width": w, "height": 900}, reduced_motion="reduce")
+        page = ctx.new_page()
+        page.goto(base + "open-source/")
+        seen = page.evaluate("""() => [...document.querySelectorAll('.repo-area')].map((g) => [g.id,
+          getComputedStyle(g.querySelector('.layer-head .via')).borderTopColor,
+          [...g.querySelectorAll('.repo')].map((r) => [r.id, r.querySelector('h3 a')?.href ?? null,
+            !!r.querySelector('.v-badge:not(:empty)') && r.querySelector('.repo-meta .v-badge') !== null,
+            !!r.querySelector('.crate-code'), !!r.querySelector('.repo-tbd')])])""")
+        jump = page.evaluate("""() => [...document.querySelectorAll('.groups li')].map((li) => [
+          li.querySelector('a').getAttribute('href'), getComputedStyle(li.querySelector('.group-via')).borderTopColor])""")
+        products = page.locator(".stack-top").count()
+        ctx.close()
+        if [g[0] for g in seen] != [g[0] for g in groups]:
+            failures.append(f"/open-source {w}px: the groups are {[g[0] for g in seen]}, expected {[g[0] for g in groups]}")
+        if [(h, c) for h, c in jump] != [("#" + g[0], g[1]) for g in seen]:
+            failures.append(f"/open-source {w}px: the jump row {jump} does not match the groups below (order and colour)")
+        if w != 390:
+            continue
+        for (gid, colour, cards), (_, order) in zip(seen, groups):
+            if [c[0] for c in cards] != order:
+                failures.append(f"/open-source: {gid} shows {[c[0] for c in cards]}, expected {order}")
+        for gid, colour, cards in seen:
+            for name, href, badge, code, tbd in cards:
+                url, r = want.get(name, (None, None))
+                if r is None:
+                    failures.append(f"/open-source: {name} is not in the data")
+                elif r.get("private") and (href or not badge or code or tbd):
+                    failures.append(f"/open-source: private {name} has a link, code or no 'coming in the future' badge")
+                elif not r.get("private") and href != url:
+                    failures.append(f"/open-source: {name} links to {href}, not {url}")
+                elif not r.get("private") and (code != bool(r.get("code")) or tbd == code):
+                    failures.append(f"/open-source: {name} shows {'its code' if code else 'no code'}{' and example: TBD' if tbd else ''}")
+        if products:
+            failures.append("/open-source: the products line of the front page's stack is there")
     return failures
 
 

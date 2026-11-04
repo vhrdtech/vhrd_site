@@ -1,0 +1,29 @@
+{#- One card on /open-source, for `x`: a crate from data/stack.toml or a repository from data/repos.toml. Name (the
+    product name where it has one), language, its crates.io version or a note, a description, links, its logo and a
+    code sample. A public one without a sample says "example: TBD"; a private one says it is coming in the future and
+    has no link, logo or code. -#}
+{%- set code = x.code | default(value="") and not x.private | default(value=false) %}
+{%- set url = x.repo | default(value="https://github.com/" ~ x.owner | default(value="") ~ "/" ~ x.name) %}
+{%- if x.crate %}{% set meta = load_data(url="https://crates.io/api/v1/crates/" ~ x.crate, format="json", required=false, headers=["User-Agent=vhrd_site build (https://vhrd.tech, hello@vhrd.tech)"]) %}{% else %}{% set meta = "" %}{% endif %}
+<li class="crate repo{% if code %} repo-code{% endif %}{% if x.private %} repo-private{% endif %}{% if x.logo_dark and not x.private %} has-logo{% endif %}" id="{{ x.name }}"{% if code %} data-fits{% endif %}>
+<div class="crate-text">
+<header class="crate-head">
+{%- if x.logo_dark and not x.private %}<span class="crate-logo repo-logo"><img class="logo-dark" src="{{ get_url(path=x.logo_dark) }}" alt="" width="{{ x.logo_w }}" height="{{ x.logo_h }}" loading="lazy" decoding="async"><img class="logo-light" src="{{ get_url(path=x.logo_light) }}" alt="" width="{{ x.logo_w }}" height="{{ x.logo_h }}" loading="lazy" decoding="async"></span>{% endif %}
+<div><h3>{% if x.private %}{{ x.name }}{% else %}<a href="{{ url }}" rel="noopener">{{ x.title | default(value=x.name) }}</a>{% endif %}{% if x.wip %} <span class="v-badge">work in progress</span>{% endif %}</h3>
+<p class="repo-meta"><span class="repo-lang">{% if x.owner %}{{ x.lang }}{% else %}Rust{% endif %}</span>
+{%- if x.private %} <span class="v-badge">coming in the future</span>
+{%- elif meta and meta.crate %} · <a class="crate-ver" href="https://crates.io/crates/{{ x.crate }}" rel="noopener" title="crates.io, at build time">v{{ meta.crate.max_stable_version or meta.crate.max_version }} · {{ meta.crate.downloads | num_format }} downloads</a>
+{%- elif x.note %} · <span class="crate-git">{{ x.note }}</span>{% endif %}</p></div>
+</header>
+<p>{{ x.desc | default(value=x.pitch | default(value="")) | markdown(inline=true) | safe }}</p>
+{%- if not x.private %}
+<p class="crate-links"><a href="{{ url }}" rel="noopener">Source</a>{% if x.docs %} · <a href="{{ x.docs }}" rel="noopener">Docs</a>{% endif %}{% if x.crate %} · <a href="https://crates.io/crates/{{ x.crate }}" rel="noopener">crates.io</a> · <a href="https://docs.rs/{{ x.crate }}" rel="noopener">docs.rs</a>{% endif %}</p>
+{%- endif %}
+</div>
+{%- if code %}
+{%- set c = x %}{% set fence = x.fence | default(value=x.lang) %}
+{% include "partials/code-sample.html" %}
+{%- elif not x.private %}
+<p class="repo-tbd">example: TBD</p>
+{%- endif %}
+</li>

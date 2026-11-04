@@ -7,6 +7,7 @@
 # - `code`, `code_wide`, `wide`, `fence`: a short sample (tools/samples.py), with `source`: README or examples/NAME,
 #   the place it is taken from as it is (only line breaks differ). samples.py checks it against a local checkout;
 #   nothing is compiled. A public repo without an obvious sample shows "example: TBD".
+# - `wip = true`: work in progress, the card says so; `note`: shown where the crates.io version would be.
 # - `private = true`: not public yet. The card says "coming in the future" and has no link, code or logo.
 # - Left off for now, until Roman confirms (4 Nov 2026): romixlab/dot (personal dotfiles), vhrdtech/mx3 (internal
 #   server), romixlab/shrink_wrap (an old private copy; shrink_wrap lives in wire_weaver), vhrdtech/io_weaver and
@@ -722,3 +723,161 @@ area = "eda"
 private = true
 lang = "Rust"
 desc = "A planned reader of EDA artwork: schematic PDFs, screenshots, scans and hand drawings into netlists first, Gerbers and PCB photos later. What exists today is the test harness: a corpus of 48 KiCad projects whose ground truth kicad-cli renders, checked end to end. The readers and their scoring are not built yet."
+
+# From the stack: crates that are not among the highlights.
+
+[[repo]]
+name = "canzone"
+owner = "romixlab"
+area = "firmware"
+lang = "Rust"
+wip = true
+desc = "Stand-alone Rust driver for the Bosch M_CAN controller, aimed at STM32 G0, G4, H5, H7 and L5. Goals: no panics, no blocking waits without a timeout, optional async."
+note = "renamed from mcan, not on crates.io yet"
+fence = "rust"
+code = '''
+let mut can =
+    unwrap!(can.into_config_mode());
+can.set_nominal_bit_timing(unwrap!(
+    NominalBitTiming::new(1, 55, 8, 1)
+));
+unwrap!(can.set_layout(layout_fdcan1));
+can.set_automatic_bus_off_recovery(true);
+let mut can = unwrap!(can.into_normal());
+
+let id = unwrap!(StandardId::new(0x123));
+can.write_tx_buffer_pend(
+    tx_buffers.idx1,
+    TxFrameHeader::fd_brs(Id::Standard(id)),
+    &[0xAA, 0xBB, 0xCC],
+);
+'''
+wide = 80
+code_wide = '''
+let mut can = unwrap!(can.into_config_mode());
+can.set_nominal_bit_timing(unwrap!(NominalBitTiming::new(1, 55, 8, 1)));
+unwrap!(can.set_layout(layout_fdcan1));
+can.set_automatic_bus_off_recovery(true);
+let mut can = unwrap!(can.into_normal());
+
+let id = unwrap!(StandardId::new(0x123));
+can.write_tx_buffer_pend(
+    tx_buffers.idx1,
+    TxFrameHeader::fd_brs(Id::Standard(id)),
+    &[0xAA, 0xBB, 0xCC],
+);
+'''
+
+[[repo]]
+name = "choreograph"
+owner = "romixlab"
+area = "host"
+lang = "Rust"
+desc = "Plans and runs jobs over shared instruments and resources, with priorities and deadlines. Says why each waiting job waits."
+note = "not on crates.io yet"
+fence = "toml"
+code = '''
+[[resource]]
+name = "supply"
+kind = "supply"
+states = ["off", "3V0", "3V3", "3V6"]
+safe = "off"
+
+[[job]]
+name = "a-3V3"
+needs = [
+  { kind = "probe", state = "fw-a" },
+  { kind = "supply", state = "3V3" }
+]
+run = "10s"
+'''
+wide = 80
+code_wide = '''
+[[resource]]
+name = "supply"
+kind = "supply"
+states = ["off", "3V0", "3V3", "3V6"]
+safe = "off"
+
+[[job]]
+name = "a-3V3"
+needs = [{ kind = "probe", state = "fw-a" }, { kind = "supply", state = "3V3" }]
+run = "10s"
+'''
+
+[[repo]]
+name = "egui_tabular"
+owner = "romixlab"
+area = "host"
+lang = "Rust"
+crate = "egui_tabular"
+desc = "Fast table viewer and editor that only draws the visible rows. Data from vectors, files, databases or live bus traces."
+fence = "rust"
+code = '''
+let mut table = VariantTable::new([
+    ColumnDef::new("Name", VariantTy::Str)
+]);
+let opts = TableViewOptions::default();
+let mut view = TableView::new(opts);
+let mut config = TableViewConfig::default();
+
+// Every frame:
+let output = view.show(
+    ui,
+    &mut table,
+    &mut VariantCellUi,
+    &mut config
+);
+'''
+wide = 80
+code_wide = '''
+let mut table = VariantTable::new([ColumnDef::new("Name", VariantTy::Str)]);
+let opts = TableViewOptions::default();
+let mut view = TableView::new(opts);
+let mut config = TableViewConfig::default();
+
+// Every frame:
+let output = view.show(ui, &mut table, &mut VariantCellUi, &mut config);
+'''
+
+[[repo]]
+name = "vhrd_egui"
+owner = "vhrdtech"
+area = "host"
+lang = "Rust"
+desc = "egui building blocks: the widget frame every panel sits in, a dock that moves widgets between windows, an HDR phosphor scope."
+note = "not on crates.io yet"
+fence = "rust"
+code = '''
+// min, nom and wide sizes, and a tall form
+let hints = SizeHints::new(
+    [90.0, 30.0],
+    [200.0, 80.0],
+    [360.0, 80.0]
+)
+.tall(200.0);
+WidgetFrame::new("log")
+    .sizes(hints)
+    .show_area(ui, &mut state, |ui, area| {
+        let rows = match area.height {
+            Height::Min => 1,
+            Height::Nom => 5,
+            Height::Tall => 15,
+        };
+    });
+'''
+wide = 80
+code_wide = '''
+// min, nom and wide sizes, and a tall form
+let hints =
+    SizeHints::new([90.0, 30.0], [200.0, 80.0], [360.0, 80.0]).tall(200.0);
+WidgetFrame::new("log")
+    .sizes(hints)
+    .show_area(ui, &mut state, |ui, area| {
+        let rows = match area.height {
+            Height::Min => 1,
+            Height::Nom => 5,
+            Height::Tall => 15,
+        };
+    });
+'''

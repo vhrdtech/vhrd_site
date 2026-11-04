@@ -1,24 +1,12 @@
 {% extends "base.html" %}
-{#- /open-source: a group selector (the stack and each area, in its signal colour), the crates from data/stack.toml in
-    their order, wired like the front page's stack, then every other repository by area (data/repos.toml). -#}
+{#- /open-source: the intro, then every crate and repository in groups with a jump row on top
+    (partials/repo-list.html). -#}
 {% block content %}
 <article class="section page">
   {{ <vh.label text={page.extra.label | default(value=page.title)} /> }}
   <h1 class="v-hero">{{ page.title }}</h1>
   <p class="v-lead">{{ page.description }}</p>
   <div class="prose">{{ page.content | safe }}</div>
-  {%- set repos = load_data(path="data/repos.toml") %}
-  <nav class="groups" aria-label="Groups on this page">
-    <span class="v-label">Groups</span>
-    <ul>
-      <li style="--sig: var(--signal-usb)"><a href="#stack"><span class="group-via" aria-hidden="true"></span>The stack</a></li>
-      {%- for a in repos.area %}
-      <li style="--sig: var(--signal-{{ a.sig }})"><a href="#{{ a.id }}"><span class="group-via" aria-hidden="true"></span>{{ a.title }}</a></li>
-      {%- endfor %}
-    </ul>
-  </nav>
-  {%- set stack_front = false %}
-  {% include "partials/crate-stack.html" %}
   {% include "partials/repo-list.html" %}
 </article>
 {{ <vh.trace sig={page.extra.sig or "bus"} from={8} to={50} /> }}

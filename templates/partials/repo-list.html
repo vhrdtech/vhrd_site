@@ -1,41 +1,39 @@
-{#- /open-source after the stack: every other repository from data/repos.toml, one group per area in its order, wired
-    down the left in the area's signal colour like the stack. Every repo gets a card like the stack's: name, language,
-    description, links, its logo and a code sample. A card with code spans the row (text beside the code on a wide
-    screen); the others share it, two or three across. A public repo without a sample says "example: TBD"; a private
-    one says it is coming in the future and has no link, logo or code. -#}
+{#- /open-source: every crate and repository, in groups wired down the left in their signal colours, with a jump row
+    on top built from the same list (same groups, order and colours). First the highlights, hand-picked: the crates
+    marked `front` in data/stack.toml, in that order, the same set as the front page. Then one group per area of
+    data/repos.toml with its repositories. Inside an area one rule
+    orders the cards: on crates.io first, then the other public ones, then work in progress, then the ones coming in
+    the future; by name within each. A card with code spans the row, the others share it (partials/oss-card.html). -#}
 {%- set repos = load_data(path="data/repos.toml") -%}
-<section class="repos" aria-labelledby="repos-title">
-<h2 id="repos-title">More repositories</h2>
+{%- set stack = load_data(path="data/stack.toml") -%}
+
+<nav class="groups" aria-label="Groups on this page">
+  <span class="v-label">Groups</span>
+  <ul>
+    <li style="--sig: var(--signal-ctrl)"><a href="#highlights"><span class="group-via" aria-hidden="true"></span>Highlights</a></li>
+    {%- for g in repos.area %}
+    <li style="--sig: var(--signal-{{ g.sig }})"><a href="#{{ g.id }}"><span class="group-via" aria-hidden="true"></span>{{ g.title }}</a></li>
+    {%- endfor %}
+  </ul>
+</nav>
 <ol class="stack repo-stack">
-{%- for a in repos.area %}
-<li class="layer repo-area" id="{{ a.id }}" style="--sig: var(--signal-{{ a.sig }})">
-<div class="layer-head"><span class="via" aria-hidden="true"></span><h3 class="v-label" id="{{ a.id }}-title">{{ a.title }}</h3></div>
-<ul class="repo-grid" aria-labelledby="{{ a.id }}-title">
-{%- for r in repos.repo %}{% if r.area == a.id %}
-{%- set url = "https://github.com/" ~ r.owner ~ "/" ~ r.name %}
-{%- set code = r.code | default(value="") and not r.private | default(value=false) %}
-<li class="crate repo{% if code %} repo-code{% endif %}{% if r.private %} repo-private{% endif %}{% if r.logo_dark and not r.private %} has-logo{% endif %}" id="{{ r.name }}"{% if code %} data-fits{% endif %}>
-<div class="crate-text">
-<header class="crate-head">
-{%- if r.logo_dark and not r.private %}<span class="crate-logo repo-logo"><img class="logo-dark" src="{{ get_url(path=r.logo_dark) }}" alt="" width="{{ r.logo_w }}" height="{{ r.logo_h }}" loading="lazy" decoding="async"><img class="logo-light" src="{{ get_url(path=r.logo_light) }}" alt="" width="{{ r.logo_w }}" height="{{ r.logo_h }}" loading="lazy" decoding="async"></span>{% endif %}
-<div><h4>{% if r.private %}{{ r.name }}{% else %}<a href="{{ url }}" rel="noopener">{{ r.name }}</a>{% endif %}</h4>
-<p class="repo-meta"><span class="repo-lang">{{ r.lang }}</span>{% if r.private %} <span class="v-badge">coming in the future</span>{% endif %}</p></div>
-</header>
-<p>{{ r.desc | markdown(inline=true) | safe }}</p>
-{%- if not r.private %}
-<p class="crate-links"><a href="{{ url }}" rel="noopener">Source</a>{% if r.docs %} · <a href="{{ r.docs }}" rel="noopener">Docs</a>{% endif %}{% if r.crate %} · <a href="https://crates.io/crates/{{ r.crate }}" rel="noopener">crates.io</a> · <a href="https://docs.rs/{{ r.crate }}" rel="noopener">docs.rs</a>{% endif %}</p>
-{%- endif %}
-</div>
-{%- if code %}
-{%- set c = r %}{% set fence = r.fence %}
-{% include "partials/code-sample.html" %}
-{%- elif not r.private %}
-<p class="repo-tbd">example: TBD</p>
-{%- endif %}
+<li class="layer repo-area" id="highlights" style="--sig: var(--signal-ctrl)">
+<div class="layer-head"><span class="via" aria-hidden="true"></span><h2 class="v-label" id="highlights-title">Highlights</h2></div>
+<ul class="repo-grid" aria-labelledby="highlights-title">
+{%- for x in stack.crate %}{% if x.front %}{% include "partials/oss-card.html" %}{% endif %}{% endfor %}
+</ul>
 </li>
-{%- endif %}{% endfor %}
+{%- for g in repos.area %}
+<li class="layer repo-area" id="{{ g.id }}" style="--sig: var(--signal-{{ g.sig }})">
+<div class="layer-head"><span class="via" aria-hidden="true"></span><h2 class="v-label" id="{{ g.id }}-title">{{ g.title }}</h2></div>
+<ul class="repo-grid" aria-labelledby="{{ g.id }}-title">
+{%- set members = repos.repo | sort(attribute="name") %}
+{%- for rank in [0, 1, 2, 3] %}{% for x in members %}
+{%- if x.area == g.id and ((rank == 0 and x.crate and not x.wip and not x.private) or (rank == 1 and not x.crate and not x.wip and not x.private) or (rank == 2 and x.wip and not x.private) or (rank == 3 and x.private)) %}
+{% include "partials/oss-card.html" %}
+{%- endif %}
+{%- endfor %}{% endfor %}
 </ul>
 </li>
 {%- endfor %}
 </ol>
-</section>
