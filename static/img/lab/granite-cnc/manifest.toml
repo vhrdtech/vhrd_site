@@ -5,7 +5,7 @@ alt = "SolidWorks render of a high-rigidity CNC mill built from a granite surfac
 facts = [
     "High-rigidity CNC mill project built from a granite surface plate",
     "All components and parts selected from what is available on the market",
-    "Modelled down to bolt level, ready to be built",
+    "Modelled down to bolt level",
 ]
 
 tools = ["SolidWorks"]

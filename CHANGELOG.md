@@ -52,6 +52,8 @@
 
 ### Changed
 
+- The front page's notify buttons lead to the Donguru page: "Get notified about Donguru" in the hero to /donguru/, the spotlight's and the notify section's buttons to its notify block (/donguru/#notify), like the header's red button. The mail link lives there for now.
+- The granite CNC on /lab is "Modelled down to bolt level", without "ready to be built": it is not for sale.
 - No release dates for the paid software: RockFace's "first paid release planned for January 2027" (front page and /software) now reads "Commercial release: TBD". Commercial timing is open for now (Roman).
 - /open-source has a GUI group, after Host tools, with vhrd_egui, egui_tabular and rvariant (moved out of Host tools), in the grey control colour Highlights no longer uses.
 - The intro plays only on a first visit from outside the site and on a reload of the home page (Roman). Coming home from inside the site (the wordmark or any link to /), going back or forward, or a page restored from the browser's cache shows the page at once. The replay button still plays the demo. The browser check covers an outside entry, the wordmark, a reload and back.

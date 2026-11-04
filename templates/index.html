@@ -22,7 +22,7 @@
     <h1 class="v-hero">Where code meets <span class="hl">hardware</span></h1>
     <p class="v-lead">Instruments for embedded development, and the open-source software behind them.</p>
     <div class="ctas">
-      <a class="v-btn v-primary" href="#notify">Get notified about Donguru</a>
+      <a class="v-btn v-primary" href="{{ get_url(path='/donguru/') }}">Get notified about Donguru</a>
       <a class="v-btn" href="#products">See the products</a>
     </div>
     <p class="draft-note"><span class="v-badge">draft</span> Copy not yet read by Marketing and PM. Board renders follow.</p>
@@ -63,7 +63,7 @@
 </ol>
 <p class="v-muted">For bring-up, debugging, flashing and production test of devices with a USB-C port.</p>
 <div class="ctas">
-<a class="v-btn v-primary" href="#notify">Get notified</a>
+<a class="v-btn v-primary" href="{{ get_url(path='/donguru/#notify') }}">Get notified</a>
 <a class="v-btn" href="{{ get_url(path='/donguru/') }}">More about Donguru</a>
 </div>
 </div>
@@ -147,7 +147,7 @@ ww_impl!(uart[]: ww_uart::Uart)
 <div>
 <p class="v-lead">Donguru launches on Crowd Supply. Its sign-up list opens with the pre-launch page; until then, send a line and you hear first. {{ draft | safe }}</p>
 <div class="ctas">
-<a class="v-btn v-primary" href="mailto:{{ config.extra.email }}?subject=Donguru%20launch%20news">Notify me by mail</a>
+<a class="v-btn v-primary" href="{{ get_url(path='/donguru/#notify') }}">Get notified</a>
 </div>
 </div>
 <div class="contact-card">
