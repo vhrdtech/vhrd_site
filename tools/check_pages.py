@@ -379,6 +379,30 @@ def check_intro(browser, base):
             r.abort()
         ctx.close()
 
+    # When it plays: on an entry from outside and on a reload, not on the way home from inside the site (the wordmark)
+    # nor on back. Each judged at once, before the page's own scripts could clear it.
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900}, color_scheme="dark")
+    page = ctx.new_page()
+    page.goto(base, referer="https://example.com/")
+    if not page.evaluate(INTRO_ON):
+        failures.append("intro: does not play on an entry from another site")
+    page.goto(base + "lab/")
+    page.click(".site-header .brand")
+    page.wait_for_load_state("domcontentloaded")
+    if page.evaluate(INTRO_ON) or page.evaluate(SCOPE_SHOWN):
+        failures.append("intro: plays on the way home from inside the site (the wordmark)")
+    page.reload()
+    if not page.evaluate(INTRO_ON):
+        failures.append("intro: does not play on a reload of the home page")
+    page.wait_for_function(f"!({INTRO_ON})", timeout=8000)
+    page.click(".site-header .nav a[href*='/lab']")
+    page.wait_for_load_state("domcontentloaded")
+    page.go_back()
+    page.wait_for_load_state("domcontentloaded")
+    if page.evaluate(INTRO_ON) or page.evaluate(SCOPE_SHOWN):
+        failures.append("intro: plays on back to the home page")
+    ctx.close()
+
     # The vector pass: the beam traces the first screen where it lays out, at a phone's and a desktop's width and
     # again after a resize in the middle of it; the headline is written word by word; the page does not move.
     traced = tomllib.loads(Path("config.toml").read_text())["extra"].get("intro_trace", False)

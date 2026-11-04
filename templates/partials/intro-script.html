@@ -26,6 +26,7 @@
   const hero = () => document.querySelector(".hero-fig img");
   const ready = () => hero() && hero().complete && document.fonts.status === "loaded";
   let run = 0;
+  let stop = null; // ends the run that is playing: its timers, listeners and classes
 
   // The vector pass: the beam draws the first screen as it lays out now, in this order, then the page fades in
   // under it. Kinds: box (its outline), edge (its bottom edge), under (a stroke under each line of its text), text
@@ -186,6 +187,7 @@
     const timers = [];
     const done = () => {
       if (me !== run) return;
+      stop = null;
       timers.forEach(clearTimeout);
       root.classList.remove("intro", "intro-wait", "intro-slow", "intro-trig", "intro-draw", "intro-out", "intro-skip");
       events.forEach((e) => removeEventListener(e, skip, true));
@@ -205,6 +207,7 @@
       top();
       root.classList.add("intro-out");
     };
+    stop = done;
     const listen = () => events.forEach((e) => addEventListener(e, skip, { capture: true, passive: true }));
     if (demo) timers.push(setTimeout(listen, GRACE));
     else listen();
@@ -248,5 +251,10 @@
     });
   });
   if (root.classList.contains("intro")) play();
+  // Back or forward to a page kept in the browser's cache: never the intro, also if it was mid-way when the visitor
+  // left (a replay included).
+  addEventListener("pageshow", (e) => {
+    if (e.persisted && stop) stop();
+  });
 })();
 </script>

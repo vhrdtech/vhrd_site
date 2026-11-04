@@ -52,6 +52,7 @@
 
 ### Changed
 
+- The intro plays only on a first visit from outside the site and on a reload of the home page (Roman). Coming home from inside the site (the wordmark or any link to /), going back or forward, or a page restored from the browser's cache shows the page at once. The replay button still plays the demo. The browser check covers an outside entry, the wordmark, a reload and back.
 - Code samples have two versions of the same code: a narrow one at 44 columns for phones and one with natural line breaks, which a container query shows once the card's code box holds its width. No sample scrolls sideways, and a wide screen is not held to the phone's line breaks. `tools/samples.py` checks that both versions are the same code (only line breaks, indentation and comment re-flow differ), and the browser check covers both from 320 to 1440 px.
 - The stack cards say WireWeaver, ShrinkWrap and ExactUnits; crate names stay as they are in code and links.
 - The front page's stack cards for WireWeaver, ShrinkWrap, ExactUnits, embedded_bedrock and cnt describe their crate in 3 or 4 sentences from the READMEs, so the text fills the space beside the code.
