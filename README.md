@@ -55,6 +55,18 @@ Tera components in `templates/components.html` work in templates and in Markdown
 
 Images go under `static/img/boards/` (board renders) and `static/img/lab/` (lab photos).
 
+## Terminal captures
+
+/software shows real runs of the command-line tools (cnt, ww, bedrock-lint, an exact_units compile error) as text with their colours, not as pictures and not mocked up. `just captures` (`tools/term_capture.py`, run with uv) records them:
+
+- `data/term/captures.toml` lists each one: the command as typed, the checkout it runs in, the terminal's width.
+- The command runs once in a pseudo-terminal, and a terminal emulator (pyte) keeps its screen. The screen is written to `data/term/ID.html` as spans; the command, the version (its `--version`), the commit it ran on and the date go to `data/term/ID.toml`.
+- `vh.term` shows a capture as a figure: the command on a prompt line, the screen, and a caption with the version, the source and the date. Nothing runs when the site is built, and the page needs no script.
+- A full-screen program that needs hardware (`cnt tui` on a board through a probe) is recorded on the bench with asciinema; `--cast ID=FILE` replays the recording to the second given in captures.toml through the same emulator.
+- Nothing private: the tool refuses to write a capture with a home path, this PC's host or user name, a machine name or a tpm id. Paths from rustc go through its own `--remap-path-prefix` (`remap` in captures.toml), so they read as on any machine.
+- The 16 terminal colours come from the brand's status and category tokens (`.term` in `site.css`); a colour the program picks itself (256 or true colour) is kept inline as it wrote it. The panel is dark in both themes, like the terminal it came from.
+- `tools/term/units_demo` is the crate behind the exact_units error, the README's first example of code that does not compile.
+
 ## Board renders
 
 `just renders` (`scripts/render_boards.py`, run with `uv`) rebuilds `static/img/boards/<bnnn>-<slug>/` from the newest revision of each board's KiCad project in `~/git/hw` (read-only, never written to). Per board it writes four views — `hero` (whole board, 3/4 angle, with margin), `detail` (a tighter 3/4 close-up), `top` and `bottom` — as a 2400px-wide PNG source plus AVIF/WebP at 480/640/1280/1920px, with a `manifest.toml` (product, revision, source file, hw git hash, per-view alt text).

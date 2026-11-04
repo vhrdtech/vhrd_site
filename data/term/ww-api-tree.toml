@@ -1,0 +1,6 @@
+id = "ww-api-tree"
+cmd = "ww api tree -d examples/all_gpio_api"
+version = "ww 0.5.0 (241ff787, committed 3 Nov 2026 13:55)"
+source = "wire_weaver at v0.5.0-1044-g5be6ed30"
+size = "160×16"
+recorded = "2026-11-04"

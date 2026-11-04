@@ -1,0 +1,12 @@
+# The exact_units compile error on /software (tools/term_capture.py, capture exact-units-error): the README's first
+# example of code that does not compile, a torque converted to an energy. Never built by the site.
+[package]
+name = "units_demo"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+exact_units = { git = "https://github.com/romixlab/exact_units" }
+
+[workspace]

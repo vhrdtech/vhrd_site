@@ -1,0 +1,46 @@
+# Real runs of our tools for /software, recorded by tools/term_capture.py into data/term/ID.html (the screen) and
+# ID.toml (the command, version, source and date). Never edited by hand: change a line here and record it again.
+#
+# - `cmd`: the command as typed and shown; `cwd`: where it runs (under this repo, or ~/... for another checkout);
+#   `repo`: the checkout it runs in, named on the page with its commit.
+# - `cols`: the terminal's width; a program that ends by itself is kept whole, however long.
+# - `version`: the command whose first line names the version (default: the program with --version); `source`: what
+#   it ran on, when that is not the checkout `cwd` is in.
+# - `remap`: [from, to] pairs for rustc's --remap-path-prefix, so paths read as on any machine; `target`: the cargo
+#   target dir under this repo.
+# - `cast = true`: recorded on a bench with its hardware (asciicast v2, `--cast ID=FILE`), replayed to second `at`;
+#   `version` and `source` are then the recording's notes.
+
+[[capture]]
+id = "cnt-tui"
+cast = true
+at = 13.0
+cmd = ["cnt", "tui", "--chip", "STM32H725IGKx", "b135_fw"]
+version = "cnt_cli 0.5.0 (2b623e0)"
+source = "a B135 USB to CAN FD bridge running b135_fw 0.2.12, through a J-Link"
+
+[[capture]]
+id = "ww-api-tree"
+cmd = ["ww", "api", "tree", "-d", "examples/all_gpio_api"]
+cwd = "~/git/wire_weaver"
+repo = "wire_weaver"
+cols = 160
+
+[[capture]]
+id = "bedrock-lint"
+cmd = ["bedrock-lint", "check"]
+cwd = "~/git/cnt/fixtures/counters_fw"
+repo = "cnt"
+source = "the cnt test firmware (cnt/fixtures/counters_fw)"
+cols = 200
+
+[[capture]]
+id = "exact-units-error"
+cmd = ["cargo", "build", "-q"]
+cwd = "tools/term/units_demo"
+repo = "vhrd_site"
+source = "tools/term/units_demo against exact_units at 1819d9f"
+cols = 200
+version = ["rustc", "--version"]
+remap = [["~/.cargo", "~/.cargo"], ["{sysroot}/lib/rustlib/src/rust", "/rustc/{commit}"]]
+target = "target/term"

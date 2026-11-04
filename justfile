@@ -47,7 +47,7 @@ check-preview url dir="target/shots":
 # goes to a temp dir, never into the tree
 lint:
     git diff --check HEAD
-    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py tools/samples.py tools/perf.py tools/fonts.py tools/check_live.py tools/mentions.py scripts/render_boards.py
+    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py tools/samples.py tools/perf.py tools/fonts.py tools/check_live.py tools/mentions.py tools/term_capture.py scripts/render_boards.py
     uvx --from actionlint-py actionlint .github/workflows/deploy.yml
     uvx zizmor --offline .github/workflows/deploy.yml
 
@@ -107,6 +107,11 @@ preview token:
     VHRD_NOINDEX=1 zola build --base-url "{{ preview_host }}/{{ token }}/" --output-dir "target/preview/{{ token }}"
     @echo "built {{ preview_host }}/{{ token }}/ ($VHRD_GIT) in target/preview/{{ token }}"
     @echo "upload: tpm share target/preview/{{ token }} --token {{ token }} -e 3m -t 'vhrd.tech preview $VHRD_GIT'"
+
+# Record the terminal captures on /software again (data/term/captures.toml), or only the IDs given. A bench capture
+# needs its recording (--cast ID=FILE), a tool not on PATH its binary (--bin NAME=PATH)
+captures *args:
+    uv run tools/term_capture.py {{ args }}
 
 # Rebuild board product renders in static/img/boards/ from ~/git/hw (KiCad). With --variants: only the missing web
 # widths, from the PNG sources already here (no KiCad needed). Board numbers (b129 b133) limit it to those boards

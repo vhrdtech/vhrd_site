@@ -4,6 +4,8 @@
 
 ### Added
 
+- /software has a "From the terminal" section with real runs of the command-line tools, as text with their colours (BLOCK-6 term-captures): `cnt tui` watching a B135 board through a J-Link, `ww api tree` of the GPIO example API, `bedrock-lint check` on the cnt test firmware, and the compile error exact_units gives for a torque converted to an energy. Each one names its version, what it ran on and the day it was recorded.
+- `just captures` (`tools/term_capture.py`) records the terminal captures in `data/term/` from `data/term/captures.toml`, and `vh.term` shows them. The tool refuses a capture with a home path, a host or user name, a machine name or a tpm id.
 - Cross-links (SITE-14 cross-links): the first mention of each of our projects on a page (WireWeaver, ShrinkWrap, ExactUnits, embedded_bedrock, cnt, canzone, IOWeaver, RockFace, mx3, Donguru, Pinsmith, the CAN line, the boards) links to its page, its card on /open-source or its repository. The names and their addresses are in `data/links.toml`. `vh.ref` links one name in Markdown or a template, and `vh.linkify` links the names in text from data. The /work board cards have anchors, so B129 and B133 can be linked to.
 - The browser check fails a page whose first mention of a project is not a link (`tools/mentions.py`).
 - /services has a "See what I've built" section with links to /work, /open-source and /software.

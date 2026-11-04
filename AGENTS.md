@@ -24,6 +24,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 - `static/fonts/`: IBM Plex woff2 subsets and `fonts.css`. `static/img/boards/` holds board renders (`just renders`, README "Board renders") and `static/img/lab/` lab photos.
 - `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check, `tools/perf.py` measures the first screen on a slow phone, `tools/fonts.py` cuts the Core font subsets and the small Greek faces (Ω, μ) from vhrd_brand's full fonts.
 - `.github/workflows/deploy.yml`: the only way the site reaches vhrd.tech (README "Deploy"); `.github/deploy/known_hosts` pins the server's host key. `tools/check_live.py` checks a live build before upload and the site after it.
+- `data/term/`: the terminal captures on /software (`captures.toml`, and per capture the screen as HTML and its TOML), recorded by `tools/term_capture.py` (`just captures`, README "Terminal captures") and shown by `vh.term`. Never edited by hand. `tools/term/units_demo` is the crate behind the exact_units compile error.
 - `data/links.toml`: our projects' names and where a mention leads (a page, a card on /open-source or a repo). `vh.ref` and `vh.linkify` read it, and `tools/mentions.py` (in the browser check) fails a page whose first mention of a name is not a link.
 - `data/stack.toml`: the open-source crates in their /open-source order (layer, logos per theme, code sample, which are on crates.io); `front = true` puts one on the front page too. `partials/crate-stack.html` draws them for both pages, `templates/open-source.html` is the /open-source page. `data/repos.toml`: every other repository on /open-source, by area (`partials/repo-list.html`); its head names the repos left off and why.
 
@@ -44,6 +45,7 @@ just deploy           # start the Deploy workflow on GitHub; it waits for approv
 just check-live       # the deployed site against target/live: pages 200, the footer stamp, the old paths' 301s, the 404
 just preview TOKEN    # noindex build for https://shadow.vhrd.tech/TOKEN/, uploaded with tpm share (README "Preview")
 just check-preview URL  # the browser check against a deployed preview, screenshots into target/shots
+just captures         # record the terminal captures on /software again (data/term/captures.toml)
 just renders          # rebuild static/img/boards/ from ~/git/hw (KiCad); needs a machine-local 3D model
                        # library and the silkscreen fonts in fc-list (README "Board renders")
 just renders --variants  # only the missing web widths, from the PNG sources (no KiCad)

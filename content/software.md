@@ -46,3 +46,23 @@ The electronics side of an in-house lab system: from a BOM to parts on the shelf
 - Guided manual PCB assembly: it plans the placement and records every part that moves.
 
 mx3 runs in VHRD's own lab today. It may be opened up or offered as a product later.
+
+## From the terminal
+
+Real runs of the command-line tools, recorded once and kept as text, colours and all. Under each one: the version, what it ran on and the day it was recorded.
+
+{{ <vh.term id="cnt-tui" n="6" prompt={false} caption="cnt tui: event counters and defmt logs of a running board" /> }}
+
+{{ <vh.ref name="cnt" /> }} reads the event counters of a running board through a debug probe and shows the firmware's defmt logs under them. Here it watches a {{ <vh.ref name="B135" /> }} USB to CAN FD bridge while a host talks to it.
+
+{{ <vh.term id="ww-api-tree" n="7" caption="ww api tree: a device API, resource by resource" /> }}
+
+{{ <vh.ref name="WireWeaver" /> }}'s `ww` prints the tree of an API: every method, stream and property, with the number it has on the wire. This one is the GPIO example, ports of pins.
+
+{{ <vh.term id="bedrock-lint" n="8" caption="bedrock-lint: what could hang or brick a board in the field" /> }}
+
+{{ <vh.ref name="embedded_bedrock" /> }}'s `bedrock-lint` reads a firmware crate and its build files, and reports what could hang, crash or brick the board in the field, each with a fix. Here it checks a small test firmware.
+
+{{ <vh.term id="exact-units-error" n="9" caption="ExactUnits: a torque is not an energy" /> }}
+
+With {{ <vh.ref name="ExactUnits" /> }}, converting a torque in N·m to an energy in joules does not compile: the angle is a dimension, and the message says so.

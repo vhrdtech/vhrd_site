@@ -1,0 +1,6 @@
+id = "cnt-tui"
+cmd = "cnt tui --chip STM32H725IGKx b135_fw"
+version = "cnt_cli 0.5.0 (2b623e0)"
+source = "a B135 USB to CAN FD bridge running b135_fw 0.2.12, through a J-Link"
+size = "110×32"
+recorded = "2026-11-04"

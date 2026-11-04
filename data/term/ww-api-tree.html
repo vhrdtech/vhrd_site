@@ -1,0 +1,17 @@
+<!-- tools/term_capture.py ww-api-tree: `ww api tree -d examples/all_gpio_api`, ww 0.5.0 (241ff787, committed 3 Nov 2026 13:55), wire_weaver at v0.5.0-1044-g5be6ed30, 160×16, recorded 2026-11-04. Recorded, not edited: run it again to change it. -->
+<span style="color:#cf8e6d">trait</span> <span class="t-b" style="color:#8d91dc">AllGpioApi</span> <span class="t-d">all_gpio_api@0.1.0</span>
+<span class="t-d">└─ 0</span> <span class="t-d">#[claim(exclusive)] </span><span style="color:#cf8e6d">impl</span> <span class="t-b">port</span>[]: <span style="color:#8d91dc">ww_gpio::Bank</span>
+<span class="t-d">   ├─ 0</span> <span style="color:#cf8e6d">impl</span> <span class="t-b">pin</span>[]: <span style="color:#8d91dc">ww_gpio::Pin</span>
+<span class="t-d">   │  ├─ 0</span> <span class="f-blue">fn</span> <span class="t-b">set_output_level</span>(level: <span style="color:#a6bb77">Level</span>)
+<span class="t-d">   │  ├─ 1</span> <span class="f-blue">fn</span> <span class="t-b">toggle</span>()
+<span class="t-d">   │  ├─ 2</span> <span class="f-blue">fn</span> <span class="t-b">output_level</span>() -&gt; <span style="color:#a6bb77">Level</span>
+<span class="t-d">   │  ├─ 3</span> <span class="f-blue">fn</span> <span class="t-b">input_level</span>() -&gt; <span style="color:#a6bb77">Level</span>
+<span class="t-d">   │  ├─ 7</span> <span class="t-d">#[errors(Common(Unsupported))] #[counted] </span><span style="color:#8cc8d4">stream</span> <span class="t-b">event</span>(enabled: <span style="color:#a6bb77">IoPinEnabledEvents</span>): <span style="color:#a6bb77">IoPinEvent</span> -&gt; <span style="color:#a6bb77">Result&lt;(), GpioError&gt;</span>
+<span class="t-d">   │  ├─ 8</span> <span class="t-d">#[errors(Common(Unsupported, InUse, NoPower, Refused), DifferentModes)] </span><span class="f-blue">fn</span> <span class="t-b">set_mode</span>(mode: <span style="color:#a6bb77">Mode</span>, initial: <span style="color:#a6bb77">Option&lt;Level&gt;</span>) -&gt; <span style="color:#a6bb77">Result&lt;(), GpioError&gt;</span>
+<span class="t-d">   │  ├─ 9</span> <span class="f-blue">fn</span> <span class="t-b">mode</span>() -&gt; <span style="color:#a6bb77">Mode</span>
+<span class="t-d">   │  ├─ 10</span> <span class="t-d">#[errors(Common(Unsupported))] </span><span style="color:#c77dbb">rw property</span> <span class="t-b">pull</span>: <span style="color:#a6bb77">Pull</span>, write error: <span style="color:#a6bb77">GpioError</span>
+<span class="t-d">   │  ├─ 11</span> <span class="t-d">#[errors(Common(Unsupported))] </span><span style="color:#c77dbb">rw property</span> <span class="t-b">speed</span>: <span style="color:#a6bb77">Speed</span>, write error: <span style="color:#a6bb77">GpioError</span>
+<span class="t-d">   │  └─ 12</span> <span class="f-blue">fn</span> <span class="t-b">capabilities</span>() -&gt; <span style="color:#a6bb77">PinCapabilities</span>
+<span class="t-d">   ├─ 8</span> <span class="f-blue">fn</span> <span class="t-b">capabilities</span>() -&gt; <span style="color:#a6bb77">BankCapabilities</span>
+<span class="t-d">   ├─ 9</span> <span class="t-d">#[errors(Common(Unsupported, Refused))] </span><span class="f-blue">fn</span> <span class="t-b">configure</span>(config: <span style="color:#a6bb77">BankConfig</span>) -&gt; <span style="color:#a6bb77">Result&lt;BankConfig, GpioError&gt;</span>
+<span class="t-d">   └─ 10</span> <span class="f-blue">fn</span> <span class="t-b">name</span>() -&gt; <span style="color:#a6bb77">String</span>

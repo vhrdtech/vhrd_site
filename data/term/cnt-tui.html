@@ -1,0 +1,33 @@
+<!-- tools/term_capture.py cnt-tui: `cnt tui --chip STM32H725IGKx b135_fw`, cnt_cli 0.5.0 (2b623e0), a B135 USB to CAN FD bridge running b135_fw 0.2.12, through a J-Link, 110×32, recorded 2026-11-04. Recorded, not edited: run it again to change it. -->
+                                         <span class="t-b">Counters</span> · 2 of 44 non-zero
+╭ 📍  <span class="t-b">RAM counters</span> at 0x2404db08, 164 of 256 B used ──────────────────────────────────────────────────────────╮
+│<span class="t-b">  Severity  Name                        Value         Type  Location                                        </span>│
+│                                                                                                            │
+│  ● INFO    can_rx_send_errors                     0  u32   b135_fw @ src/ww/can.rs:337                     │
+│  ● INFO    can_start_errors                       0  u32   b135_fw @ src/can.rs:323                        │
+│  ● INFO    can_stop_errors                        0  u32   b135_fw @ src/can.rs:348                        │
+│  ● INFO    can_tx_ack_errors                      0  u32   b135_fw @ src/ww/can.rs:291                     │
+│  ● INFO    can_tx_dropped_not_sending             0  u32   b135_fw @ src/can.rs:424                        │
+│  ● INFO    can_tx_dropped_off_bus                 0  u32   b135_fw @ src/can.rs:413                        │
+│  ● INFO    can_tx_dropped_reconfigure             7  u32   b135_fw @ src/can.rs:545                        │
+│  ● INFO    can_tx_errors                          0  u32   b135_fw @ src/can.rs:481                        │
+│  ● INFO    can_tx_queue_full                      0  u32   b135_fw @ src/ww/can.rs:163                     │
+│  ● INFO    can_tx_rejected                        0  u32   b135_fw @ src/ww/can.rs:168                     │
+│  ● INFO    log_store_errors                       0  u32   b135_fw @ src/log.rs:85                         │
+│▶ ● INFO    loop_iterations                       93  u32   b135_fw @ src/main.rs:197                       │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭ 📍  <span class="t-b">BKP counters</span> at 0x58004050, 12 of 112 B used ───────────────────────────────────────────────────────────╮
+│  Severity  Name                        Value         Type  Location                                        │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭ 📜  <span class="t-b">defmt logs</span> ─────────────────────────────────────────────────────────────────────────────────────────────╮
+│87.544364 INFO  host connected: FullVersion { crate_id: "b135_api", version: Version { major: UNib32(0), min│
+│87.544418 INFO  Up @ b135/b135_fw/src/ww/mod.rs:284                                                         │
+│87.553158 INFO  host disconnected: CommanderDropped @ cargo/git/checkouts/wire_weaver-01e81e7938a16ec4/0c18e│
+│87.553172 INFO  Down(Disconnect(CommanderDropped)) @ b135/b135_fw/src/ww/mod.rs:284                         │
+│90.042214 INFO  host connected: FullVersion { crate_id: "b135_api", version: Version { major: UNib32(0), min│
+│90.042267 INFO  Up @ b135/b135_fw/src/ww/mod.rs:284                                                         │
+│91.562737 INFO  host disconnected: CommanderDropped @ cargo/git/checkouts/wire_weaver-01e81e7938a16ec4/0c18e│
+│91.562751 INFO  Down(Disconnect(CommanderDropped)) @ b135/b135_fw/src/ww/mod.rs:284                         │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+<span></span>
+q quit  ↑↓/jk select  g/G first/last  Tab switch table  r reset RAM  R reset BKP  c clear logs
