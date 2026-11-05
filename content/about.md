@@ -12,7 +12,13 @@ VHRD makes instruments for embedded development: debug and IO tools, the softwar
 
 ## Who makes it
 
+<div class="who-makes-it">
+
+{{ <vh.fig stem="img/about/roman" widths={[460]} sizes="8rem" alt="Roman Isaikin, founder of VHRD" cls="who-photo" /> }}
+
 I am Roman Isaikin, the founder of VHRD. I design the boards, write the firmware and build the software around them. You can see some of that work on [the work page](@/work.md), in [the lab](@/lab.md) and on [the open-source page](@/open-source.md).
+
+</div>
 
 ## With help from {#help}
 
