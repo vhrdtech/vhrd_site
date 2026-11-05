@@ -1,5 +1,5 @@
-# vhrd_notify on the web server (AGENTS.md "Notify service"): shipped by `just deploy-notify` to
-# ~/vhrd_notify/notify.toml. Every field and its default: server/vhrd_notify/src/config.rs.
+# vhrd_notify on the web server (AGENTS.md "Notify service"): shipped by the Deploy workflow (the activator writes it
+# to /home/vhrd-notify/vhrd_notify/notify.toml). Every field and its default: server/vhrd_notify/src/config.rs.
 
 # nginx proxies /api/ here; nothing else reaches it
 listen = "127.0.0.1:8471"
