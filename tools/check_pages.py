@@ -220,7 +220,9 @@ def start_notify(root, origin):
 def check_notify(browser, base):
     """The signup form with and without JavaScript, in dark and light, against the local service's store."""
     failures = []
-    stored = lambda: NOTIFY_STORE.read_text() if NOTIFY_STORE.exists() else ""  # noqa: E731
+    # a signup is in the intake first, until the service's worker folds it into the store
+    files = [NOTIFY_STORE, NOTIFY_STORE.with_name(NOTIFY_STORE.name + ".intake")]
+    stored = lambda: "".join(f.read_text() for f in files if f.exists())  # noqa: E731
     cases = [  # page, JavaScript, theme, address, message expected
         ("donguru/", True, "dark", "check-js@example.com", "ok"),
         ("donguru/", True, "light", "nope@localhost", "bad"),

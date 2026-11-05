@@ -32,8 +32,20 @@ pub struct Config {
     pub rate_window_secs: u64,
     /// Clients (and networks) the rate limit remembers at once; past that, the one seen longest ago is forgotten.
     pub rate_clients: usize,
-    /// Lines the store may hold; past that, signups are refused (a full disk is worse). The log warns from 80 %.
+    /// Records the store may hold; past that, signups are refused (a full disk is worse). The log warns from 80 %.
     pub max_signups: usize,
+    /// Signups waiting for their confirmation are deleted after this many days.
+    pub pending_days: u32,
+    /// A pending address gets its confirmation mail again at most once in this many hours, however often it signs up.
+    pub resend_hours: u32,
+    /// Confirmation mails one pending record gets at most.
+    pub max_confirm_mails: u32,
+    /// Records waiting for their confirmation at most; past that, new signups are refused for everyone.
+    pub max_pending: usize,
+    /// The pause before each retry of a mail that failed, in seconds; after the last one the mail is given up.
+    pub retry_secs: Vec<u32>,
+    /// Largest the intake (signups not yet folded into the store) may grow, in bytes.
+    pub max_intake_bytes: u64,
     /// The header nginx puts the client's address in. Empty: the connection's own address (no proxy).
     pub client_ip_header: String,
 }
@@ -69,6 +81,12 @@ impl Default for Config {
             rate_window_secs: 3600,
             rate_clients: 10_000,
             max_signups: 50_000,
+            pending_days: 7,
+            resend_hours: 24,
+            max_confirm_mails: 3,
+            max_pending: 5000,
+            retry_secs: vec![60, 300, 1800, 7200, 21600],
+            max_intake_bytes: 1 << 20,
             client_ip_header: "x-real-ip".into(),
         }
     }
@@ -117,10 +135,22 @@ impl Config {
         {
             return Err("site_origin: scheme and host, no trailing /".into());
         }
-        if self.max_body == 0 || self.rate_window_secs == 0 {
-            return Err("max_body and rate_window_secs: more than 0".into());
+        if self.max_body == 0 || self.rate_window_secs == 0 || self.pending_days == 0 || self.max_confirm_mails == 0 {
+            return Err("max_body, rate_window_secs, pending_days and max_confirm_mails: more than 0".into());
         }
         Ok(())
+    }
+
+    /// The limits of [`crate::list`].
+    pub fn rules(&self) -> crate::list::Rules {
+        crate::list::Rules {
+            pending_secs: i64::from(self.pending_days) * 86400,
+            resend_secs: i64::from(self.resend_hours) * 3600,
+            max_confirm_mails: self.max_confirm_mails,
+            max_pending: self.max_pending,
+            max_records: self.max_signups,
+            retry_secs: self.retry_secs.iter().map(|s| i64::from(*s)).collect(),
+        }
     }
 }
 

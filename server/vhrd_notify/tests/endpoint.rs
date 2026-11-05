@@ -28,6 +28,17 @@ fn config() -> (Config, PathBuf) {
     (cfg, dir)
 }
 
+/// The records once the worker has folded the accepted signups in (the in-process router runs no worker).
+fn records(store: &Store) -> Vec<vhrd_notify::store::Record> {
+    let rules = Config::default().rules();
+    store
+        .transact(|intake, st| {
+            vhrd_notify::list::fold(&mut st.records, intake, &rules, vhrd_notify::store::Id::random)?;
+            Ok((false, st.records.clone()))
+        })
+        .unwrap()
+}
+
 const FORM: &str = "application/x-www-form-urlencoded";
 
 struct Post<'a> {
@@ -106,13 +117,13 @@ async fn signup_is_stored_once() {
     )
     .await;
     assert_eq!(s, StatusCode::OK);
-    let all = store.read().unwrap();
+    let all = records(&store);
     assert_eq!(all.len(), 1);
     assert_eq!(
         (all[0].email.as_str(), all[0].list.as_str(), all[0].consent.as_str()),
         ("someone@example.com", "donguru", "2026-11-05")
     );
-    assert!(all[0].time.ends_with('Z') && all[0].time.len() == 20, "{}", all[0].time);
+    assert_eq!(all[0].status, vhrd_notify::store::Status::Pending);
     std::fs::remove_dir_all(dir).unwrap();
 }
 
@@ -222,7 +233,7 @@ async fn bad_input_is_a_plain_400_that_echoes_nothing() {
     )
     .await;
     assert_eq!((s, text.as_str()), (StatusCode::BAD_REQUEST, "bad request\n"));
-    assert!(store.read().unwrap().is_empty());
+    assert!(records(&store).is_empty());
     std::fs::remove_dir_all(dir).unwrap();
 }
 
@@ -241,7 +252,7 @@ async fn honeypot_looks_fine_and_stores_nothing() {
     )
     .await;
     assert_eq!(s, StatusCode::OK);
-    assert!(store.read().unwrap().is_empty());
+    assert!(records(&store).is_empty());
     std::fs::remove_dir_all(dir).unwrap();
 }
 
@@ -304,7 +315,8 @@ async fn rate_limit_per_client() {
 #[tokio::test]
 async fn full_store_is_a_503() {
     let (cfg, dir) = config();
-    let app = router(App::new(Config { max_signups: 1, ..cfg }));
+    let a = App::new(Config { max_signups: 1, ..cfg });
+    let app = router(a.clone());
     assert_eq!(
         send(
             &app,
@@ -317,6 +329,8 @@ async fn full_store_is_a_503() {
         .0,
         StatusCode::OK
     );
+    // the worker's round counts the records
+    vhrd_notify::outbox::tick(&a, vhrd_notify::utc::now_secs()).unwrap();
     let (s, _, _) = send(
         &app,
         Post {
@@ -383,7 +397,7 @@ async fn over_a_real_socket() {
     assert!(ok.starts_with("HTTP/1.1 200"), "{ok}");
     let big = raw(addr, &"x".repeat(5000)).await;
     assert!(big.starts_with("HTTP/1.1 400"), "{big}");
-    assert_eq!(store.read().unwrap().len(), 1);
+    assert_eq!(records(&store).len(), 1);
     std::fs::remove_dir_all(dir).unwrap();
 }
 

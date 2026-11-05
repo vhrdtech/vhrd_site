@@ -5,7 +5,8 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use clap::{Parser, Subcommand};
-use vhrd_notify::{Config, Email, Store, config::EXIT_CONFIG};
+use vhrd_notify::store::{Record, Status};
+use vhrd_notify::{Config, Email, Store, config::EXIT_CONFIG, list, utc};
 
 const VERSION: &str = concat!(
     env!("CARGO_PKG_VERSION"),
@@ -30,15 +31,16 @@ struct Cli {
 enum Cmd {
     /// Serve POST /api/notify until SIGTERM
     Serve,
-    /// Every signup: time, list, address, consent version, tab-separated
+    /// Every record, pending ones too: status, list, address, signed up, consent version, confirmed, mails sent,
+    /// tab-separated
     List {
         /// Only this list
         #[arg(long)]
         list: Option<String>,
     },
-    /// How many signups each list has
+    /// How many confirmed and pending records each list has
     Count,
-    /// The signups as CSV (email,list,time,consent), for the one launch mail
+    /// The confirmed records as CSV (email,list,signed_up,consent,confirmed)
     Export {
         /// Only this list
         #[arg(long)]
@@ -75,7 +77,19 @@ fn main() -> ExitCode {
 
 fn run(cmd: Cmd, cfg: Config) -> Result<(), String> {
     let store = Store::new(&cfg.store);
-    let read = || store.read().map_err(|e| format!("{}: {e}", store.path().display()));
+    let err = |e: std::io::Error| format!("{}: {e}", store.path().display());
+    // the signups not folded in yet count too: every command sees the list as the service will
+    let rules = cfg.rules();
+    let read = || {
+        store
+            .transact(|intake, st| {
+                let f = list::fold(&mut st.records, intake, &rules, vhrd_notify::store::Id::random)?;
+                Ok((f.new + f.queued_again > 0, st.records.clone()))
+            })
+            .map_err(err)
+    };
+    let of = |list: &Option<String>, r: &Record| list.as_ref().is_none_or(|l| *l == r.list);
+    let opt = |t: Option<i64>| t.map_or("-".into(), utc::format);
     match cmd {
         Cmd::Serve => {
             let rt = tokio::runtime::Builder::new_multi_thread()
@@ -86,34 +100,63 @@ fn run(cmd: Cmd, cfg: Config) -> Result<(), String> {
                 .map_err(|e| e.to_string())?;
         }
         Cmd::List { list } => {
-            for s in read()?.iter().filter(|s| list.as_ref().is_none_or(|l| *l == s.list)) {
-                println!("{}\t{}\t{}\t{}", s.time, s.list, s.email, s.consent);
+            for r in read()?.iter().filter(|r| of(&list, r)) {
+                let status = if r.status == Status::Confirmed {
+                    "confirmed"
+                } else {
+                    "pending"
+                };
+                println!(
+                    "{status}\t{}\t{}\t{}\t{}\t{}\t{}",
+                    r.list,
+                    r.email,
+                    utc::format(r.signed_up),
+                    r.consent,
+                    opt(r.confirmed),
+                    r.mails
+                );
             }
         }
         Cmd::Count => {
             let all = read()?;
             let mut lists: Vec<&str> = cfg.lists.iter().map(String::as_str).collect();
-            for s in &all {
-                if !lists.contains(&s.list.as_str()) {
-                    lists.push(&s.list);
+            for r in &all {
+                if !lists.contains(&r.list.as_str()) {
+                    lists.push(&r.list);
                 }
             }
             for l in lists {
-                println!("{l}\t{}", all.iter().filter(|s| s.list == l).count());
+                let n = |s: Status| all.iter().filter(|r| r.list == l && r.status == s).count();
+                println!(
+                    "{l}\t{} confirmed\t{} pending",
+                    n(Status::Confirmed),
+                    n(Status::Pending)
+                );
             }
         }
         Cmd::Export { list } => {
-            println!("email,list,time,consent");
-            for s in read()?.iter().filter(|s| list.as_ref().is_none_or(|l| *l == s.list)) {
-                println!("{},{},{},{}", s.email, s.list, s.time, s.consent);
+            println!("email,list,signed_up,consent,confirmed");
+            for r in read()?.iter().filter(|r| of(&list, r) && r.status == Status::Confirmed) {
+                println!(
+                    "{},{},{},{},{}",
+                    r.email,
+                    r.list,
+                    utc::format(r.signed_up),
+                    r.consent,
+                    opt(r.confirmed)
+                );
             }
         }
         Cmd::Delete { address } => {
             let email = Email::parse(&address).map_err(|e| format!("{e}: no such address can be stored"))?;
             let n = store
-                .delete(&email)
-                .map_err(|e| format!("{}: {e}", store.path().display()))?;
-            println!("{email}: {n} signup(s) deleted");
+                .transact(|intake, st| {
+                    list::fold(&mut st.records, intake, &rules, vhrd_notify::store::Id::random)?;
+                    let n = list::delete_address(&mut st.records, &email);
+                    Ok((n > 0, n))
+                })
+                .map_err(err)?;
+            println!("{email}: {n} record(s) deleted");
         }
     }
     Ok(())

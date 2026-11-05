@@ -5,11 +5,14 @@
 //! person sees: when it is filled the answer is the same as for a signup, and nothing is stored.
 //!
 //! Two kinds of client get two kinds of answer, and neither ever carries the visitor's input:
-//! - the page's script sends `Accept: application/json` and gets a status with a fixed plain-text body: 200 signed
-//!   up (or already on the list: the answer never tells whether an address is there), 400 refused, 429 too many
-//!   from this client, 503 not stored;
+//! - the page's script sends `Accept: application/json` and gets a status with a fixed plain-text body: 200
+//!   accepted, 400 refused, 429 too many from this client, 503 not stored;
 //! - a plain form post (no JavaScript) gets a 303 back to the page it came from, to `#notify-ok`, `#notify-bad`,
 //!   `#notify-wait` or `#notify-err`, which the page shows (CSS `:target`).
+//!
+//! An accepted signup is one line appended to the store's intake and nothing more, the same work and the same
+//! answer for every well-formed address: whether it is new, waiting for its confirmation or on the list already is
+//! decided later by the worker ([`crate::outbox`], [`crate::list`]), and never shows in the answer.
 //!
 //! A request that is not the form at all (another content type, a body over the limit, a field twice or one not
 //! listed above, an Origin of another site) gets a plain 400, and counts against no rate limit.
@@ -18,7 +21,7 @@
 //! Deploy workflow can tell from outside that the release it uploaded is the one answering.
 
 use std::net::{IpAddr, SocketAddr};
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -33,16 +36,21 @@ use axum::routing::post;
 use crate::config::Config;
 use crate::email::Email;
 use crate::limit::RateLimit;
-use crate::store::{Added, Store};
+use crate::store::{Intake, Store};
 
 /// The response header that names the release answering (`vhrd_notify --version`'s git sha).
 pub const RELEASE_HEADER: &str = "x-vhrd-release";
 
 pub struct App {
-    cfg: Config,
+    pub(crate) cfg: Config,
     /// The value of [`RELEASE_HEADER`]; none in tests that don't set one.
     release: Option<HeaderValue>,
-    store: Arc<Store>,
+    pub(crate) store: Arc<Store>,
+    /// Wakes the worker ([`crate::outbox`]) after a signup.
+    pub(crate) wake: tokio::sync::Notify,
+    /// Records pending and in all, as the worker last counted them.
+    pub(crate) pending: AtomicUsize,
+    pub(crate) records: AtomicUsize,
     limit: Mutex<RateLimit>,
     /// The client address header was missing once already (said once in the log, not per request).
     header_missing: AtomicBool,
@@ -67,6 +75,9 @@ impl App {
             limit: Mutex::new(limit),
             header_missing: AtomicBool::new(false),
             release: release.and_then(|r| HeaderValue::from_str(r).ok()),
+            wake: tokio::sync::Notify::new(),
+            pending: AtomicUsize::new(0),
+            records: AtomicUsize::new(0),
             cfg,
         })
     }
@@ -95,7 +106,11 @@ pub async fn serve(cfg: Config, release: &str) -> std::io::Result<()> {
         listener.local_addr()?,
         cfg.store.display()
     );
-    let app = router(App::with_release(cfg, Some(release)));
+    let app = App::with_release(cfg, Some(release));
+    // the first round before the first request: a store that can't be read fails the start, not a signup
+    crate::outbox::tick(&app, crate::utc::now_secs())?;
+    tokio::spawn(crate::outbox::run(app.clone()));
+    let app = router(app);
     axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>())
         .with_graceful_shutdown(shutdown())
         .await
@@ -264,28 +279,36 @@ async fn signup(app: &Arc<App>, form: &Form, ip: Option<IpAddr>) -> Outcome {
         eprintln!("vhrd_notify: refused: unknown list or consent version");
         return Outcome::Bad;
     }
-    let (store, list, consent, max) = (app.store.clone(), list.clone(), consent.clone(), cfg.max_signups);
-    let time = crate::utc::format(crate::utc::now_secs());
-    let added = tokio::task::spawn_blocking(move || store.add(&email, &list, &consent, &time, max)).await;
-    match added {
-        Ok(Ok(Added::New(n))) => {
-            eprintln!("vhrd_notify: signed up ({n} in the store)");
-            if n * 5 >= max * 4 {
-                eprintln!("vhrd_notify: the store is over 80 % of max_signups ({max})");
-            }
+    if app.pending.load(Ordering::Relaxed) >= cfg.max_pending || app.records.load(Ordering::Relaxed) >= cfg.max_signups
+    {
+        eprintln!(
+            "vhrd_notify: store full (max_pending {} or max_signups {}), refused",
+            cfg.max_pending, cfg.max_signups
+        );
+        return Outcome::Err;
+    }
+    let intake = Intake {
+        time: crate::utc::now_secs(),
+        list: list.clone(),
+        email,
+        consent: consent.clone(),
+    };
+    let (store, max) = (app.store.clone(), cfg.max_intake_bytes);
+    match tokio::task::spawn_blocking(move || store.accept(&intake, max)).await {
+        Ok(Ok(true)) => {
+            app.wake.notify_one();
             Outcome::Ok
         }
-        Ok(Ok(Added::Duplicate)) => Outcome::Ok,
-        Ok(Ok(Added::Full)) => {
-            eprintln!("vhrd_notify: store full (max_signups {max}), refused");
+        Ok(Ok(false)) => {
+            eprintln!("vhrd_notify: intake full (max_intake_bytes {max}), refused");
             Outcome::Err
         }
         Ok(Err(e)) => {
-            eprintln!("vhrd_notify: store: {e}");
+            eprintln!("vhrd_notify: intake: {e}");
             Outcome::Err
         }
         Err(e) => {
-            eprintln!("vhrd_notify: store task: {e}");
+            eprintln!("vhrd_notify: intake task: {e}");
             Outcome::Err
         }
     }
