@@ -281,6 +281,14 @@ mod tests {
         let c = Config::load(&path).unwrap();
         assert_eq!(c.site_origin, "https://vhrd.tech");
         assert!(c.store.is_absolute());
+        assert!(c.token_key.starts_with("/home/vhrd-notify/.config/"));
+        let m = c.mail.expect("the server sends mail");
+        assert_eq!(
+            (m.host.as_str(), m.port, m.tls),
+            ("mail.vhrd.tech", 465, MailTls::Implicit)
+        );
+        assert!(m.password_file.starts_with("/home/vhrd-notify/.config/"));
+        assert!(c.consent_versions.contains(&"2026-11-06".to_string()));
     }
 
     #[test]

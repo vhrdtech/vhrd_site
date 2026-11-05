@@ -23,3 +23,35 @@ rate_clients = 10000
 max_signups = 50000
 # set by the nginx location block
 client_ip_header = "x-real-ip"
+# the buttons in the mails' pages, and RFC 8058's one-click (many people's from one mail provider)
+link_rate_limit = 20
+link_rate_limit_network = 100
+one_click_rate_limit = 2000
+# double opt-in: unconfirmed records go after a week; the confirmation mail at most once a day, three times in all
+pending_days = 7
+resend_hours = 24
+max_confirm_mails = 3
+max_pending = 5000
+retry_secs = [60, 300, 1800, 7200, 21600]
+max_intake_bytes = 1048576
+# made by the service on its first start, 0600; outside the release folder, never shipped
+token_key = "/home/vhrd-notify/.config/vhrd-notify/token-key"
+
+[titles]
+donguru = "Donguru"
+
+# mail out through mail.vhrd.tech as donguru@ (Roman's steps: the login notify-sender@, allowed to send as donguru@,
+# and its password in password_file, 0600, written on the server, never here)
+[mail]
+host = "mail.vhrd.tech"
+port = 465
+tls = "implicit"
+user = "notify-sender@vhrd.tech"
+password_file = "/home/vhrd-notify/.config/vhrd-notify/smtp-password"
+from = "donguru@vhrd.tech"
+from_name = "VHRD"
+hello = "vhrd.tech"
+timeout_secs = 30
+per_hour = 60
+per_day = 300
+list_per_minute = 20
