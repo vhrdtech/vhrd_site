@@ -1,0 +1,23 @@
+# Activates a vhrd_notify release from the Deploy workflow's upload folder (AGENTS.md "Notify service" in this repo):
+# checks it, switches ~/vhrd_notify/vhrd_notify to it, restarts vhrd-notify.service and checks it answers, and goes
+# back to the previous release if it doesn't. Started by vhrd-notify-activate.path, and once when the user's units
+# start (after a reboot), to finish an activation a crash or a kill cut off. The binary is root's
+# (/usr/local/lib/vhrd-notify/vhrd_notify_activate, crate server/vhrd_notify_activate): an upload can't change it,
+# though a release runs as this user and could change this unit.
+# Logs: journalctl _SYSTEMD_USER_UNIT=vhrd-notify-activate.service
+[Unit]
+Description=vhrd_notify: activate the uploaded release
+# failed uploads in a row must not stop the path unit from watching
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/vhrd-notify/vhrd_notify_activate
+UMask=0077
+NoNewPrivileges=yes
+# every wait in it is bounded and no new round starts after 4 min, so a run ends well before this; one cut off
+# anyway is finished at the next start
+TimeoutStartSec=30min
+
+[Install]
+WantedBy=default.target

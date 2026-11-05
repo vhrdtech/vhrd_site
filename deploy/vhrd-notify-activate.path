@@ -1,0 +1,12 @@
+# Watches the Deploy workflow's upload folder for vhrd_notify (AGENTS.md "Notify service" in this repo): a user unit of the
+# vhrd-notify user, in ~/.config/systemd/user/. The workflow uploads the binary and notify.toml first and the
+# manifest last, so a new manifest means a complete upload; vhrd-notify-activate.service checks and activates it.
+[Unit]
+Description=vhrd_notify: a new release uploaded by the Deploy workflow
+
+[Path]
+PathChanged=/home/ci-notify/incoming/manifest.toml
+Unit=vhrd-notify-activate.service
+
+[Install]
+WantedBy=default.target

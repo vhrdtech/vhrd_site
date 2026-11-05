@@ -1,11 +1,13 @@
-# What `tpm ship web-server vhrd_notify` (just deploy-notify) builds and installs: the notify service as a user unit
-# of the web server's login user, releases in ~/vhrd_notify/releases/, the settings beside them (AGENTS.md "Notify
-# service").
+# The fallback when GitHub can't deploy: what `tpm ship web-notify vhrd_notify` (just deploy-notify) builds and
+# installs. The Deploy workflow is the way (AGENTS.md "Notify service"); this writes the same layout as its activator:
+# the service as a user unit of the vhrd-notify user, releases in ~/vhrd_notify/releases/, the settings beside them,
+# the history in releases/history. The node web-notify (ssh = "vhrd-notify@vhrd.tech", port = 7722) and its key exist
+# only while a fallback needs them.
 bin = "vhrd_notify"
 dir = "vhrd_notify"
 build = ["--target", "x86_64-unknown-linux-musl", "-p", "vhrd_notify_cli"]
 service = "vhrd-notify"
 
-[node.web-server]
+[node.web-notify]
 unit = "deploy/vhrd-notify.service"
 files = { "deploy/notify.toml" = "vhrd_notify/notify.toml" }

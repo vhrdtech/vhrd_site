@@ -1,0 +1,7 @@
+# The activator's end-to-end tests start fake services on fixed loopback ports: one at a time.
+[test-groups]
+activate = { max-threads = 1 }
+
+[[profile.default.overrides]]
+filter = 'binary(activate)'
+test-group = 'activate'

@@ -1,7 +1,8 @@
 # The notify service behind the site's "Get notified" forms (AGENTS.md "Notify service"): a library with the
-# validator, the store and the HTTP handler, and a thin binary that serves it and manages the signups.
+# validator, the store and the HTTP handler, a thin binary that serves it and manages the signups, and the activator
+# that takes a release the Deploy workflow uploaded (kept apart from the service, so an upload never checks itself).
 [workspace]
-members = ["server/vhrd_notify", "server/vhrd_notify_cli"]
+members = ["server/vhrd_notify", "server/vhrd_notify_cli", "server/vhrd_notify_activate"]
 resolver = "3"
 
 [workspace.package]
@@ -18,6 +19,9 @@ form_urlencoded = { version = "1.2.2", default-features = false, features = ["st
 serde = { version = "1.0.229", default-features = false, features = ["std", "derive"] }
 tokio = { version = "1.54.1", default-features = false, features = ["rt", "net", "macros", "sync", "signal"] }
 toml = { version = "1.2.0", default-features = false, features = ["std", "parse", "serde"] }
+rustix = { version = "1.1.6", default-features = false, features = ["std", "fs", "process"] }
+sha2 = { version = "0.11.1", default-features = false }
+libtest-mimic = { version = "0.8.2", default-features = false }
 tower = { version = "0.5.3", default-features = false, features = ["util"] }
 vhrd_notify = { path = "server/vhrd_notify" }
 

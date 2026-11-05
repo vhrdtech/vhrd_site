@@ -12,7 +12,7 @@ just test      # the full check: notify service tests, zola build, browser check
 
 ## Deploy
 
-https://vhrd.tech/ is deployed by hand from the Deploy workflow on GitHub Actions, after approval (AGENTS.md "Deploy").
+https://vhrd.tech/ and its notify service are deployed by hand from the Deploy workflow on GitHub Actions, after approval (AGENTS.md "Deploy" and "Notify service").
 
 ## Licence
 

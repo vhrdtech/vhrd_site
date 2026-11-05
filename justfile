@@ -5,9 +5,10 @@
 zola_version := "0.23.6"
 brand := env("VHRD_BRAND", home_directory() / "git/vhrd_brand")
 preview_host := "https://shadow.vhrd.tech"
-# The web server's login, where the notify service runs (AGENTS.md "Notify service")
+# The web server's login, and the notify service's own user and folder there (AGENTS.md "Notify service")
 web := "roman@vhrd.tech"
 web_port := "7722"
+notify_dir := "/home/vhrd-notify/vhrd_notify"
 
 export PATH := home_directory() / ".local/bin:" + env("PATH")
 # The footer's build stamp: short hash (with -dirty) and commit date, read by the templates through get_env
@@ -28,7 +29,7 @@ build:
     zola check --skip-external-links
     zola build
 
-# The notify service's tests pass, the site builds (Firefox for the browser check comes with `just install`), internal links resolve, the old WordPress paths redirect to its pages (deploy/redirects.map), every
+# The notify service's and its activator's tests pass, the site builds (Firefox for the browser check comes with `just install`), internal links resolve, the old WordPress paths redirect to its pages (deploy/redirects.map), every
 # page passes the browser checks, the brand files match vhrd_brand (when it is checked out here)
 test *args:
     zola --version | grep -qF "{{ zola_version }}" || { echo "zola {{ zola_version }} expected: just install"; exit 1; }
@@ -130,16 +131,17 @@ captures *args:
 renders *args:
     uv run scripts/render_boards.py {{ args }}
 
-# Ship the notify service to the web server as a new release (tpm ship, ship.toml): build a static binary here, upload
-# it with deploy/notify.toml and the user unit, switch, restart, check. Prod: needs sign-off first; tpm asks.
-# The nginx block (deploy/nginx-notify.conf) is a root step on the server (AGENTS.md "Notify service")
+# Fallback only: the Deploy workflow ships the notify service (`just deploy`). Without GitHub, tpm ship builds a static
+# binary here and ships it as the vhrd-notify user, in the same release layout. It needs the tpm node web-notify and a
+# key root adds for the occasion (AGENTS.md "Notify service", "Without GitHub"). Prod: needs sign-off first
 deploy-notify:
-    tpm ship web-server vhrd_notify
+    tpm ship web-notify vhrd_notify
 
-# Back to the notify service's previous release on the web server
+# Fallback only, like deploy-notify: back to the notify service's previous release (the activator rolls back by itself)
 rollback-notify:
-    tpm ship web-server vhrd_notify --rollback
+    tpm ship web-notify vhrd_notify --rollback
 
-# The signups on the web server: `just notify count`, `list`, `export > donguru.csv`, `delete ADDRESS`
+# The signups on the web server, as the service's user (sudo rule in AGENTS.md "Notify service"): `just notify count`,
+# `list`, `export > donguru.csv`, `delete ADDRESS`
 notify *args:
-    ssh -p {{ web_port }} {{ web }} vhrd_notify/vhrd_notify {{ args }}
+    ssh -p {{ web_port }} {{ web }} sudo -n -u vhrd-notify {{ notify_dir }}/vhrd_notify --config {{ notify_dir }}/notify.toml {{ args }}

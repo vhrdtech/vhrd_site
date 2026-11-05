@@ -1,9 +1,11 @@
-# Deploy https://vhrd.tech/: build the live site, then, once approved in the production environment, upload it to
-# the server with rsync. Started by hand only: Actions > Deploy vhrd.tech > Run workflow, on main.
-# How it is set up and why (key, environment, the server's ci-site user): README "Deploy".
+# Deploy https://vhrd.tech/: build the live site and the notify service, then, once approved in the production
+# environment, upload both to the server with rsync. Started by hand only: Actions > Deploy vhrd.tech > Run workflow,
+# on main. How it is set up and why (keys, environment, the server's ci-site and ci-notify users): AGENTS.md "Deploy"
+# and "Notify service".
 #
-# The build job has no secrets. Only the deploy job gets the SSH key, and it runs nothing from the repo but the
-# post-deploy check after the key is gone. On the server the key can only write into the site's folder (rrsync -wo).
+# The build jobs have no secrets. Only the deploy job gets the SSH keys, and it runs nothing from the repo but the
+# post-deploy check after the keys are gone. On the server each key can only write into one folder (rrsync -wo):
+# ci-site into the site's, ci-notify into an upload folder that the service's user checks and activates from.
 
 name: Deploy vhrd.tech
 
@@ -22,6 +24,10 @@ env:
   DEPLOY_HOST: vhrd.tech
   DEPLOY_PORT: "7722"
   DEPLOY_USER: ci-site
+  NOTIFY_USER: ci-notify
+  # the notify service's toolchain; a bump is a commit here, checked with `just test` on that version first
+  RUST_TOOLCHAIN: "1.99.1"
+  MUSL: x86_64-unknown-linux-musl
 
 jobs:
   build:
@@ -71,11 +77,85 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
+  # The notify service as a static musl binary, with the settings it ships with and the server-side files root
+  # installs by hand (the activator, also static, and the units). Every run builds it, so one Deploy leaves the
+  # site and the service at the same commit; the server's activator restarts the service for each new release.
+  # No cache: the build takes a minute or two, and a cache shared with other runs would be one more input.
+  build-notify:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      git: ${{ steps.pack.outputs.git }}
+      version: ${{ steps.pack.outputs.version }}
+      digest: ${{ steps.pack.outputs.digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # rustup checks each component's sha256 from the channel manifest
+      - name: Install Rust (pinned) with the musl target
+        run: |
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal --target "$MUSL"
+          cargo "+$RUST_TOOLCHAIN" --version
+
+      - name: Test
+        run: cargo "+$RUST_TOOLCHAIN" test --locked --workspace
+
+      - name: Build
+        run: cargo "+$RUST_TOOLCHAIN" build --locked --release --target "$MUSL" -p vhrd_notify_cli -p vhrd_notify_activate
+
+      # The release's name and git sha come from the binary's own --version, the same words the server checks.
+      # The sha256 of every file goes into the run's summary too: root checks the activator against it.
+      - name: Pack
+        id: pack
+        run: |
+          bin="target/$MUSL/release/vhrd_notify"
+          act="target/$MUSL/release/vhrd_notify_activate"
+          for b in "$bin" "$act"; do
+            if readelf -l "$b" | grep -q INTERP; then echo "$b is not static"; exit 1; fi
+          done
+          line="$("$bin" --version)"
+          echo "$line"
+          read -r name version git _ <<< "${line//[(,]/ }"
+          [ "$name" = vhrd_notify ] || { echo "unexpected --version: $line"; exit 1; }
+          [[ "$version" =~ ^[0-9]{1,4}\.[0-9]{1,4}\.[0-9]{1,6}$ ]] || { echo "bad version: $version"; exit 1; }
+          [[ "$git" =~ ^[0-9a-f]{7,12}$ ]] || { echo "bad or dirty git sha: $git"; exit 1; }
+          out="$RUNNER_TEMP/notify"
+          mkdir -p "$out/setup"
+          cp "$bin" "$out/vhrd_notify"
+          cp deploy/notify.toml "$out/notify.toml"
+          cp "$act" deploy/vhrd-notify-activate.path deploy/vhrd-notify-activate.service deploy/vhrd-notify.service \
+            "$out/setup/"
+          (cd "$out" && sha256sum vhrd_notify notify.toml setup/*) | tee "$RUNNER_TEMP/sums"
+          {
+            echo "### vhrd_notify $version ($git)"
+            echo '```'
+            cat "$RUNNER_TEMP/sums"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          tar cf "$RUNNER_TEMP/notify.tar" -C "$out" .
+          {
+            echo "git=$git"
+            echo "version=$version"
+            echo "digest=$(sha256sum "$RUNNER_TEMP/notify.tar" | cut -d' ' -f1)"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: notify
+          path: ${{ runner.temp }}/notify.tar
+          retention-days: 7
+          if-no-files-found: error
+
   deploy:
-    needs: build
+    needs: [build, build-notify]
     if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     environment:
       name: production
       url: https://vhrd.tech/
@@ -119,6 +199,11 @@ jobs:
           name: site
           path: ${{ runner.temp }}/artifact
 
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: notify
+          path: ${{ runner.temp }}/artifact
+
       - name: Unpack the build it approved
         env:
           DIGEST: ${{ needs.build.outputs.digest }}
@@ -126,6 +211,76 @@ jobs:
           echo "${DIGEST}  $RUNNER_TEMP/artifact/site.tar" | sha256sum -c -
           mkdir "$RUNNER_TEMP/site"
           tar xf "$RUNNER_TEMP/artifact/site.tar" -C "$RUNNER_TEMP/site"
+
+      # The manifest is written here, not in the build: its seq (run number and attempt) must grow with a re-run of
+      # this job too, or the server would take a retry for the old upload and ignore it.
+      - name: Unpack the notify release it approved
+        env:
+          DIGEST: ${{ needs.build-notify.outputs.digest }}
+          VERSION: ${{ needs.build-notify.outputs.version }}
+          GIT: ${{ needs.build-notify.outputs.git }}
+        run: |
+          echo "${DIGEST}  $RUNNER_TEMP/artifact/notify.tar" | sha256sum -c -
+          [[ "$VERSION" =~ ^[0-9]{1,4}\.[0-9]{1,4}\.[0-9]{1,6}$ && "$GIT" =~ ^[0-9a-f]{7,12}$ ]] || exit 1
+          n="$RUNNER_TEMP/notify"
+          mkdir "$n"
+          tar xf "$RUNNER_TEMP/artifact/notify.tar" -C "$n"
+          seq=$(( GITHUB_RUN_NUMBER * 100 + GITHUB_RUN_ATTEMPT ))
+          bin_sha="$(sha256sum "$n/vhrd_notify" | cut -d' ' -f1)"
+          config_sha="$(sha256sum "$n/notify.toml" | cut -d' ' -f1)"
+          printf 'format = 1\nname = "vhrd_notify"\nversion = "%s"\ngit = "%s"\nseq = %d\n[files]\nvhrd_notify = "%s"\n"notify.toml" = "%s"\n' \
+            "$VERSION" "$GIT" "$seq" "$bin_sha" "$config_sha" > "$n/manifest.toml"
+          cat "$n/manifest.toml"
+
+      # The service goes first: a new consent version or list must be in the service before the site's forms send
+      # it (AGENTS.md "Notify service"), so a release that does not go live stops the run before the site changes.
+      # rsync to the ci-notify user, whose key the server forces into `rrsync -wo -no-del -munge` on its upload
+      # folder. The binary, the settings and the files for root go first, the manifest last and on its own: the
+      # server's activator starts when the manifest changes, and takes nothing that does not match it.
+      - name: Upload the notify release
+        env:
+          NOTIFY_SSH_KEY: ${{ secrets.NOTIFY_SSH_KEY }}
+        run: |
+          umask 077
+          printf '%s\n' "$NOTIFY_SSH_KEY" > "$RUNNER_TEMP/notify_key"
+          ssh="ssh -p $DEPLOY_PORT -i $RUNNER_TEMP/notify_key -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$GITHUB_WORKSPACE/.github/deploy/known_hosts \
+            -o ConnectTimeout=30"
+          n="$RUNNER_TEMP/notify"
+          rsync --recursive --checksum --perms --chmod=D750,F640 --omit-dir-times --stats -e "$ssh" \
+            "$n/vhrd_notify" "$n/notify.toml" "$n/setup" "$NOTIFY_USER@$DEPLOY_HOST:/"
+          rsync --checksum --perms --chmod=F640 -e "$ssh" "$n/manifest.toml" "$NOTIFY_USER@$DEPLOY_HOST:/"
+
+      - name: Forget the notify key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/notify_key"
+
+      # From outside, through nginx: a body that is not the form answers 400 without using a rate limit, and the
+      # x-vhrd-release header names the release that answers. It must be the new one, and still be after the
+      # activator has watched it (5 s, then 60 s more: a release that dies in that time is rolled back). Then one
+      # bad address, which goes through the form's own checks, must answer 400 too.
+      - name: The new notify release answers
+        env:
+          GIT: ${{ needs.build-notify.outputs.git }}
+          URL: https://vhrd.tech/api/notify
+        run: |
+          post() {
+            curl -s -o /dev/null --max-time 10 -w '%{http_code} %header{x-vhrd-release}' -X POST \
+              -H 'Accept: application/json' -H 'Content-Type: application/x-www-form-urlencoded' --data "$1" "$URL" || true
+          }
+          up=""
+          for _ in $(seq 36); do
+            got="$(post probe=1)"
+            if [ "$got" = "400 $GIT" ]; then up=1; break; fi
+            sleep 5
+          done
+          [ -n "$up" ] || { echo "::error::$URL answers '$got', not 400 from $GIT: the server refused or rolled back the release (journalctl _SYSTEMD_USER_UNIT=vhrd-notify-activate.service as vhrd-notify)"; exit 1; }
+          sleep 80
+          got="$(post probe=1)"
+          [ "$got" = "400 $GIT" ] || { echo "::error::$GIT answered, then not ('$got'): it did not stay up, and the activator went back to the previous release or found none (its journal on the server)"; exit 1; }
+          got="$(post 'email=not-an-address&list=donguru&consent=none&from=home&leave_empty=')"
+          [ "$got" = "400 $GIT" ] || { echo "::error::a bad address got '$got', not 400 from $GIT"; exit 1; }
+          echo "vhrd_notify $GIT is live: $URL answers 400 to a bad address"
 
       # rsync over SSH to the ci-site user, whose key the server forces into `rrsync -wo -munge` on the site folder.
       # The new files land beside the old ones and are renamed into place at the end (--delay-updates); pages that
