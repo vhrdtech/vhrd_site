@@ -166,3 +166,29 @@
 {% endif %}{{ screen[1] | trim_end | safe }}</pre></div>
 </div><figcaption>{% if n %}<span class="fig-no">FIG. {{ n }}</span>{% endif %}<span>{{ caption }} <span class="term-meta">· {{ m.version }} · {{ m.source }} · recorded {{ m.recorded | date(format="%-d %b %Y") }}</span></span></figcaption></figure>
 {%- endcomponent vh.term %}
+
+{#- The Donguru signup form (NOTIFY-2 notify-form), posting to the notify service (README "Notify service"). `from` names
+    the page for the service's redirect after a post without JavaScript ("donguru" or "home"); the service sends
+    the visitor back to `#notify-ok`, `-bad`, `-wait` or `-err`, which CSS shows with :target. With JavaScript,
+    site.js posts it with fetch and shows the same message in place. The consent line's version is
+    `extra.notify_consent` (passed as `consent`): a new text gets a new version, added to the service's settings first. The endpoint is
+    `/api/notify` on the site's own host; `VHRD_NOTIFY_API` points it elsewhere (`just serve`'s local service).
+    One per page: {{ <vh.notify from="home" consent={config.extra.notify_consent} /> }} -#}
+{% component vh.notify(from: string, consent: string, button: string = "Get notified") %}
+<form class="notify-form" action="{{ get_env(name='VHRD_NOTIFY_API', default=get_url(path='api/notify')) }}" method="post" data-notify>
+<input type="hidden" name="list" value="donguru">
+<input type="hidden" name="consent" value="{{ consent }}">
+<input type="hidden" name="from" value="{{ from }}">
+<p class="notify-hp" aria-hidden="true"><label>Leave this empty <input name="website" tabindex="-1" autocomplete="off"></label></p>
+<label class="v-label notify-label" for="notify-email">Your e-mail address</label>
+<div class="notify-row">
+<input class="notify-input" id="notify-email" type="email" name="email" required maxlength="254" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="you@example.com">
+<button class="v-btn v-primary" type="submit">{{ button }}</button>
+</div>
+<p class="notify-consent">We send you one mail when the Donguru campaign opens, and nothing else. Reply, or write to {{ <vh.mail to="donguru" subject="Donguru launch" /> }}, to be removed. <a href="{{ get_url(path='/privacy/', trailing_slash=true) }}">How we keep your address</a></p>
+<p class="notify-msg notify-ok" id="notify-ok" role="status" tabindex="-1"><strong>You are on the list.</strong> We send you one mail when the campaign opens.</p>
+<p class="notify-msg notify-bad" id="notify-bad" role="alert" tabindex="-1">That address does not look right. Check it and try again: plain letters, digits and <code>. _ + -</code>, one @.</p>
+<p class="notify-msg notify-bad" id="notify-wait" role="alert" tabindex="-1">Too many tries from your connection. Try again in an hour, or write to {{ <vh.mail to="donguru" subject="Donguru launch" /> }}.</p>
+<p class="notify-msg notify-bad" id="notify-err" role="alert" tabindex="-1">Your address was not saved: something went wrong on our side. Try again later, or write to {{ <vh.mail to="donguru" subject="Donguru launch" /> }}.</p>
+</form>
+{%- endcomponent vh.notify %}

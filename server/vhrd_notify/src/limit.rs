@@ -15,7 +15,12 @@ pub struct RateLimit {
 
 impl RateLimit {
     pub fn new(limit: u32, window: Duration, max_clients: usize) -> RateLimit {
-        RateLimit { limit, window, max_clients, seen: HashMap::new() }
+        RateLimit {
+            limit,
+            window,
+            max_clients,
+            seen: HashMap::new(),
+        }
     }
 
     /// Counts one request from `ip` at `now`; false when it is over the limit (then it is not counted).
@@ -40,7 +45,8 @@ impl RateLimit {
 
     fn forget_old(&mut self, now: Instant) {
         let window = self.window;
-        self.seen.retain(|_, t| t.back().is_some_and(|last| now.duration_since(*last) < window));
+        self.seen
+            .retain(|_, t| t.back().is_some_and(|last| now.duration_since(*last) < window));
     }
 }
 

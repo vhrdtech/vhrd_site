@@ -21,7 +21,10 @@ fn config() -> (Config, PathBuf) {
     ));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
-    let cfg = Config { store: dir.join("signups.tsv"), ..Config::default() };
+    let cfg = Config {
+        store: dir.join("signups.tsv"),
+        ..Config::default()
+    };
     (cfg, dir)
 }
 
@@ -37,12 +40,20 @@ struct Post<'a> {
 
 impl Default for Post<'_> {
     fn default() -> Self {
-        Post { body: "", script: true, origin: Some("https://vhrd.tech"), ip: "192.0.2.10", content_type: FORM }
+        Post {
+            body: "",
+            script: true,
+            origin: Some("https://vhrd.tech"),
+            ip: "192.0.2.10",
+            content_type: FORM,
+        }
     }
 }
 
 async fn send(app: &axum::Router, p: Post<'_>) -> (StatusCode, Option<String>, String) {
-    let mut req = Request::post("/api/notify").header(header::CONTENT_TYPE, p.content_type).header("x-real-ip", p.ip);
+    let mut req = Request::post("/api/notify")
+        .header(header::CONTENT_TYPE, p.content_type)
+        .header("x-real-ip", p.ip);
     if p.script {
         req = req.header(header::ACCEPT, "application/json");
     }
@@ -50,17 +61,24 @@ async fn send(app: &axum::Router, p: Post<'_>) -> (StatusCode, Option<String>, S
         req = req.header(header::ORIGIN, o);
     }
     let mut req = req.body(Body::from(p.body.to_owned())).unwrap();
-    req.extensions_mut().insert(ConnectInfo(SocketAddr::from(([127, 0, 0, 1], 40000))));
+    req.extensions_mut()
+        .insert(ConnectInfo(SocketAddr::from(([127, 0, 0, 1], 40000))));
     let resp = app.clone().oneshot(req).await.unwrap();
     let status = resp.status();
     assert_eq!(resp.headers()[header::CACHE_CONTROL], "no-store");
-    let location = resp.headers().get(header::LOCATION).map(|l| l.to_str().unwrap().to_owned());
+    let location = resp
+        .headers()
+        .get(header::LOCATION)
+        .map(|l| l.to_str().unwrap().to_owned());
     let body = axum::body::to_bytes(resp.into_body(), 4096).await.unwrap();
     (status, location, String::from_utf8(body.to_vec()).unwrap())
 }
 
 fn good(email: &str) -> String {
-    format!("email={}&list=donguru&consent=2026-11-05&from=donguru&website=", email.replace('@', "%40"))
+    format!(
+        "email={}&list=donguru&consent=2026-11-05&from=donguru&website=",
+        email.replace('@', "%40")
+    )
 }
 
 #[tokio::test]
@@ -69,18 +87,31 @@ async fn signup_is_stored_once() {
     let store = Store::new(&cfg.store);
     let app = router(App::new(cfg));
     let body = good("Someone@Example.com");
-    let (s, _, text) = send(&app, Post { body: &body, ..Default::default() }).await;
+    let (s, _, text) = send(
+        &app,
+        Post {
+            body: &body,
+            ..Default::default()
+        },
+    )
+    .await;
     assert_eq!((s, text.as_str()), (StatusCode::OK, "ok\n"));
     // the same address again: the same answer, nothing new stored
-    let (s, _, _) = send(&app, Post { body: &body, ..Default::default() }).await;
+    let (s, _, _) = send(
+        &app,
+        Post {
+            body: &body,
+            ..Default::default()
+        },
+    )
+    .await;
     assert_eq!(s, StatusCode::OK);
     let all = store.read().unwrap();
     assert_eq!(all.len(), 1);
-    assert_eq!((all[0].email.as_str(), all[0].list.as_str(), all[0].consent.as_str()), (
-        "someone@example.com",
-        "donguru",
-        "2026-11-05"
-    ));
+    assert_eq!(
+        (all[0].email.as_str(), all[0].list.as_str(), all[0].consent.as_str()),
+        ("someone@example.com", "donguru", "2026-11-05")
+    );
     assert!(all[0].time.ends_with('Z') && all[0].time.len() == 20, "{}", all[0].time);
     std::fs::remove_dir_all(dir).unwrap();
 }
@@ -90,16 +121,40 @@ async fn without_script_redirects_back_to_the_page() {
     let (cfg, dir) = config();
     let app = router(App::new(cfg));
     let body = good("a@b.no").replace("from=donguru", "from=home");
-    let (s, loc, _) = send(&app, Post { body: &body, script: false, ..Default::default() }).await;
+    let (s, loc, _) = send(
+        &app,
+        Post {
+            body: &body,
+            script: false,
+            ..Default::default()
+        },
+    )
+    .await;
     assert_eq!(s, StatusCode::SEE_OTHER);
     assert_eq!(loc.as_deref(), Some("https://vhrd.tech/#notify-ok"));
     let body = "email=nope&list=donguru&consent=2026-11-05&from=donguru";
-    let (s, loc, _) = send(&app, Post { body, script: false, ..Default::default() }).await;
+    let (s, loc, _) = send(
+        &app,
+        Post {
+            body,
+            script: false,
+            ..Default::default()
+        },
+    )
+    .await;
     assert_eq!(s, StatusCode::SEE_OTHER);
     assert_eq!(loc.as_deref(), Some("https://vhrd.tech/donguru/#notify-bad"));
     // a page not listed goes to the first one, never to a place the form names
     let body = "email=nope&list=donguru&consent=2026-11-05&from=https%3A%2F%2Fevil.example";
-    let (_, loc, _) = send(&app, Post { body, script: false, ..Default::default() }).await;
+    let (_, loc, _) = send(
+        &app,
+        Post {
+            body,
+            script: false,
+            ..Default::default()
+        },
+    )
+    .await;
     assert_eq!(loc.as_deref(), Some("https://vhrd.tech/donguru/#notify-bad"));
     std::fs::remove_dir_all(dir).unwrap();
 }
@@ -123,19 +178,49 @@ async fn bad_input_is_a_plain_400_that_echoes_nothing() {
         "email=%FF%FE%40b.no&list=donguru&consent=2026-11-05".into(),
     ];
     for body in &bodies {
-        let (s, _, text) = send(&app, Post { body, ..Default::default() }).await;
+        let (s, _, text) = send(
+            &app,
+            Post {
+                body,
+                ..Default::default()
+            },
+        )
+        .await;
         assert_eq!(s, StatusCode::BAD_REQUEST, "{body}");
         assert_eq!(text, "bad request\n");
     }
     // another site's page, another content type
     let body = good("a@b.no");
-    let (s, _, _) = send(&app, Post { body: &body, origin: Some("https://evil.example"), ..Default::default() }).await;
+    let (s, _, _) = send(
+        &app,
+        Post {
+            body: &body,
+            origin: Some("https://evil.example"),
+            ..Default::default()
+        },
+    )
+    .await;
     assert_eq!(s, StatusCode::BAD_REQUEST);
-    let (s, _, _) = send(&app, Post { body: &body, content_type: "application/json", ..Default::default() }).await;
+    let (s, _, _) = send(
+        &app,
+        Post {
+            body: &body,
+            content_type: "application/json",
+            ..Default::default()
+        },
+    )
+    .await;
     assert_eq!(s, StatusCode::BAD_REQUEST);
     // over the size limit
     let big = format!("{body}&from={}", "x".repeat(1100));
-    let (s, _, text) = send(&app, Post { body: &big, ..Default::default() }).await;
+    let (s, _, text) = send(
+        &app,
+        Post {
+            body: &big,
+            ..Default::default()
+        },
+    )
+    .await;
     assert_eq!((s, text.as_str()), (StatusCode::BAD_REQUEST, "bad request\n"));
     assert!(store.read().unwrap().is_empty());
     std::fs::remove_dir_all(dir).unwrap();
@@ -147,7 +232,14 @@ async fn honeypot_looks_fine_and_stores_nothing() {
     let store = Store::new(&cfg.store);
     let app = router(App::new(cfg));
     let body = good("bot@example.com").replace("website=", "website=http%3A%2F%2Fspam.example");
-    let (s, _, _) = send(&app, Post { body: &body, ..Default::default() }).await;
+    let (s, _, _) = send(
+        &app,
+        Post {
+            body: &body,
+            ..Default::default()
+        },
+    )
+    .await;
     assert_eq!(s, StatusCode::OK);
     assert!(store.read().unwrap().is_empty());
     std::fs::remove_dir_all(dir).unwrap();
@@ -159,15 +251,52 @@ async fn rate_limit_per_client() {
     let app = router(App::new(Config { rate_limit: 2, ..cfg }));
     for i in 0..2 {
         let body = good(&format!("p{i}@example.com"));
-        assert_eq!(send(&app, Post { body: &body, ..Default::default() }).await.0, StatusCode::OK);
+        assert_eq!(
+            send(
+                &app,
+                Post {
+                    body: &body,
+                    ..Default::default()
+                }
+            )
+            .await
+            .0,
+            StatusCode::OK
+        );
     }
     let body = good("p9@example.com");
-    let (s, _, _) = send(&app, Post { body: &body, ..Default::default() }).await;
+    let (s, _, _) = send(
+        &app,
+        Post {
+            body: &body,
+            ..Default::default()
+        },
+    )
+    .await;
     assert_eq!(s, StatusCode::TOO_MANY_REQUESTS);
-    let (s, loc, _) = send(&app, Post { body: &body, script: false, ..Default::default() }).await;
-    assert_eq!((s, loc.as_deref()), (StatusCode::SEE_OTHER, Some("https://vhrd.tech/donguru/#notify-wait")));
+    let (s, loc, _) = send(
+        &app,
+        Post {
+            body: &body,
+            script: false,
+            ..Default::default()
+        },
+    )
+    .await;
+    assert_eq!(
+        (s, loc.as_deref()),
+        (StatusCode::SEE_OTHER, Some("https://vhrd.tech/donguru/#notify-wait"))
+    );
     // another client is not held back
-    let (s, _, _) = send(&app, Post { body: &body, ip: "198.51.100.4", ..Default::default() }).await;
+    let (s, _, _) = send(
+        &app,
+        Post {
+            body: &body,
+            ip: "198.51.100.4",
+            ..Default::default()
+        },
+    )
+    .await;
     assert_eq!(s, StatusCode::OK);
     std::fs::remove_dir_all(dir).unwrap();
 }
@@ -176,8 +305,26 @@ async fn rate_limit_per_client() {
 async fn full_store_is_a_503() {
     let (cfg, dir) = config();
     let app = router(App::new(Config { max_signups: 1, ..cfg }));
-    assert_eq!(send(&app, Post { body: &good("a@b.no"), ..Default::default() }).await.0, StatusCode::OK);
-    let (s, _, _) = send(&app, Post { body: &good("c@d.no"), ..Default::default() }).await;
+    assert_eq!(
+        send(
+            &app,
+            Post {
+                body: &good("a@b.no"),
+                ..Default::default()
+            }
+        )
+        .await
+        .0,
+        StatusCode::OK
+    );
+    let (s, _, _) = send(
+        &app,
+        Post {
+            body: &good("c@d.no"),
+            ..Default::default()
+        },
+    )
+    .await;
     assert_eq!(s, StatusCode::SERVICE_UNAVAILABLE);
     std::fs::remove_dir_all(dir).unwrap();
 }
@@ -191,7 +338,8 @@ async fn same_site_gets_cors_and_other_paths_404() {
         .header(header::ORIGIN, "https://vhrd.tech")
         .body(Body::from(good("a@b.no")))
         .unwrap();
-    req.extensions_mut().insert(ConnectInfo(SocketAddr::from(([127, 0, 0, 1], 40000))));
+    req.extensions_mut()
+        .insert(ConnectInfo(SocketAddr::from(([127, 0, 0, 1], 40000))));
     let resp = app.clone().oneshot(req).await.unwrap();
     assert_eq!(resp.headers()[header::ACCESS_CONTROL_ALLOW_ORIGIN], "https://vhrd.tech");
     assert_eq!(resp.headers().get(header::SET_COOKIE), None);
@@ -210,9 +358,14 @@ async fn over_a_real_socket() {
     let store = Store::new(&cfg.store);
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
-    let app = router(App::new(Config { client_ip_header: String::new(), ..cfg }));
+    let app = router(App::new(Config {
+        client_ip_header: String::new(),
+        ..cfg
+    }));
     tokio::spawn(async move {
-        axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>()).await.unwrap();
+        axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>())
+            .await
+            .unwrap();
     });
     async fn raw(addr: SocketAddr, body: &str) -> String {
         let mut s = tokio::net::TcpStream::connect(addr).await.unwrap();

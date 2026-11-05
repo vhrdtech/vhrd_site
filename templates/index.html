@@ -123,10 +123,9 @@
 {% <vh.section label="Stay in the loop" n="06" id="notify" title="Hear when Donguru launches"> %}
 <div class="contact">
 <div>
-<p class="v-lead">Donguru launches on Crowd Supply. Its sign-up list opens with the pre-launch page; until then, send a line to {{ <vh.mail to="donguru" subject="Donguru launch" /> }} and you hear first. {{ draft | safe }}</p>
-<div class="ctas">
-<a class="v-btn v-primary" href="{{ get_url(path='/donguru/#notify', trailing_slash=true) }}">Get notified</a>
-</div>
+<p class="v-lead">Donguru launches on Crowd Supply. Leave your address and you hear first, when the campaign opens. {{ draft | safe }}</p>
+{{ <vh.notify from="home" consent={config.extra.notify_consent} /> }}
+<p class="v-muted notify-fallback">Rather send a mail? Write to {{ <vh.mail to="donguru" subject="Donguru launch" /> }}. <a class="go" href="{{ get_url(path='/donguru/', trailing_slash=true) }}">What Donguru is</a></p>
 </div>
 <div class="contact-card">
 <p class="v-label">Contact</p>

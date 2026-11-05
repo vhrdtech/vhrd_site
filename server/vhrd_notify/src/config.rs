@@ -52,8 +52,14 @@ impl Default for Config {
             consent_versions: vec!["2026-11-05".into()],
             site_origin: "https://vhrd.tech".into(),
             pages: vec![
-                Page { name: "donguru".into(), path: "/donguru/".into() },
-                Page { name: "home".into(), path: "/".into() },
+                Page {
+                    name: "donguru".into(),
+                    path: "/donguru/".into(),
+                },
+                Page {
+                    name: "home".into(),
+                    path: "/".into(),
+                },
             ],
             max_body: 1024,
             rate_limit: 5,
@@ -97,7 +103,9 @@ impl Config {
         }
         for t in self.lists.iter().chain(&self.consent_versions) {
             if !crate::store::is_token(t) {
-                return Err(format!("{t:?}: lists and consent versions are a-z, 0-9 and -, up to 32"));
+                return Err(format!(
+                    "{t:?}: lists and consent versions are a-z, 0-9 and -, up to 32"
+                ));
             }
         }
         if !(self.site_origin.starts_with("https://") || self.site_origin.starts_with("http://"))

@@ -38,8 +38,16 @@ pub struct App {
 
 impl App {
     pub fn new(cfg: Config) -> Arc<App> {
-        let limit = RateLimit::new(cfg.rate_limit, Duration::from_secs(cfg.rate_window_secs), cfg.rate_clients);
-        Arc::new(App { store: Arc::new(Store::new(&cfg.store)), limit: Mutex::new(limit), cfg })
+        let limit = RateLimit::new(
+            cfg.rate_limit,
+            Duration::from_secs(cfg.rate_window_secs),
+            cfg.rate_clients,
+        );
+        Arc::new(App {
+            store: Arc::new(Store::new(&cfg.store)),
+            limit: Mutex::new(limit),
+            cfg,
+        })
     }
 }
 
@@ -53,7 +61,11 @@ pub fn router(app: Arc<App>) -> Router {
 /// Serves until SIGTERM or Ctrl-C.
 pub async fn serve(cfg: Config) -> std::io::Result<()> {
     let listener = tokio::net::TcpListener::bind(&cfg.listen).await?;
-    eprintln!("vhrd_notify: listening on {}, store {}", listener.local_addr()?, cfg.store.display());
+    eprintln!(
+        "vhrd_notify: listening on {}, store {}",
+        listener.local_addr()?,
+        cfg.store.display()
+    );
     let app = router(App::new(cfg));
     axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>())
         .with_graceful_shutdown(shutdown())
@@ -142,7 +154,11 @@ async fn notify(State(app): State<Arc<App>>, req: Request) -> Response {
         .get(header::CONTENT_TYPE)
         .and_then(|c| c.to_str().ok())
         .is_some_and(|c| {
-            c.split(';').next().unwrap_or("").trim().eq_ignore_ascii_case("application/x-www-form-urlencoded")
+            c.split(';')
+                .next()
+                .unwrap_or("")
+                .trim()
+                .eq_ignore_ascii_case("application/x-www-form-urlencoded")
         });
     if !is_form {
         return plain(StatusCode::BAD_REQUEST, "bad request\n");
@@ -177,7 +193,10 @@ async fn notify(State(app): State<Arc<App>>, req: Request) -> Response {
     };
     if same_site {
         let h = resp.headers_mut();
-        h.insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, origin.cloned().expect("same_site has an origin"));
+        h.insert(
+            header::ACCESS_CONTROL_ALLOW_ORIGIN,
+            origin.cloned().expect("same_site has an origin"),
+        );
         h.insert(header::VARY, HeaderValue::from_static("Origin"));
     }
     resp
@@ -243,7 +262,10 @@ fn client_ip(headers: &HeaderMap, name: &str) -> Option<IpAddr> {
 fn plain(status: StatusCode, text: &'static str) -> Response {
     let mut r = (status, Body::from(text)).into_response();
     let h = r.headers_mut();
-    h.insert(header::CONTENT_TYPE, HeaderValue::from_static("text/plain; charset=utf-8"));
+    h.insert(
+        header::CONTENT_TYPE,
+        HeaderValue::from_static("text/plain; charset=utf-8"),
+    );
     h.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
     h.insert(header::X_CONTENT_TYPE_OPTIONS, HeaderValue::from_static("nosniff"));
     r
@@ -261,6 +283,9 @@ mod tests {
         assert!(parse_form(b"email=a&email=b").is_none());
         assert!(parse_form(b"email=a&admin=1").is_none());
         // a + is a space in a form body: the address check refuses it later
-        assert_eq!(parse_form(b"email=a+b%40c.no").unwrap().email.as_deref(), Some("a b@c.no"));
+        assert_eq!(
+            parse_form(b"email=a+b%40c.no").unwrap().email.as_deref(),
+            Some("a b@c.no")
+        );
     }
 }

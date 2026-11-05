@@ -1,5 +1,6 @@
-// The site's only script: the theme toggle, the code-panel tabs and the image placeholders. Everything works without
-// it (the theme is then dark, every code panel shows stacked, images show as they load).
+// The site's only script: the theme toggle, the code-panel tabs, the image placeholders and the signup form. Everything
+// works without it (the theme is then dark, every code panel shows stacked, images show as they load, the form posts
+// and the service sends the visitor back with a message).
 (() => {
   const root = document.documentElement;
   // Dark is the default (base.html sets it); light is the visitor's choice, remembered.
@@ -62,5 +63,34 @@
     };
     img.addEventListener("load", show, { once: true });
     img.addEventListener("error", show, { once: true });
+  }
+
+  // The signup form (vh.notify): posted with fetch, the answer shown in place as the message the service would send a
+  // form without script back to. The status names it; nothing of the answer's text is shown.
+  for (const form of document.querySelectorAll("form[data-notify]")) {
+    const button = form.querySelector("button[type=submit]");
+    const show = (name) => {
+      // a message left in the address by an earlier post without script would show beside this one
+      if (location.hash.startsWith("#notify-")) history.replaceState(null, "", location.pathname + location.search);
+      form.classList.add("js-sent");
+      for (const m of form.querySelectorAll(".notify-msg")) m.classList.toggle("is-shown", m.id === `notify-${name}`);
+      document.getElementById(`notify-${name}`).focus();
+    };
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      button.disabled = true;
+      let name = "err";
+      try {
+        const r = await fetch(form.action, {
+          method: "POST",
+          body: new URLSearchParams(new FormData(form)),
+          headers: { Accept: "application/json" },
+        });
+        name = { 200: "ok", 400: "bad", 429: "wait" }[r.status] || "err";
+      } catch (err) {}
+      button.disabled = false;
+      if (name === "ok") form.reset();
+      show(name);
+    });
   }
 })();

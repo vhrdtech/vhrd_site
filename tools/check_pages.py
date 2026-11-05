@@ -36,18 +36,24 @@ Mail: no page or file has an address in it ('@vhrd.tech'); with JavaScript every
 its subject (projects@ on /services, donguru@ on /donguru and the front page, contact@ in the footer), and without
 it a mail link is plain text ("projects at vhrd.tech") and a labelled one does not show.
 A picture on its way shows as a small scope screen in its box and fades in when it comes, without a size change.
+The signup form (only against the local build, which posts to a local notify service with a store of its own): with
+JavaScript a good address shows the thanks in place and lands in the store, a refused one the error; without it the
+service sends the visitor back to the page's #notify-ok or #notify-bad, which shows; the honeypot is not on screen.
 With --shots, writes a full-page screenshot per width in dark (traces shown drawn: reduced motion).
 """
 
 import argparse
+import atexit
 import functools
 import gzip
 import html.parser
 import http.server
+import os
 import shutil
 import socket
 import subprocess
 import sys
+import tempfile
 import threading
 import tomllib
 import urllib.error
@@ -61,7 +67,7 @@ import mentions
 import samples
 
 PAGES = ["", "donguru/", "pinsmith/", "can/", "software/", "open-source/", "lab/", "work/", "services/", "about/", "shop/",
-         "no-such-page/"]
+         "privacy/", "no-such-page/"]
 WIDTHS = {"phone": 390, "tablet": 820, "desktop": 1440}
 BUDGET_KB = 200
 
@@ -163,12 +169,87 @@ def serve_build():
     base = f"http://127.0.0.1:{port}/"
     root = Path(__file__).resolve().parent.parent
     out = root / "target/check"
+    api = start_notify(root, f"http://127.0.0.1:{port}")
     subprocess.run(["zola", "build", "--base-url", base, "--output-dir", str(out), "--force"], cwd=root,
-                   check=True, stdout=subprocess.DEVNULL)
+                   check=True, stdout=subprocess.DEVNULL, env={**os.environ, "VHRD_NOTIFY_API": api})
     handler = functools.partial(Quiet, directory=str(out))
     server = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     return base, out
+
+
+NOTIFY_STORE = None
+
+
+def start_notify(root, origin):
+    """Build and start the notify service for the local build on a free port, with a store in a temp folder that goes
+    when the check ends; returns the form's endpoint."""
+    global NOTIFY_STORE
+    subprocess.run(["cargo", "build", "--quiet", "-p", "vhrd_notify_cli"], cwd=root, check=True)
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
+    tmp = tempfile.TemporaryDirectory(prefix="vhrd_notify-check-")
+    cfg = Path(tmp.name) / "notify.toml"
+    # every check posts from 127.0.0.1: a limit the check never reaches (the Rust tests cover the limit)
+    cfg.write_text(f'listen = "127.0.0.1:{port}"\nstore = "signups.tsv"\nsite_origin = "{origin}"\n'
+                   'client_ip_header = ""\nrate_limit = 1000\n')
+    NOTIFY_STORE = Path(tmp.name) / "signups.tsv"
+    proc = subprocess.Popen([root / "target/debug/vhrd_notify", "serve", "--config", cfg], stderr=subprocess.DEVNULL)
+    atexit.register(tmp.cleanup)
+    atexit.register(proc.wait)
+    atexit.register(proc.terminate)
+    for _ in range(100):
+        with socket.socket() as s:
+            if s.connect_ex(("127.0.0.1", port)) == 0:
+                break
+        proc.poll() is None or sys.exit("notify service did not start")
+        threading.Event().wait(0.05)
+    return f"http://127.0.0.1:{port}/api/notify"
+
+
+def check_notify(browser, base):
+    """The signup form with and without JavaScript, in dark and light, against the local service's store."""
+    failures = []
+    stored = lambda: NOTIFY_STORE.read_text() if NOTIFY_STORE.exists() else ""  # noqa: E731
+    cases = [  # page, JavaScript, theme, address, message expected
+        ("donguru/", True, "dark", "check-js@example.com", "ok"),
+        ("donguru/", True, "light", "nope@localhost", "bad"),
+        ("", True, "light", "check-home@example.com", "ok"),
+        ("", False, "dark", "check-nojs@example.com", "ok"),
+        ("donguru/", False, "light", "nope@localhost", "bad"),
+    ]
+    for path, js, theme, address, want in cases:
+        where = f"notify: {path or '/'} {'with' if js else 'without'} JavaScript, {theme}"
+        ctx = browser.new_context(viewport={"width": 390, "height": 844}, java_script_enabled=js,
+                                  reduced_motion="reduce")
+        if theme == "light":
+            ctx.add_init_script("try { localStorage.setItem('theme', 'light') } catch (e) {}")
+        page = ctx.new_page()
+        errors = []
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.goto(base + path)
+        hp = page.locator(".notify-hp").bounding_box()
+        if hp is None or hp["x"] + hp["width"] > 0:
+            failures.append(f"{where}: the honeypot is on screen")
+        if page.locator(".notify-msg:visible").count():
+            failures.append(f"{where}: a message shows before anything was sent")
+        page.fill("#notify-email", address)
+        page.click(".notify-form button[type=submit]")
+        msg = page.locator(f"#notify-{want}")
+        try:
+            msg.wait_for(state="visible", timeout=5000)
+        except Exception:
+            failures.append(f"{where}: #notify-{want} did not show (at {page.url})")
+        if page.locator(".notify-msg:visible").count() != 1:
+            failures.append(f"{where}: {page.locator('.notify-msg:visible').count()} messages show, expected one")
+        if not js and not page.url.startswith(base + path) or not js and not page.url.endswith(f"#notify-{want}"):
+            failures.append(f"{where}: sent back to {page.url}, expected {base + path}#notify-{want}")
+        if (want == "ok") != (f"\t{address}\t" in stored()):
+            failures.append(f"{where}: {address} {'not ' if want == 'ok' else ''}in the store")
+        failures += [f"{where}: {e}" for e in errors]
+        ctx.close()
+    return failures
 
 
 class Quiet(http.server.SimpleHTTPRequestHandler):
@@ -566,8 +647,10 @@ def check_table_contrast(browser, base):
 
 # No mail address is written into the site (vh.mail puts it together in the browser).
 ADDRESS = b"@vhrd.tech"
+# (a link in a signup form's message is hidden until that message shows, so it counts as shown)
 MAIL_LINKS = """() => [...document.querySelectorAll('a[data-mail]')].map((a) =>
-  [a.getAttribute('href'), a.textContent, a.hasAttribute('data-keep'), a.getClientRects().length > 0])"""
+  [a.getAttribute('href'), a.textContent, a.hasAttribute('data-keep'),
+   a.getClientRects().length > 0 || !!a.closest('.notify-msg')])"""
 # Mail links each page must have, as the script makes them.
 MAIL_WANTED = {
     "": ["mailto:donguru@vhrd.tech?subject=Donguru%20launch", "mailto:contact@vhrd.tech"],
@@ -906,6 +989,8 @@ def main():
         failures += check_placeholders(browser, base)
         failures += check_table_contrast(browser, base)
         failures += check_mail(browser, base, out)
+        if out is not None:
+            failures += check_notify(browser, base)
 
         # Interactions, on a desktop page in a browser that prefers light: dark all the same on a first visit (the
         # default, from the HTML, so no light flash), the toggle switches to light and remembers it, and back to dark

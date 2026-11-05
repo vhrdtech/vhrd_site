@@ -44,3 +44,6 @@ nav = [
   { name = "Services", path = "/services/" },
 ]
 notify = { name = "Get notified", path = "/donguru/#notify" }
+# The version of the signup form's consent line (vh.notify); the notify service accepts only the versions in its
+# settings (deploy/notify.toml consent_versions), so a new text gets a new version there first.
+notify_consent = "2026-11-05"

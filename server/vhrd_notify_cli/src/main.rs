@@ -7,7 +7,14 @@ use std::process::ExitCode;
 use clap::{Parser, Subcommand};
 use vhrd_notify::{Config, Email, Store, config::EXIT_CONFIG};
 
-const VERSION: &str = concat!(env!("CARGO_PKG_VERSION"), " (", env!("GIT_SHA"), ", ", env!("BUILD_TIME"), ")");
+const VERSION: &str = concat!(
+    env!("CARGO_PKG_VERSION"),
+    " (",
+    env!("GIT_SHA"),
+    ", ",
+    env!("BUILD_TIME"),
+    ")"
+);
 
 #[derive(Parser)]
 #[command(version = VERSION, about = "The e-mail signup behind vhrd.tech's Get notified forms")]
@@ -46,9 +53,10 @@ enum Cmd {
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
-    let path = cli.config.or_else(|| std::env::var_os("VHRD_NOTIFY_CONFIG").map(PathBuf::from)).unwrap_or_else(|| {
-        PathBuf::from(std::env::var_os("HOME").unwrap_or_default()).join("vhrd_notify/notify.toml")
-    });
+    let path = cli
+        .config
+        .or_else(|| std::env::var_os("VHRD_NOTIFY_CONFIG").map(PathBuf::from))
+        .unwrap_or_else(|| PathBuf::from(std::env::var_os("HOME").unwrap_or_default()).join("vhrd_notify/notify.toml"));
     let cfg = match Config::load(&path) {
         Ok(c) => c,
         Err(e) => {
@@ -70,8 +78,12 @@ fn run(cmd: Cmd, cfg: Config) -> Result<(), String> {
     let read = || store.read().map_err(|e| format!("{}: {e}", store.path().display()));
     match cmd {
         Cmd::Serve => {
-            let rt = tokio::runtime::Builder::new_multi_thread().enable_all().build().map_err(|e| e.to_string())?;
-            rt.block_on(vhrd_notify::server::serve(cfg)).map_err(|e| e.to_string())?;
+            let rt = tokio::runtime::Builder::new_multi_thread()
+                .enable_all()
+                .build()
+                .map_err(|e| e.to_string())?;
+            rt.block_on(vhrd_notify::server::serve(cfg))
+                .map_err(|e| e.to_string())?;
         }
         Cmd::List { list } => {
             for s in read()?.iter().filter(|s| list.as_ref().is_none_or(|l| *l == s.list)) {
@@ -98,7 +110,9 @@ fn run(cmd: Cmd, cfg: Config) -> Result<(), String> {
         }
         Cmd::Delete { address } => {
             let email = Email::parse(&address).map_err(|e| format!("{e}: no such address can be stored"))?;
-            let n = store.delete(&email).map_err(|e| format!("{}: {e}", store.path().display()))?;
+            let n = store
+                .delete(&email)
+                .map_err(|e| format!("{}: {e}", store.path().display()))?;
             println!("{email}: {n} signup(s) deleted");
         }
     }

@@ -14,13 +14,19 @@ address, never 0.0.0.0: these PCs sit on public wifi too. zola's live reload run
 as the page (checked against zola 0.23.6), so nothing else needs to be reachable.
 
 When Tailscale is down, falls back to 127.0.0.1 with a clear message: reachable only on this PC.
+
+The signup forms post to a local notify service (README "Notify service"): it is built with cargo and started on the
+next free port of the same address, with its own settings and store in target/notify-dev/, and the site is told
+where it is through VHRD_NOTIFY_API. It stops with the site. Without cargo the forms have nowhere to post.
 """
 
 import json
 import os
+import signal
 import socket
 import subprocess
 import sys
+from pathlib import Path
 
 START_PORT = 1111
 MAX_ATTEMPTS = 200
@@ -47,9 +53,11 @@ def tailscale_host():
     return bind_ip, display
 
 
-def free_port(interface, requested=None):
+def free_port(interface, requested=None, skip=()):
     candidates = [requested] if requested else range(START_PORT, START_PORT + MAX_ATTEMPTS)
     for port in candidates:
+        if port in skip:
+            continue
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
                 s.bind((interface, port))
@@ -69,10 +77,47 @@ def main():
         bind_ip = display = "127.0.0.1"
 
     port = free_port(bind_ip, requested)
+    service = notify_service(bind_ip, display, port)
     print(f"serve: open http://{display}:{port}/")
     sys.stdout.flush()
 
-    os.execvp("zola", ["zola", "serve", "--interface", bind_ip, "--port", str(port), "--base-url", display])
+    zola = ["zola", "serve", "--interface", bind_ip, "--port", str(port), "--base-url", display]
+    if service is None:
+        os.execvp("zola", zola)
+    # zola and the service end together: Ctrl-C reaches both, a SIGTERM to this script is passed on
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+    try:
+        sys.exit(subprocess.call(zola))
+    except KeyboardInterrupt:
+        pass
+    finally:
+        service.terminate()
+        service.wait()
+
+
+def notify_service(bind_ip, display, site_port):
+    """Build and start the notify service on the next free port beside the site; None without cargo."""
+    root = Path(__file__).resolve().parent.parent
+    try:
+        build = subprocess.run(["cargo", "build", "--quiet", "-p", "vhrd_notify_cli"], cwd=root)
+    except OSError:
+        print("serve: no cargo, the signup forms have nowhere to post", file=sys.stderr)
+        return None
+    if build.returncode != 0:
+        sys.exit("serve: the notify service did not build")
+    port = free_port(bind_ip, skip={site_port})
+    dev = root / "target" / "notify-dev"
+    dev.mkdir(parents=True, exist_ok=True)
+    # a local instance: the site's own origin, no proxy in front, a store of its own
+    (dev / "notify.toml").write_text(
+        f'listen = "{bind_ip}:{port}"\nstore = "signups.tsv"\nsite_origin = "http://{display}:{site_port}"\n'
+        'client_ip_header = ""\n'
+    )
+    os.environ["VHRD_NOTIFY_API"] = f"http://{display}:{port}/api/notify"
+    exe = root / "target" / "debug" / "vhrd_notify"
+    service = subprocess.Popen([exe, "serve", "--config", dev / "notify.toml"])
+    print(f"serve: notify service on port {port}, signups in {dev / 'signups.tsv'} (vhrd_notify list --config {dev / 'notify.toml'})")
+    return service
 
 
 if __name__ == "__main__":

@@ -21,7 +21,8 @@ use crate::email::Email;
 pub fn is_token(s: &str) -> bool {
     !s.is_empty()
         && s.len() <= 32
-        && s.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
+        && s.bytes()
+            .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'-')
 }
 
 /// One line of the store.
@@ -72,7 +73,10 @@ impl Store {
         let path = path.into();
         let mut lock = path.clone().into_os_string();
         lock.push(".lock");
-        Store { path, lock: lock.into() }
+        Store {
+            path,
+            lock: lock.into(),
+        }
     }
 
     pub fn path(&self) -> &Path {
@@ -80,7 +84,11 @@ impl Store {
     }
 
     fn locked(&self) -> io::Result<Guard> {
-        let f = OpenOptions::new().create(true).truncate(false).write(true).open(&self.lock)?;
+        let f = OpenOptions::new()
+            .create(true)
+            .truncate(false)
+            .write(true)
+            .open(&self.lock)?;
         f.lock()?;
         Ok(Guard(f))
     }
@@ -116,7 +124,10 @@ impl Store {
     /// the line is on disk.
     pub fn add(&self, email: &Email, list: &str, consent: &str, time: &str, max: usize) -> io::Result<Added> {
         if !is_token(list) || !is_token(consent) {
-            return Err(io::Error::new(io::ErrorKind::InvalidInput, "list or consent is not a plain token"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "list or consent is not a plain token",
+            ));
         }
         let _g = self.locked()?;
         let all = self.read_unlocked()?;
@@ -169,7 +180,10 @@ impl Store {
 
 /// fsync the folder, so a new or renamed file's entry survives a crash too.
 fn sync_dir(path: &Path) -> io::Result<()> {
-    let dir = path.parent().filter(|p| !p.as_os_str().is_empty()).unwrap_or(Path::new("."));
+    let dir = path
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
     File::open(dir)?.sync_all()
 }
 
@@ -193,8 +207,14 @@ mod tests {
     fn add_keeps_duplicates_out() {
         let (dir, st) = temp_store("dup");
         let t = "2026-11-05T14:03:09Z";
-        assert_eq!(st.add(&e("a@b.no"), "donguru", "2026-11-05", t, 10).unwrap(), Added::New);
-        assert_eq!(st.add(&e("A@B.no"), "donguru", "2026-11-05", t, 10).unwrap(), Added::Duplicate);
+        assert_eq!(
+            st.add(&e("a@b.no"), "donguru", "2026-11-05", t, 10).unwrap(),
+            Added::New
+        );
+        assert_eq!(
+            st.add(&e("A@B.no"), "donguru", "2026-11-05", t, 10).unwrap(),
+            Added::Duplicate
+        );
         assert_eq!(st.add(&e("a@b.no"), "other", "2026-11-05", t, 10).unwrap(), Added::New);
         let text = fs::read_to_string(st.path()).unwrap();
         assert_eq!(

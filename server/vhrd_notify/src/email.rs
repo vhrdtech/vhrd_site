@@ -76,8 +76,7 @@ impl Email {
             return Err(Invalid::LocalPart);
         }
         let labels: Vec<&str> = domain.split('.').collect();
-        let label_ok =
-            |l: &&str| !l.is_empty() && l.len() <= MAX_LABEL && !l.starts_with('-') && !l.ends_with('-');
+        let label_ok = |l: &&str| !l.is_empty() && l.len() <= MAX_LABEL && !l.starts_with('-') && !l.ends_with('-');
         let tld = labels.last().copied().unwrap_or("");
         if labels.len() < 2
             || !labels.iter().all(label_ok)
@@ -121,7 +120,10 @@ mod tests {
 
     #[test]
     fn kept_in_lower_case() {
-        assert_eq!(Email::parse("Roman@VHRD.Example").unwrap().as_str(), "roman@vhrd.example");
+        assert_eq!(
+            Email::parse("Roman@VHRD.Example").unwrap().as_str(),
+            "roman@vhrd.example"
+        );
     }
 
     #[test]
