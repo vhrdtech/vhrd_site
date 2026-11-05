@@ -205,7 +205,7 @@ just renders --variants  # only the missing web widths, from the PNG sources (no
 3. It prints the URL to open: `http://<MagicDNS name or IP>:<port>/`. zola's live reload runs its websocket on that same port, so nothing beyond the one port needs to be reachable.
 4. No firewall change is needed on these PCs: Tailscale traffic is already let through.
 
-A session starts it with `run_in_background`, reads the printed URL from the task output for its parent, and stops the task before `tpm work ready` — `just serve` never ends on its own.
+A session starts it with `run_in_background`, reads the printed URL from the task output for its parent, and leaves it running past `tpm work ready`, so the preview link still works afterwards — `just serve` never ends on its own. `tpm work done` stops it when the session folder closes.
 
 ### Preview
 
