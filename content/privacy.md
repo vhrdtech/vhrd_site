@@ -20,16 +20,22 @@ This site is run by VHRD.TECH AS, Asker, Norway. Questions about your data go to
 
 ## The signup list
 
-When you leave your address in a "Get notified" form for [Donguru](@/donguru.md), we keep:
+When you leave your address in a "Get notified" form for [Donguru](@/donguru.md), we send it one mail with a button to confirm it. The address goes on the list only when you press that button: you give your consent there, not by sending the form. We keep:
 
 - your e-mail address;
 - the list you signed up for;
 - the time you signed up;
-- which version of the text next to the form you saw (this one is 2026-11-05).
+- which version of the text next to the form you saw (this one is 2026-11-06);
+- the time you confirmed;
+- how many mails we sent to it, and when the last one went out.
 
-**Why:** to send you one mail when the Donguru campaign opens. We use the address for nothing else, and we do not give or sell it to anyone. You agree to this by sending the form, and you can take it back at any time.
+**Why:** to send you one mail when the Donguru campaign opens. We use the address for nothing else, and we do not give or sell it to anyone. You can take your consent back at any time.
 
-**Where:** in a plain file on the web server we rent in Lithuania, outside the site's public folders.
+**Not confirmed:** an address nobody confirms is deleted after 7 days.
+
+**Removing it:** every mail from us has a link that removes you. Its button deletes the address from the list at once.
+
+**Where:** in a plain file on the web server we rent in Lithuania, outside the site's public folders. The mails go out through our own mail server, mail.vhrd.tech.
 
 **How long:** until the campaign has opened and the mail has gone out, then we delete the list within three months.
 
@@ -37,4 +43,4 @@ When you leave your address in a "Get notified" form for [Donguru](@/donguru.md)
 
 ## Your rights
 
-You can ask what we keep about you, have it corrected, or have it deleted. To be removed from the list, reply to our mail or write to {{ <vh.mail to="donguru" subject="Remove me" /> }}. If you think we handle your data wrongly, you can complain to the Norwegian Data Protection Authority, Datatilsynet.
+You can ask what we keep about you, have it corrected, or have it deleted. To be removed from the list, use the link in any of our mails, reply to it or write to {{ <vh.mail to="donguru" subject="Remove me" /> }}. If you think we handle your data wrongly, you can complain to the Norwegian Data Protection Authority, Datatilsynet.

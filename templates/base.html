@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ doc_title }}</title>
 <meta name="description" content="{{ doc_desc }}">
-{%- if noindex %}
+{%- if noindex or this and this.extra.noindex | default(value=false) %}
 <meta name="robots" content="noindex, nofollow">
 {%- else %}
 <link rel="canonical" href="{{ current_url | safe }}">

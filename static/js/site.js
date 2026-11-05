@@ -1,4 +1,4 @@
-// The site's only script: the theme toggle, the code-panel tabs, the image placeholders and the signup form. Everything
+// The site's only script: the theme toggle, the code-panel tabs, the image placeholders and the notify forms. Everything
 // works without it (the theme is then dark, every code panel shows stacked, images show as they load, the form posts
 // and the service sends the visitor back with a message).
 (() => {
@@ -65,13 +65,19 @@
     img.addEventListener("error", show, { once: true });
   }
 
-  // The signup form (vh.notify): posted with fetch, the answer shown in place as the message the service would send a
-  // form without script back to. The status names it; nothing of the answer's text is shown.
-  for (const form of document.querySelectorAll("form[data-notify]")) {
+  // The signup form (vh.notify) and the mail links' button (notify-link.html): posted with fetch, the answer shown in
+  // place as the message the service would send a form without script back to. The status names it; nothing of the
+  // answer's text is shown.
+  for (const form of document.querySelectorAll("form[data-notify], form[data-notify-link]")) {
+    const link = form.hasAttribute("data-notify-link");
+    const names = link ? { 200: "done", 404: "gone", 429: "wait" } : { 200: "ok", 400: "bad", 429: "wait" };
     const button = form.querySelector("button[type=submit]");
     const show = (name) => {
-      // a message left in the address by an earlier post without script would show beside this one
-      if (location.hash.startsWith("#notify-")) history.replaceState(null, "", location.pathname + location.search);
+      // a message left in the address by an earlier post without script would show beside this one; on a link's
+      // page the token goes from the address too once it is used
+      if (location.hash.startsWith("#notify-") || (link && name !== "wait" && name !== "err")) {
+        history.replaceState(null, "", location.pathname + location.search);
+      }
       form.classList.add("js-sent");
       for (const m of form.querySelectorAll(".notify-msg")) m.classList.toggle("is-shown", m.id === `notify-${name}`);
       document.getElementById(`notify-${name}`).focus();
@@ -86,10 +92,11 @@
           body: new URLSearchParams(new FormData(form)),
           headers: { Accept: "application/json" },
         });
-        name = { 200: "ok", 400: "bad", 429: "wait" }[r.status] || "err";
+        name = names[r.status] || "err";
       } catch (err) {}
       button.disabled = false;
       if (name === "ok") form.reset();
+      if (name === "done" || name === "gone") form.classList.add("is-finished");
       show(name);
     });
   }

@@ -42,6 +42,9 @@ service sends the visitor back to the page's #notify-ok or #notify-bad, which sh
 CSS: a page inlines the styles of the intro, the open-source stack or the terminal captures exactly when it shows
 them, and the CSS every page carries stays under SHARED_CSS_KB (Firefox's first paint of a page, AGENTS.md
 "Performance").
+The mail links' pages /notify/confirm/ and /notify/remove/ (also only against the local build, the service's answers
+stubbed): the token after '#' fills the form, each answer shows its message; without JavaScript the token field shows.
+They are the orphan rule's exception: noindex, out of the site map, and only our mail links to them.
 With --shots, writes a full-page screenshot per width in dark (traces shown drawn: reduced motion).
 """
 
@@ -71,7 +74,10 @@ import mentions
 import samples
 
 PAGES = ["", "donguru/", "pinsmith/", "can/", "software/", "open-source/", "lab/", "work/", "services/", "about/", "shop/",
-         "privacy/", "faq/", "no-such-page/"]
+         "privacy/", "faq/", "notify/confirm/", "notify/remove/", "no-such-page/"]
+# Pages only our mail links to (NOTIFY-4 double-opt-in): the exception to the orphan rule. Each must answer 200, say
+# noindex and stay out of the site map; their own links are checked like those of a page reached.
+MAIL_ONLY = ["notify/confirm/", "notify/remove/"]
 WIDTHS = {"phone": 390, "tablet": 820, "desktop": 1440}
 BUDGET_KB = 200
 # The CSS every page carries inline (fonts.css, the brand files, site.css): Firefox matches it against the whole page
@@ -201,7 +207,9 @@ def start_notify(root, origin):
     tmp = tempfile.TemporaryDirectory(prefix="vhrd_notify-check-")
     cfg = Path(tmp.name) / "notify.toml"
     # every check posts from 127.0.0.1: a limit the check never reaches (the Rust tests cover the limit)
+    consent = tomllib.loads((root / "config.toml").read_text())["extra"]["notify_consent"]
     cfg.write_text(f'listen = "127.0.0.1:{port}"\nstore = "signups.tsv"\nsite_origin = "{origin}"\n'
+                   f'consent_versions = ["{consent}"]\n'
                    'client_ip_header = ""\nrate_limit = 1000\nrate_limit_network = 1000\n')
     NOTIFY_STORE = Path(tmp.name) / "signups.tsv"
     proc = subprocess.Popen([root / "target/debug/vhrd_notify", "serve", "--config", cfg], stderr=subprocess.DEVNULL)
@@ -259,6 +267,58 @@ def check_notify(browser, base):
         if (want == "ok") != (f"\t{address}\t" in stored()):
             failures.append(f"{where}: {address} {'not ' if want == 'ok' else ''}in the store")
         failures += [f"{where}: {e}" for e in errors]
+        ctx.close()
+    return failures
+
+
+def check_notify_links(browser, base):
+    """The mail links' pages (NOTIFY-4 double-opt-in), with the service's answers stubbed: with JavaScript the token
+    after '#' fills the form's field, which hides, and the button's answer shows in place (200 done, 404 gone, 429
+    wait, 503 err) with the token gone from the address; without it the field shows, and a #notify-done or -gone
+    shows its message without the button."""
+    failures = []
+    token = "AQ" + "x" * 42
+    for path in MAIL_ONLY:
+        for status, want in [(200, "done"), (404, "gone"), (429, "wait"), (503, "err")]:
+            where = f"notify link: {path} with JavaScript, answer {status}"
+            ctx = browser.new_context(viewport={"width": 390, "height": 844}, reduced_motion="reduce")
+            page = ctx.new_page()
+            posted = []
+
+            def answer(route, request, status=status):
+                posted.append(request.post_data or "")
+                # the local build posts to another port: the answer allows that, as the local service does
+                route.fulfill(status=status, body="{}", content_type="application/json",
+                              headers={"Access-Control-Allow-Origin": "*"})
+            page.route("**/api/notify/**", answer)
+            page.goto(f"{base}{path}#{token}")
+            if page.locator("#notify-token").is_visible() or page.input_value("#notify-token") != token:
+                failures.append(f"{where}: the token field shows, or does not hold the token")
+            page.click(".notify-link button[type=submit]")
+            try:
+                page.locator(f"#notify-{want}").wait_for(state="visible", timeout=5000)
+            except Exception:
+                failures.append(f"{where}: #notify-{want} did not show")
+            if page.locator(".notify-msg:visible").count() != 1:
+                failures.append(f"{where}: {page.locator('.notify-msg:visible').count()} messages show, expected one")
+            action = path.split("/")[1]
+            if posted != [f"from={action}&token={token}"]:
+                failures.append(f"{where}: posted {posted}, expected from={action}&token=...")
+            finished = want in ("done", "gone")
+            if page.locator(".notify-link button").is_visible() == finished:
+                failures.append(f"{where}: the button {'still shows' if finished else 'went'}")
+            if finished and token in page.url:
+                failures.append(f"{where}: the token stayed in the address")
+            ctx.close()
+        ctx = browser.new_context(viewport={"width": 390, "height": 844}, java_script_enabled=False)
+        page = ctx.new_page()
+        page.goto(base + path)
+        if not page.locator("#notify-token").is_visible() or page.locator(".notify-msg:visible").count():
+            failures.append(f"notify link: {path} without JavaScript: no token field, or a message before a post")
+        for hash, button in [("notify-done", False), ("notify-gone", False), ("notify-wait", True), ("notify-err", True)]:
+            page.goto(f"{base}{path}#{hash}")
+            if not page.locator(f"#{hash}").is_visible() or page.locator(".notify-link button").is_visible() != button:
+                failures.append(f"notify link: {path}#{hash} without JavaScript: the message or the button is wrong")
         ctx.close()
     return failures
 
@@ -772,6 +832,15 @@ def check_links(base):
     opener = urllib.request.build_opener(NoRedirect)
     host, root = urlsplit(base).netloc, urlsplit(base).path
     seen, files, todo = {base}, set(), [base]
+    mail_only = [base + p for p in MAIL_ONLY]
+    for url in mail_only:
+        status, body = fetch(opener, url)
+        if status != 200:
+            failures.append(f"links: {urlsplit(url).path}: HTTP {status}, expected 200")
+        if b'<meta name="robots" content="noindex' not in body:
+            failures.append(f"links: {urlsplit(url).path} has no noindex")
+    seen.update(mail_only)
+    todo += mail_only
     while todo:
         page = todo.pop()
         status, body = fetch(opener, page)
@@ -813,9 +882,12 @@ def check_links(base):
     if status != 200 or not pages:
         failures.append(f"links: no site map (HTTP {status})")
     for url in pages:
-        if url not in seen:
+        if url in mail_only:
+            failures.append(f"links: {urlsplit(url).path} is in the site map, but only our mail links to it")
+        elif url not in seen:
             failures.append(f"links: {urlsplit(url).path} is in the site map but no link leads there from the front page")
-    print(f"links: {len(seen)} pages and {len(files)} files reached from the front page, {len(pages)} in the site map")
+    print(f"links: {len(seen) - len(mail_only)} pages and {len(files)} files reached from the front page, "
+          f"{len(mail_only)} only from our mail, {len(pages)} in the site map")
     return failures
 
 
@@ -1032,6 +1104,7 @@ def main():
         failures += check_mail(browser, base, out)
         if out is not None:
             failures += check_notify(browser, base)
+            failures += check_notify_links(browser, base)
 
         # Interactions, on a desktop page in a browser that prefers light: dark all the same on a first visit (the
         # default, from the HTML, so no light flash), the toggle switches to light and remembers it, and back to dark

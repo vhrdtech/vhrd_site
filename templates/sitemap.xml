@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+{#- Zola's site map, without the pages that set extra.noindex (the mail links' pages, NOTIFY-4 double-opt-in). -#}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{%- for entry in entries %}
+{%- if not entry.extra.noindex | default(value=false) %}
+    <url>
+        <loc>{{ entry.permalink | escape_xml | safe }}</loc>
+        {%- if entry.updated %}
+        <lastmod>{{ entry.updated }}</lastmod>
+        {%- endif %}
+    </url>
+{%- endif %}
+{%- endfor %}
+</urlset>

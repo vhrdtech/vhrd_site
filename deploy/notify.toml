@@ -7,7 +7,7 @@ listen = "127.0.0.1:8471"
 store = "signups.tsv"
 lists = ["donguru"]
 # the site's extra.notify_consent; a new consent text adds its version here first
-consent_versions = ["2026-11-05"]
+consent_versions = ["2026-11-05", "2026-11-06"]
 site_origin = "https://vhrd.tech"
 pages = [
   { name = "donguru", path = "/donguru/" },

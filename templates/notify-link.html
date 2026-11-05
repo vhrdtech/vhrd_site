@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{#- The pages the notify service's mail links open (NOTIFY-4 double-opt-in): /notify/confirm/ and /notify/remove/,
+    with the token after the '#'. A browser never sends the fragment, so the token is in no request until the button
+    posts it. The inline script below copies it into the form's token field and hides that field; without JavaScript
+    the field shows and asks for the part of the link after '#'. With site.js the form posts with fetch and shows the
+    answer in place; without it the service sends the visitor back here to #notify-done, -gone, -wait or -err, which
+    CSS shows with :target. `extra.action` is "confirm" or "remove". -#}
+{% block content %}
+{%- set action = page.extra.action %}
+<article class="section page">
+  {{ <vh.label text={page.extra.label} /> }}
+  <h1 class="v-hero">{{ page.extra.headline }}</h1>
+  <div class="prose">{{ page.content | safe }}</div>
+  <form class="notify-form notify-link" action="{{ get_env(name='VHRD_NOTIFY_API', default=get_url(path='api/notify')) }}/{{ action }}" method="post" data-notify-link>
+  <input type="hidden" name="from" value="{{ action }}">
+  <div class="notify-act">
+  <p class="notify-paste"><label class="v-label notify-label" for="notify-token">The code from your mail</label>
+  <span class="notify-hint">Paste the part of the link after the <code>#</code>.</span>
+  <input class="notify-input" id="notify-token" name="token" required maxlength="200" pattern="[A-Za-z0-9_\-]+" autocomplete="off" autocapitalize="off" spellcheck="false"></p>
+  <button class="v-btn v-primary" type="submit">{{ page.extra.button }}</button>
+  </div>
+  <p class="notify-msg notify-ok" id="notify-done" role="status" tabindex="-1">{{ page.extra.done | safe }}</p>
+  <p class="notify-msg notify-bad" id="notify-gone" role="alert" tabindex="-1">This link is old or was used. <a href="{{ get_url(path='/donguru/', trailing_slash=true) }}#notify">Sign up again on the Donguru page</a></p>
+  <p class="notify-msg notify-bad" id="notify-wait" role="alert" tabindex="-1">Too many tries from your connection. Try again in an hour.</p>
+  <p class="notify-msg notify-bad" id="notify-err" role="alert" tabindex="-1">That did not work: the server had a problem. Try again later, or write to {{ <vh.mail to="donguru" subject="Donguru launch" /> }}.</p>
+  </form>
+  {#- The token from the address, without the '#'; a #notify-... is the service's answer, not a token. -#}
+  <script>(()=>{const t=location.hash.slice(1),f=document.getElementById("notify-token");if(t&&!t.startsWith("notify-")){f.value=t;f.closest(".notify-paste").hidden=true}})()</script>
+  <p class="v-muted notify-fallback"><a href="{{ get_url(path='/privacy/', trailing_slash=true) }}#the-signup-list">How your address is kept</a></p>
+</article>
+{{ <vh.trace sig={page.extra.sig} from={8} to={50} /> }}
+{% endblock content %}

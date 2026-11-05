@@ -185,8 +185,8 @@
 <input class="notify-input" id="notify-email" type="email" name="email" required maxlength="254" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="you@example.com">
 <button class="v-btn v-primary" type="submit">{{ button }}</button>
 </div>
-<p class="notify-consent">We send you one mail when the Donguru campaign opens, and nothing else. Reply, or write to {{ <vh.mail to="donguru" subject="Donguru launch" /> }}, to be removed. <a href="{{ get_url(path='/privacy/', trailing_slash=true) }}">How we keep your address</a></p>
-<p class="notify-msg notify-ok" id="notify-ok" role="status" tabindex="-1"><strong>You are on the list.</strong> We send you one mail when the campaign opens.</p>
+<p class="notify-consent">First a mail to confirm the address, then one mail when the Donguru campaign opens, and nothing else. Every mail has a link that removes you. <a href="{{ get_url(path='/privacy/', trailing_slash=true) }}">How your address is kept</a></p>
+<p class="notify-msg notify-ok" id="notify-ok" role="status" tabindex="-1"><strong>Check your mail.</strong> If the address is new, a mail to confirm it is on its way. Nothing goes on the list until you press its button.</p>
 <p class="notify-msg notify-bad" id="notify-bad" role="alert" tabindex="-1">That address does not look right. Check it and try again: plain letters, digits and <code>. _ + -</code>, one @.</p>
 <p class="notify-msg notify-bad" id="notify-wait" role="alert" tabindex="-1">Too many tries from your connection. Try again in an hour, or write to {{ <vh.mail to="donguru" subject="Donguru launch" /> }}.</p>
 <p class="notify-msg notify-bad" id="notify-err" role="alert" tabindex="-1">Your address was not saved: something went wrong on our side. Try again later, or write to {{ <vh.mail to="donguru" subject="Donguru launch" /> }}.</p>
