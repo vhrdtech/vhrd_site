@@ -388,3 +388,83 @@ async fn a_refused_login_costs_no_mail_a_try() {
     assert!(got.lock().unwrap().is_empty());
     std::fs::remove_dir_all(dir).unwrap();
 }
+
+/// The launch: queued by `vhrd_notify send` (here through the library), sent by the worker with the RFC 8058
+/// headers, and the one-click URL in them removes the address.
+#[tokio::test]
+async fn a_launch_mail_carries_the_one_click_unsubscribe() {
+    let dir = temp_dir();
+    let (smtp_port, got, _) = smtp(Mode::Take).await;
+    let (addr, cfg) = service(&dir, smtp_port).await;
+    assert!(signup(addr, "fan@example.com").await.starts_with("HTTP/1.1 200"));
+    until("the confirmation mail", || got.lock().unwrap().len() == 1).await;
+    let confirm = token_after(&got.lock().unwrap()[0].data, "https://vhrd.tech/notify/confirm/#");
+    let r = http(
+        addr,
+        "POST",
+        "/api/notify/confirm",
+        &[FORM, JSON],
+        &format!("token={confirm}&from=confirm"),
+    )
+    .await;
+    assert!(r.starts_with("HTTP/1.1 200"), "{r}");
+
+    let text = vhrd_notify::outbox::list_text_path(&cfg.store, "launch-1");
+    std::fs::write(
+        &text,
+        "Donguru is live\nIt's here: https://vhrd.tech/donguru/\n\nLeave the list: {remove}\n",
+    )
+    .unwrap();
+    let rules = cfg.rules();
+    Store::new(&cfg.store)
+        .transact(|intake, st| {
+            vhrd_notify::list::fold(&mut st.records, intake, &rules, vhrd_notify::store::Id::random)?;
+            let n = vhrd_notify::list::queue_launch(&mut st.records, "donguru", "launch-1", None, 0);
+            Ok((true, n))
+        })
+        .unwrap();
+    // a signup wakes the worker
+    assert!(signup(addr, "next@example.com").await.starts_with("HTTP/1.1 200"));
+    until("the launch mail", || {
+        got.lock()
+            .unwrap()
+            .iter()
+            .any(|g| g.data.contains("Subject: Donguru is live"))
+    })
+    .await;
+    let launch = got
+        .lock()
+        .unwrap()
+        .iter()
+        .find(|g| g.data.contains("Subject: Donguru is live"))
+        .unwrap()
+        .clone();
+    assert_eq!(launch.to, "fan@example.com");
+    let data = launch.data.replace("\r\n ", " ");
+    assert!(
+        data.contains("List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n"),
+        "{data}"
+    );
+    let t = token_after(&data, "List-Unsubscribe: <https://vhrd.tech/api/notify/unsubscribe?t=");
+    assert!(
+        data.contains(&format!("Leave the list: https://vhrd.tech/notify/remove/#{t}")),
+        "{data}"
+    );
+    until("the launch booked", || {
+        records(&cfg)
+            .iter()
+            .any(|r| r.email.as_str() == "fan@example.com" && r.outbox.is_none() && r.mails == 2)
+    })
+    .await;
+    let r = http(
+        addr,
+        "POST",
+        &format!("/api/notify/unsubscribe?t={t}"),
+        &[FORM],
+        "List-Unsubscribe=One-Click",
+    )
+    .await;
+    assert!(r.starts_with("HTTP/1.1 200"), "{r}");
+    assert!(records(&cfg).iter().all(|r| r.email.as_str() != "fan@example.com"));
+    std::fs::remove_dir_all(dir).unwrap();
+}

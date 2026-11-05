@@ -171,6 +171,16 @@ impl Mailer {
         self.compose(to, subject, body, &[("Auto-Submitted", "auto-generated".into())])
     }
 
+    /// The fixed mail of `vhrd_notify mail-test`: no links, nothing from any record.
+    pub fn test_mail(&self, to: &Email) -> Result<Vec<u8>, String> {
+        self.compose(
+            to,
+            "vhrd_notify mail test",
+            "This is a test of the mail from vhrd.tech's signup service. Nothing to do.\n",
+            &[("Auto-Submitted", "auto-generated".into())],
+        )
+    }
+
     /// A list mail, with the remove link filled in and the one-click unsubscribe headers.
     pub fn list_mail(&self, to: &Email, subject: &str, text: &str, links: &Links) -> Result<Vec<u8>, String> {
         let body = fill(text, links);

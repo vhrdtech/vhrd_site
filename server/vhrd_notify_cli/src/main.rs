@@ -46,6 +46,28 @@ enum Cmd {
         #[arg(long)]
         list: Option<String>,
     },
+    /// Queue a list mail (the launch) for every confirmed address of a list; the service sends it, with the
+    /// one-click unsubscribe headers
+    Send {
+        #[arg(long)]
+        list: String,
+        /// A short name for this mail (a-z, 0-9, -), kept with its text beside the store
+        #[arg(long)]
+        name: String,
+        #[arg(long)]
+        subject: String,
+        /// The text, UTF-8; it must hold {remove}, the address's remove link
+        #[arg(long)]
+        text: PathBuf,
+        /// Only to this address, which must be confirmed on the list (try it on yourself first)
+        #[arg(long)]
+        test: Option<String>,
+        /// Queue it for everyone; without this, only say how many it would reach
+        #[arg(long)]
+        yes: bool,
+    },
+    /// Send one fixed test mail to ADDRESS now, outside the outbox, with the settings' [mail]
+    MailTest { address: String },
     /// Remove an address from every list (a removal request)
     Delete {
         /// The address, as the person wrote it (case does not matter)
@@ -152,6 +174,88 @@ fn run(cmd: Cmd, cfg: Config) -> Result<(), String> {
                     opt(r.confirmed)
                 );
             }
+        }
+        Cmd::Send {
+            list: l,
+            name,
+            subject,
+            text,
+            test,
+            yes,
+        } => {
+            if !cfg.lists.contains(&l) || !vhrd_notify::store::is_token(&name) {
+                return Err("--list: one of the settings' lists; --name: a-z, 0-9 and -, up to 32".into());
+            }
+            if subject.is_empty() || subject.len() > 200 || subject.chars().any(char::is_control) {
+                return Err("--subject: one line of up to 200 characters".into());
+            }
+            let body = std::fs::read_to_string(&text).map_err(|e| format!("{}: {e}", text.display()))?;
+            if !body.contains("{remove}") {
+                return Err(format!(
+                    "{}: the text must hold {{remove}}, the remove link",
+                    text.display()
+                ));
+            }
+            let only = test
+                .map(|a| Email::parse(&a).map_err(|e| format!("--test: {e}")))
+                .transpose()?;
+            let reach = read()?
+                .iter()
+                .filter(|r| r.list == l && r.status == Status::Confirmed && only.as_ref().is_none_or(|e| r.email == *e))
+                .count();
+            if only.is_some() && reach == 0 {
+                return Err("--test: that address is not confirmed on this list".into());
+            }
+            if only.is_none() && !yes {
+                println!("{l}: this mail would go to {reach} confirmed address(es); add --yes to queue it");
+                return Ok(());
+            }
+            let path = vhrd_notify::outbox::list_text_path(&cfg.store, &name);
+            let content = format!("{subject}\n{body}");
+            match std::fs::read_to_string(&path) {
+                Ok(old) if old != content => {
+                    return Err(format!(
+                        "{}: a mail of that name with another text exists; pick a new --name",
+                        path.display()
+                    ));
+                }
+                Ok(_) => {}
+                Err(_) => {
+                    use std::io::Write;
+                    use std::os::unix::fs::OpenOptionsExt;
+                    let mut f = std::fs::OpenOptions::new()
+                        .write(true)
+                        .create_new(true)
+                        .mode(0o600)
+                        .open(&path)
+                        .map_err(|e| format!("{}: {e}", path.display()))?;
+                    f.write_all(content.as_bytes())
+                        .and_then(|()| f.sync_all())
+                        .map_err(|e| format!("{}: {e}", path.display()))?;
+                }
+            }
+            let now = utc::now_secs();
+            let (queued, busy) = store
+                .transact(|intake, st| {
+                    list::fold(&mut st.records, intake, &rules, vhrd_notify::store::Id::random)?;
+                    let n = list::queue_launch(&mut st.records, &l, &name, only.as_ref(), now);
+                    Ok((n.0 > 0, n))
+                })
+                .map_err(err)?;
+            println!("{l}: {queued} queued, {busy} still waiting for an earlier mail; the service sends them");
+        }
+        Cmd::MailTest { address } => {
+            let to = Email::parse(&address).map_err(|e| e.to_string())?;
+            let m = cfg.mail.as_ref().ok_or("no [mail] in the settings")?;
+            let mailer = vhrd_notify::mail::Mailer::new(m)?;
+            let msg = mailer.test_mail(&to)?;
+            let rt = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .map_err(|e| e.to_string())?;
+            rt.block_on(mailer.send(&to, &msg))
+                .map_err(|e| format!("not sent: {e:?}"))?;
+            println!("sent; check the inbox (and the spam folder)");
         }
         Cmd::Delete { address } => {
             let email = Email::parse(&address).map_err(|e| format!("{e}: no such address can be stored"))?;

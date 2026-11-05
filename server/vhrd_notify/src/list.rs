@@ -223,13 +223,13 @@ pub fn sent(records: &mut Vec<Record>, id: Id, outbox: &Outbox, how: Sent, rules
     }
 }
 
-/// Queues the list mail `name` for every confirmed record of `list`. Returns how many were queued and how many
-/// were left out because a mail is still waiting for them.
-pub fn queue_launch(records: &mut [Record], list: &str, name: &str, now: i64) -> (usize, usize) {
+/// Queues the list mail `name` for every confirmed record of `list` (only `only`'s, when given). Returns how many
+/// were queued and how many were left out because a mail is still waiting for them.
+pub fn queue_launch(records: &mut [Record], list: &str, name: &str, only: Option<&Email>, now: i64) -> (usize, usize) {
     let (mut queued, mut busy) = (0, 0);
     for r in records
         .iter_mut()
-        .filter(|r| r.list == list && r.status == Status::Confirmed)
+        .filter(|r| r.list == list && r.status == Status::Confirmed && only.is_none_or(|e| r.email == *e))
     {
         if r.outbox.is_some() {
             busy += 1;
@@ -418,8 +418,11 @@ mod tests {
         confirm(&mut rs, a, 2);
         // c confirmed while its mail is still due for a retry: the confirm clears it
         confirm(&mut rs, c, 2);
-        assert_eq!(queue_launch(&mut rs, "donguru", "launch-1", 10), (2, 0));
-        assert_eq!(queue_launch(&mut rs, "donguru", "launch-2", 11), (0, 2));
+        let only = Email::parse("c@b.no").unwrap();
+        assert_eq!(queue_launch(&mut rs, "donguru", "test", Some(&only), 9), (1, 0));
+        rs[1].outbox = None;
+        assert_eq!(queue_launch(&mut rs, "donguru", "launch-1", None, 10), (2, 0));
+        assert_eq!(queue_launch(&mut rs, "donguru", "launch-2", None, 11), (0, 2));
         let due: Vec<Id> = due(&rs, 10)
             .into_iter()
             .filter(|(_, o)| *o != Outbox::Confirm)
