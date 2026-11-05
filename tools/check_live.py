@@ -12,7 +12,8 @@ Standard library only: the deploy workflow runs it with the runner's python3, wi
 - no top-level name is a WordPress path (wp-*, *.php, /cart/, /product/, /feed/, ...): WordPress is gone, its paths
   redirect, and nothing of it ever ships;
 - the redirects (deploy/redirects.map, as `redirects` checks them);
-- it is the indexable build (robots.txt allows, no page says noindex) and the sitemap names https://vhrd.tech/;
+- it is the indexable build (robots.txt allows, no page but the mail links' says noindex) and the sitemap names
+  https://vhrd.tech/;
 - with --stamp, the front page's footer stamp is that hash.
 
 `redirects` checks deploy/redirects.map against a build: every target is a page of it, no redirect hides one of its
@@ -40,6 +41,8 @@ NAMES = {"VERSION"}
 # WordPress paths. WordPress is gone from vhrd.tech (4 Nov 2026), and nothing like it ever ships.
 WORDPRESS = re.compile(r"^(wp-.*|.*\.php|product|product-category|cart|checkout|my-account|feed|comments"
                        r"|category|tag|author|page|xmlrpc|wc-api|\.well-known)$")
+# The pages behind the mail links (NOTIFY-4) are noindex in the live build too.
+NOINDEX = {"notify/confirm/index.html", "notify/remove/index.html"}
 LIVE = "https://vhrd.tech/"
 ROOT = Path(__file__).resolve().parent.parent
 MAP = ROOT / "deploy/redirects.map"
@@ -68,8 +71,9 @@ def built(folder, stamp):
     if re.search(r"^Disallow:\s*/\s*$", robots, re.M):
         problems.append("robots.txt disallows everything: a preview build, not the live one")
     for page in folder.rglob("*.html"):
-        if 'name="robots" content="noindex' in page.read_text():
-            problems.append(f"{page.relative_to(folder)}: noindex")
+        noindex = 'name="robots" content="noindex' in page.read_text()
+        if noindex != (page.relative_to(folder).as_posix() in NOINDEX):
+            problems.append(f"{page.relative_to(folder)}: {'noindex' if noindex else 'not noindex'}")
     locs = sitemap(folder)
     if not locs or any(not loc.startswith(LIVE) for loc in locs):
         problems.append(f"sitemap.xml: not every page is under {LIVE}")
