@@ -20,7 +20,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 - `templates/components.html`: the `vh.*` components, usable in templates and Markdown ("Components" below).
 - `templates/index.html`: the landing page; `partials/intro.html` is its oscilloscope intro, with its script in `partials/intro-script.html` at the end of the body ("Intro" below). `page.html` is a plain page, `section.html` is the blog list, and there are `404.html` and `robots.txt`.
 - `static/css/brand/`: `tokens.css` and `vhrd.css` from vhrd_brand (`just brand`). Never edit these here; change vhrd_brand and pull.
-- `static/css/site.css`: the site's own layer. `base.html` inlines all the CSS (fonts.css, the brand files and site.css) into each page with `load_data`, so there is no render-blocking request. `static/js/site.js`: theme toggle, tabs, the image placeholders' marking and the signup form's fetch, nothing else.
+- `static/css/site.css`: the site's own layer. `base.html` inlines all the CSS (fonts.css, the brand files and site.css) into each page with `load_data`, so there is no render-blocking request. A part only some pages have keeps its styles in its own file, inlined only where `extra.styles` names it (`intro.css`, `stack.css`, `term.css`; "Performance" below). A light flash between pages in desktop Firefox is Firefox's own tab background, not the site's: "The light blink between pages in Firefox" below before chasing it again. `static/js/site.js`: theme toggle, tabs, the image placeholders' marking and the signup form's fetch, nothing else.
 - `static/fonts/`: IBM Plex woff2 subsets and `fonts.css` ("Brand and fonts" below). `static/img/boards/` holds board renders (`just renders`, "Board renders" below) and `static/img/lab/` lab photos.
 - `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check, `tools/perf.py` measures the first screen on a slow phone, `tools/fonts.py` cuts the Core font subsets and the small Greek faces (Ω, μ) from vhrd_brand's full fonts.
 - `server/`: the Cargo workspace (`Cargo.toml` at the root) of the notify service: `vhrd_notify` (library: `email.rs` the address check, `store.rs` the signups file, `limit.rs` the rate limit, `server.rs` the endpoint, `config.rs` the settings) and `vhrd_notify_cli` (the `vhrd_notify` binary: serve, list, count, export, delete). `deploy/notify.toml` is its settings on the server, `deploy/vhrd-notify.service` its user unit, `deploy/nginx-notify.conf` the nginx block, `ship.toml` what `tpm ship` ships. Dependencies without default features and with no C library (no SQLite: the store is a plain file at this size).
@@ -77,7 +77,7 @@ Images go under `static/img/boards/` (board renders) and `static/img/lab/` (lab 
 - `vh.term` shows a capture as a figure: the command on a prompt line, the screen, and a caption with the version, the source and the date. Nothing runs when the site is built, and the page needs no script.
 - A full-screen program that needs hardware (`cnt tui` on a board through a probe) is recorded on the bench with asciinema; `--cast ID=FILE` replays the recording to the second given in captures.toml through the same emulator.
 - Nothing private: the tool refuses to write a capture with a home path, this PC's host or user name, a machine name or a tpm id. Paths from rustc go through its own `--remap-path-prefix` (`remap` in captures.toml), so they read as on any machine.
-- The 16 terminal colours come from the brand's status and category tokens (`.term` in `site.css`); a colour the program picks itself (256 or true colour) is kept inline as it wrote it. The panel is dark in both themes, like the terminal it came from.
+- The 16 terminal colours come from the brand's status and category tokens (`.term` in `term.css`, inlined on /software only); a colour the program picks itself (256 or true colour) is kept inline as it wrote it. The panel is dark in both themes, like the terminal it came from.
 - `tools/term/units_demo` is the crate behind the exact_units error, the README's first example of code that does not compile.
 - `tools/term/ww_evolution` is behind the evolution check: wire_weaver's blinky_api example with its 0.1.0 snapshot, edited once in a compatible way and once in a breaking way, both bumped to 0.1.1.
 - `steps` in captures.toml runs several commands on one screen, each on its own prompt line.
@@ -126,13 +126,30 @@ On the PC with that library, a fontconfig include adds the synced design-fonts f
 The front page is built to show fast on a slow phone. `just perf` (`tools/perf.py`) loads it at 390 px under Lighthouse's mobile throttling (150 ms round trip, 1.6 Mbit/s, CPU four times slower), with an empty cache, and prints the median requests, bytes, first and largest contentful paint and layout shift. The browser check keeps the first view on a phone under 200 KB.
 
 - All CSS is inline in each page (about 11 KB gzipped): nothing blocks the first paint but the HTML.
+- A part only some pages have brings its own styles, inlined only there: `extra.styles` in a page's front matter names files in `static/css/` (`intro` on the front page, `stack` on the front page and /open-source, `term` on /software). /donguru inlines `donguru.css` from its template. Every other page carries 54 KB of CSS instead of 75 KB (/about: 16 KB gzipped instead of 21 KB). The browser check fails a page that shows such a part without its styles, inlines styles it does not use, or carries more than `SHARED_CSS_KB` of the shared CSS.
 - Only the hero render is eager, with `fetchpriority="high"` and a preload; every other image is `loading="lazy"`.
 - Three font faces are preloaded, the ones the first screen sets text in, as Core subsets, with `font-display: swap`.
 - The local server of the checks gzips text, as a real server would.
 
+### The light blink between pages in Firefox
+
+Desktop Firefox can show a short light flash when moving from one page to another, on a site that is dark throughout. It is Firefox's own tab background, not the site's:
+
+- Firefox keeps pages for back and forward in its parent process (`fission.bfcacheInParent`, on by default). A navigation away from a page that can be kept that way swaps in a new browsing context.
+- Until the new page has painted, the window shows the tab panel's background. In a light Firefox theme that is #F9F9FB. In a dark theme the same gap is dark and nobody notices it.
+- It is longer when the computer is busy and when the new page takes longer to paint. On an idle machine it is rare. A trivial dark test page flashes too (7 of 24 navigations with Firefox sharing a busy CPU core); vhrd.tech did on 18 of 24 live.
+- Chromium keeps the old page until the new one paints and never showed a light frame. Firefox 157 has no cross-document view transitions, so `@view-transition` cannot help there.
+- Plain Playwright never shows it: its Firefox turns `fission.bfcacheInParent` off, and headless Firefox has no tab panel. Reproducing it needs a headed Firefox with that pref on, and a screen recording.
+- `Cache-Control: no-store` on the HTML removes it (0 of 24), because such a page is never kept for back and forward. Roman chose to keep the back/forward cache instead. The site's own share of the gap is small:
+  - With Firefox sharing a busy core, the build without any CSS at all still flashed on about 13 of 24 navigations, against 17 with it. Removing the header's blur, the grid, the view frame or rendering below the fold lazily (`content-visibility`) made no difference beyond the noise (about ±4 of 24 between rounds).
+  - The per-page styles above cut the shared CSS by 28 % with no visible change. Measured the same way, 96 navigations each, main flashed on 62 and the per-page styles on 59: no difference beyond the noise. First paint after the response, summed over 13 pages on an idle machine: 661 ms before, 634 ms after.
+  - So the blink is Firefox's to fix. A visitor who sees it can use a dark Firefox theme, which makes the gap dark.
+
+Mozilla's bugs on it: [1538414](https://bugzilla.mozilla.org/show_bug.cgi?id=1538414) (white flashes between pages), [1488384](https://bugzilla.mozilla.org/show_bug.cgi?id=1488384) (the tab panel follows the theme's colour scheme), [1712839](https://bugzilla.mozilla.org/show_bug.cgi?id=1712839) (flashing with Fission), [1740499](https://bugzilla.mozilla.org/show_bug.cgi?id=1740499) (visible redraws on page loads with Fission).
+
 ## Intro
 
-The front page opens like an old CRT oscilloscope powering up (`templates/partials/intro.html`, its script `templates/partials/intro-script.html` at the end of the body, styles under "Intro" in `site.css`):
+The front page opens like an old CRT oscilloscope powering up (`templates/partials/intro.html`, its script `templates/partials/intro-script.html` at the end of the body, styles in `static/css/intro.css`, inlined on the front page only):
 
 1. A dark screen: a phosphor dot fades in at the centre and holds.
 2. The timebase starts: the dot spreads into a horizontal baseline, past the edges and back, the beam's head sweeping it.

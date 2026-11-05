@@ -113,7 +113,7 @@ def run(argv, cwd, env, cols, rows, wait, keys):
 
 
 def style(c, fg, bg):
-    """The classes and inline colour of one cell: named colours as classes (their tokens are in site.css), the
+    """The classes and inline colour of one cell: named colours as classes (their tokens are in term.css), the
     256-colour and true-colour ones as the program's own value."""
     cls, css = [], []
     if c.reverse:

@@ -37,6 +37,12 @@
 {{ load_data(path="static/css/brand/tokens.css", format="plain") | safe }}
 {{ load_data(path="static/css/brand/vhrd.css", format="plain") | safe }}
 {{ load_data(path="static/css/site.css", format="plain") | safe }}
+{#- A part only some pages have brings its own styles, inlined only there (extra.styles = ["term"] in a page's front
+    matter): every page's CSS is matched against its whole document before Firefox paints it, so a page carries no
+    rules for parts it does not have (AGENTS.md "Performance"). #}
+{%- if this and this.extra.styles is defined %}{% for name in this.extra.styles %}
+{{ load_data(path="static/css/" ~ name ~ ".css", format="plain") | safe }}
+{%- endfor %}{% endif %}
 </style>
 <script src="{{ get_url(path='js/site.js', cachebust=true) }}" defer></script>
 </head>

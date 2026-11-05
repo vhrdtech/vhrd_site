@@ -39,6 +39,9 @@ A picture on its way shows as a small scope screen in its box and fades in when 
 The signup form (only against the local build, which posts to a local notify service with a store of its own): with
 JavaScript a good address shows the thanks in place and lands in the store, a refused one the error; without it the
 service sends the visitor back to the page's #notify-ok or #notify-bad, which shows; the honeypot is not on screen.
+CSS: a page inlines the styles of the intro, the open-source stack or the terminal captures exactly when it shows
+them, and the CSS every page carries stays under SHARED_CSS_KB (Firefox's first paint of a page, AGENTS.md
+"Performance").
 With --shots, writes a full-page screenshot per width in dark (traces shown drawn: reduced motion).
 """
 
@@ -49,6 +52,7 @@ import gzip
 import html.parser
 import http.server
 import os
+import re
 import shutil
 import socket
 import subprocess
@@ -70,6 +74,11 @@ PAGES = ["", "donguru/", "pinsmith/", "can/", "software/", "open-source/", "lab/
          "privacy/", "faq/", "no-such-page/"]
 WIDTHS = {"phone": 390, "tablet": 820, "desktop": 1440}
 BUDGET_KB = 200
+# The CSS every page carries inline (fonts.css, the brand files, site.css): Firefox matches it against the whole page
+# before its first paint, and until then it shows its own tab background between pages (AGENTS.md "Performance").
+SHARED_CSS_KB = 56
+# A part only some pages have, with its own styles inlined only there (extra.styles), and the class that marks it.
+CSS_PARTS = {"intro": "scope", "stack": "stack", "term": "term"}
 
 # Everything the page fetched so far, the document first: URL, body size, transfer size.
 FETCHED = """() => [performance.getEntriesByType("navigation")[0], ...performance.getEntriesByType("resource")]
@@ -726,6 +735,34 @@ def fetch(opener, url, method="GET"):
         return e.code, b""
 
 
+def check_css(out):
+    """Every page in the local build inlines a part's styles exactly when it shows that part, and the CSS left for
+    every page stays under SHARED_CSS_KB."""
+    root = Path(__file__).resolve().parent.parent
+    parts = {name: (root / f"static/css/{name}.css").read_text() for name in CSS_PARTS}
+    own = (root / "static/css/donguru.css").read_text()
+    failures = []
+    for f in sorted(out.rglob("*.html")):
+        rel = f.relative_to(out)
+        page = "/" + (str(rel.parent).strip(".") + "/" if f.name == "index.html" else str(rel)).lstrip("/")
+        html_ = f.read_text()
+        style = "".join(re.findall(r"<style>(.*?)</style>", html_, flags=re.S))
+        classes = " ".join(re.findall(r'class="([^"]*)"', html_[html_.find("<body"):]))
+        shared = len(style)
+        for name, css in parts.items():
+            inlined = css.strip() in style
+            shown = re.search(rf"(?<![\w-]){CSS_PARTS[name]}(?![\w-])", classes) is not None
+            if inlined and not shown:
+                failures.append(f"{page}: inlines {name}.css but has no .{CSS_PARTS[name]}")
+            if shown and not inlined:
+                failures.append(f"{page}: has .{CSS_PARTS[name]} but does not inline {name}.css (extra.styles)")
+            shared -= len(css.strip()) if inlined else 0
+        shared -= len(own.strip()) if own.strip() in style else 0
+        if shared > SHARED_CSS_KB * 1024:
+            failures.append(f"{page}: {shared / 1024:.0f} KB of CSS every page carries, budget {SHARED_CSS_KB} KB")
+    return failures
+
+
 def check_links(base):
     """Walk the site from the front page by its links: every internal href ends in '/' when it names a page and
     answers 200 without a redirect, and every page of the site map is reached (no orphan pages)."""
@@ -926,6 +963,8 @@ def main():
         print(f"{len(failures)} failures" if failures else "all checks passed")
         sys.exit(1 if failures else 0)
     failures = check_links(base)
+    if out is not None:
+        failures += check_css(out)
 
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path=a.chromium)

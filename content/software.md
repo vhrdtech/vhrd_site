@@ -5,6 +5,7 @@ description = "IOWeaver, the protocol analyzer and grapher; RockFace, the firmwa
 [extra]
 label = "Software"
 sig = "usb"
+styles = ["term"]
 +++
 
 Three tools for the bench: one plots what a device says, one debugs the firmware that says it, one keeps the parts and the boards in order. <span class="v-badge">draft</span>

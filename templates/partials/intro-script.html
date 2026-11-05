@@ -6,7 +6,7 @@
 // screen is ready, else the scope waits (.intro-wait, LOADING), says how to skip after HINT ms (.intro-slow) and fires
 // (.intro-trig, TRIG'D) once ready, at most CAP ms after the start. A click, key, wheel, touch or scroll skips it
 // (.intro-skip). The footer's replay button plays it again as a demo of the slow path (about 10 s), from the top of
-// the page, and ignores skips for its first GRACE ms. site.css's
+// the page, and ignores skips for its first GRACE ms. intro.css's
 // failsafe hides the layer a little after CAP.
 (() => {
   const CAP = 20000;

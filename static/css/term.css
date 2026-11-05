@@ -1,0 +1,85 @@
+/* Inlined only on pages that show a terminal capture (extra.styles = ["term"] in their front matter). */
+
+/* Terminal captures (vh.term, tools/term_capture.py): a recorded screen as text, dark in both themes like the
+   terminal it came from. The 16 ANSI colours are the brand's status and category tokens: as they are in the dark
+   theme, mixed toward white in the light one, where the tokens are the dark-on-light versions. A colour the program
+   chose itself (256 or true colour) is inline in the capture, as the program wrote it. */
+.term {
+  --t-bg: var(--vhrd-grey-950);
+  --t-fg: var(--vhrd-grey-200);
+  --t-black: var(--vhrd-grey-600);
+  --t-red: var(--error);
+  --t-green: var(--ok);
+  --t-yellow: var(--warning);
+  --t-blue: var(--info);
+  --t-magenta: var(--cat-violet);
+  --t-cyan: var(--cat-teal);
+  --t-white: var(--vhrd-grey-300);
+  background: var(--t-bg);
+  color: var(--t-fg);
+  border: 1px solid var(--vhrd-grey-800);
+  border-radius: var(--radius);
+  color-scheme: dark;
+}
+:root[data-theme="light"] .term {
+  --t-red: color-mix(in oklch, var(--error) 45%, var(--vhrd-grey-0));
+  --t-green: color-mix(in oklch, var(--ok) 45%, var(--vhrd-grey-0));
+  --t-yellow: color-mix(in oklch, var(--warning) 45%, var(--vhrd-grey-0));
+  --t-blue: color-mix(in oklch, var(--info) 45%, var(--vhrd-grey-0));
+  --t-magenta: color-mix(in oklch, var(--cat-violet) 45%, var(--vhrd-grey-0));
+  --t-cyan: color-mix(in oklch, var(--cat-teal) 45%, var(--vhrd-grey-0));
+}
+.term-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  padding: 0.4rem 0.9rem;
+  border-bottom: 1px solid var(--vhrd-grey-800);
+  color: var(--vhrd-grey-400);
+  font: 500 0.6875rem/1.4 var(--font-mono);
+  letter-spacing: 0.04em;
+}
+.term-bar span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.term-screen {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  max-height: 34lh;
+  overflow: auto;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: 0.75rem/1.35 var(--font-mono);
+  tab-size: 8;
+}
+.term-screen:focus-visible { outline-offset: -2px; }
+.term-prompt { color: var(--t-green); }
+/* The source a run read, above its output: the code highlighting in its dark colours, the line the output points at
+   edged in the terminal's red. */
+.term-src { border-bottom: 1px solid var(--vhrd-grey-800); }
+.term-src pre.giallo { margin: 0; border: 0; border-radius: 0; padding: 0.6rem 0.9rem; background-color: transparent !important; font-size: 0.75rem; line-height: 1.45; overflow-x: auto; }
+.term-src .giallo-ln { display: inline-block; min-width: 2ch; margin-right: 1.25ch; text-align: right; }
+.term-src .giallo-l[style*="background-color"] { background: color-mix(in oklch, var(--t-red) 16%, transparent) !important; box-shadow: inset 2px 0 var(--t-red); }
+.term-fig figcaption { align-items: baseline; text-transform: none; letter-spacing: 0.02em; }
+.term-meta { color: var(--muted); }
+.term .f-black { color: var(--t-black); } .term .f-red { color: var(--t-red); } .term .f-green { color: var(--t-green); }
+.term .f-brown { color: var(--t-yellow); } .term .f-blue { color: var(--t-blue); } .term .f-magenta { color: var(--t-magenta); }
+.term .f-cyan { color: var(--t-cyan); } .term .f-white { color: var(--t-white); }
+.term .f-brightblack { color: var(--vhrd-grey-500); }
+.term .f-brightred { color: color-mix(in oklch, var(--t-red) 75%, var(--vhrd-grey-0)); }
+.term .f-brightgreen { color: color-mix(in oklch, var(--t-green) 75%, var(--vhrd-grey-0)); }
+.term .f-brightbrown { color: color-mix(in oklch, var(--t-yellow) 75%, var(--vhrd-grey-0)); }
+.term .f-brightblue { color: color-mix(in oklch, var(--t-blue) 75%, var(--vhrd-grey-0)); }
+.term .f-brightmagenta { color: color-mix(in oklch, var(--t-magenta) 75%, var(--vhrd-grey-0)); }
+.term .f-brightcyan { color: color-mix(in oklch, var(--t-cyan) 75%, var(--vhrd-grey-0)); }
+.term .f-brightwhite { color: var(--vhrd-grey-0); }
+.term .f-fg { color: var(--t-fg); } .term .f-bg { color: var(--t-bg); }
+.term .b-fg { background: var(--t-fg); } .term .b-bg { background: var(--t-bg); }
+.term .b-black { background: var(--t-black); } .term .b-red { background: var(--t-red); }
+.term .b-green { background: var(--t-green); } .term .b-brown { background: var(--t-yellow); }
+.term .b-blue { background: var(--t-blue); } .term .b-magenta { background: var(--t-magenta); }
+.term .b-cyan { background: var(--t-cyan); } .term .b-white { background: var(--t-white); }
+.term .t-b { font-weight: 600; }
+.term .t-d { opacity: 0.62; }
+.term .t-i { font-style: italic; }
+.term .t-u { text-decoration: underline; }
