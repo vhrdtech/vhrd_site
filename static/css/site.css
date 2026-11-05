@@ -402,16 +402,6 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 .prose ul { padding-left: 1.25rem; }
 .prose .fig { margin-bottom: 1.25rem; }
 
-/* About: the founder's photo beside "Who makes it", modest, never a hero. */
-.who-makes-it { display: flex; flex-direction: column; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
-.who-makes-it p { margin: 0; }
-.who-photo { flex: 0 0 auto; width: 7rem; margin: 0; }
-.who-photo .fig-frame img { aspect-ratio: 1; object-fit: cover; }
-@media (min-width: 40rem) {
-  .who-makes-it { flex-direction: row; align-items: flex-start; gap: 1.5rem; }
-  .who-photo { width: 8rem; }
-}
-
 /* FAQ: <details> items ruled like a datasheet's table, one open at a time by eye, not by the browser. */
 .prose details { border-bottom: 1px solid var(--line); }
 .prose h2 + details { border-top: 1px solid var(--line); }

@@ -6,6 +6,7 @@ description = "Instruments for embedded development, and the open-source softwar
 label = "About"
 headline = "About VHRD"
 sig = "ctrl"
+styles = ["about"]
 +++
 
 VHRD makes instruments for embedded development: debug and IO tools, the software that drives them, and open-source Rust libraries underneath. They are for everyone who works where code meets hardware: hardware, firmware and software engineers alike.

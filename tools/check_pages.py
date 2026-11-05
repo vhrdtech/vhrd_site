@@ -78,7 +78,7 @@ BUDGET_KB = 200
 # before its first paint, and until then it shows its own tab background between pages (AGENTS.md "Performance").
 SHARED_CSS_KB = 56
 # A part only some pages have, with its own styles inlined only there (extra.styles), and the class that marks it.
-CSS_PARTS = {"intro": "scope", "stack": "stack", "term": "term"}
+CSS_PARTS = {"intro": "scope", "stack": "stack", "term": "term", "about": "who-makes-it"}
 
 # Everything the page fetched so far, the document first: URL, body size, transfer size.
 FETCHED = """() => [performance.getEntriesByType("navigation")[0], ...performance.getEntriesByType("resource")]
