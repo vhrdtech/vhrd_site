@@ -1,5 +1,5 @@
 # What `tpm ship web-server vhrd_notify` (just deploy-notify) builds and installs: the notify service as a user unit
-# of the web server's login user, releases in ~/vhrd_notify/releases/, the settings beside them (README "Notify
+# of the web server's login user, releases in ~/vhrd_notify/releases/, the settings beside them (AGENTS.md "Notify
 # service").
 bin = "vhrd_notify"
 dir = "vhrd_notify"

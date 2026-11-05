@@ -5,7 +5,7 @@
 zola_version := "0.23.6"
 brand := env("VHRD_BRAND", home_directory() / "git/vhrd_brand")
 preview_host := "https://shadow.vhrd.tech"
-# The web server's login, where the notify service runs (README "Notify service")
+# The web server's login, where the notify service runs (AGENTS.md "Notify service")
 web := "roman@vhrd.tech"
 web_port := "7722"
 
@@ -18,7 +18,7 @@ export VHRD_BUILT := `git log -1 --format=%cd --date=format:'%-d %b %Y' 2>/dev/n
 default:
     @just --list
 
-# Serve with live reload on this PC's Tailscale address (README "Serve on the tailnet"), falling back to
+# Serve with live reload on this PC's Tailscale address (AGENTS.md "Serve on the tailnet"), falling back to
 # 127.0.0.1 when Tailscale is down. An optional port, default the first free one from 1111
 serve *port:
     uv run tools/serve.py {{ port }}
@@ -94,7 +94,7 @@ live:
     @echo "built https://vhrd.tech/ ($VHRD_GIT) in target/live"
 
 # Deploy main to https://vhrd.tech/: starts the Deploy workflow on GitHub and follows it. It waits for approval in
-# the production environment (README "Deploy")
+# the production environment (AGENTS.md "Deploy")
 deploy:
     gh workflow run deploy.yml --repo vhrdtech/vhrd_site --ref main
     @echo "approve it in GitHub (Actions > Deploy vhrd.tech), then: gh run watch --repo vhrdtech/vhrd_site"
@@ -131,8 +131,8 @@ renders *args:
     uv run scripts/render_boards.py {{ args }}
 
 # Ship the notify service to the web server as a new release (tpm ship, ship.toml): build a static binary here, upload
-# it with deploy/notify.toml and the user unit, switch, restart, check. Prod: only with Roman's OK; tpm asks first.
-# The nginx block (deploy/nginx-notify.conf) is a root step on the server (README "Notify service")
+# it with deploy/notify.toml and the user unit, switch, restart, check. Prod: needs sign-off first; tpm asks.
+# The nginx block (deploy/nginx-notify.conf) is a root step on the server (AGENTS.md "Notify service")
 deploy-notify:
     tpm ship web-server vhrd_notify
 

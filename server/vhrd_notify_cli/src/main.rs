@@ -1,5 +1,5 @@
 //! `vhrd_notify`: serves the signup endpoint behind the site's forms, and lists, counts, exports and deletes the
-//! signups (README "Notify service").
+//! signups (AGENTS.md "Notify service").
 
 use std::path::PathBuf;
 use std::process::ExitCode;

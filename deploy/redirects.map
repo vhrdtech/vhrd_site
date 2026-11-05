@@ -1,5 +1,5 @@
-# The old WordPress site's paths on vhrd.tech and where they now lead, as an nginx map (README "Deploy").
-# WordPress is gone (Roman, 4 Nov 2026): shop and product paths go to /shop/, feeds, the blog and its posts to the
+# The old WordPress site's paths on vhrd.tech and where they now lead, as an nginx map (AGENTS.md "Deploy").
+# WordPress is gone: shop and product paths go to /shop/, feeds, the blog and its posts to the
 # front page for now, the contact page to /about/. Any other path gets the site's own 404 page.
 #
 # The server includes this file in its http block and redirects in the vhrd.tech server block:

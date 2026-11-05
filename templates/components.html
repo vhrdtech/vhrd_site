@@ -98,7 +98,7 @@
 </div>
 {% endcomponent vh.code_tabs %}
 
-{#- A mail link with no address in the HTML, so harvesters reading the page find none (Roman, 4 Nov 2026). The page
+{#- A mail link with no address in the HTML, so harvesters reading the page find none. The page
     carries the parts in data attributes; the inline script at the end of base.html builds the mailto link with the
     subject. Without JavaScript it reads "projects at vhrd.tech" and is not a link. With `text` it is a labelled
     button-like link, hidden until the script makes it work: {{ <vh.mail to="projects" subject="Project" /> }} -#}
@@ -167,7 +167,7 @@
 </div><figcaption>{% if n %}<span class="fig-no">FIG. {{ n }}</span>{% endif %}<span>{{ caption }} <span class="term-meta">· {{ m.version }} · {{ m.source }} · recorded {{ m.recorded | date(format="%-d %b %Y") }}</span></span></figcaption></figure>
 {%- endcomponent vh.term %}
 
-{#- The Donguru signup form (NOTIFY-2 notify-form), posting to the notify service (README "Notify service"). `from` names
+{#- The Donguru signup form (NOTIFY-2 notify-form), posting to the notify service (AGENTS.md "Notify service"). `from` names
     the page for the service's redirect after a post without JavaScript ("donguru" or "home"); the service sends
     the visitor back to `#notify-ok`, `-bad`, `-wait` or `-err`, which CSS shows with :target. With JavaScript,
     site.js posts it with fetch and shows the same message in place. The consent line's version is

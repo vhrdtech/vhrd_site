@@ -5,7 +5,7 @@ facts = []
 
 tools = []
 
-# Photos from Roman (4 Nov 2026), named as on the portfolio's page 13 list; a model only where it is printed on the
+# Photos received 4 Nov 2026, named as on the portfolio's page 13 list; a model only where it is printed on the
 # machine. caption is the figure's line on /lab.
 [[images]]
 file = "pnp-d600plus"

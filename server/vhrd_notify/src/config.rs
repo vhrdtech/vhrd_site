@@ -10,7 +10,7 @@ use serde::Deserialize;
 pub struct Config {
     /// Address and port to listen on. Loopback: nginx in front of it is the only client.
     pub listen: String,
-    /// The signups file (README "Notify service"), outside the web root.
+    /// The signups file (AGENTS.md "Notify service"), outside the web root.
     pub store: PathBuf,
     /// The lists a form may name.
     pub lists: Vec<String>,

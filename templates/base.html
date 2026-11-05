@@ -21,7 +21,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{ current_url | safe }}">
 <link rel="icon" href="{{ get_url(path='favicon.svg') }}" type="image/svg+xml">
-{#- Dark is the default whatever the system prefers (Roman, 4 Nov 2026), set on <html> above, so there is no light
+{#- Dark is the default whatever the system prefers, set on <html> above, so there is no light
     flash and no-JS visitors get it too. Light only when the visitor picked it with the toggle: applied here, before
     the first paint. #}
 <script>document.documentElement.classList.add("js");try{if(localStorage.getItem("theme")==="light")document.documentElement.dataset.theme="light"}catch(e){}</script>

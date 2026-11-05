@@ -76,7 +76,7 @@ class Board:
     slug: str
 
 
-# The front-page boards, then the /work and /can ones (Roman, 4 Nov 2026).
+# The front-page boards, then the /work and /can ones.
 BOARDS = [
     Board("b153", "b153_typec_serial", "Donguru (Type-C Serial)", "donguru"),
     Board("b200", "b200_re_port", "Pinsmith", "re-port"),
@@ -86,7 +86,7 @@ BOARDS = [
           "USB HS to ISO FDCAN bridge (DB-9, SD logging, optional BP)", "usb-fdcan"),
     Board("b129", "b129_cannify_micro", "CANnify Micro (STM32G0, CAN, up to 48 V in)", "cannify-micro"),
     Board("b133", "b133_d600plus_control_board", "D600Plus pick-and-place control board", "d600plus-control"),
-    # B107, B146, B198 for /work (Roman, 4 Nov 2026).
+    # B107, B146, B198 for /work.
     Board("b107", "b107_flexy_rj45", "FlexyRJ45 (flexible RJ45 pass-through)", "flexy-rj45"),
     Board("b146", "b146_db9_nanofit", "DB-9 to Nano-Fit CAN adapter", "db9-nanofit"),
     Board("b198", "b198_jlink_tagconnect", "J-Link to Tag-Connect adapter", "jlink-tagconnect"),

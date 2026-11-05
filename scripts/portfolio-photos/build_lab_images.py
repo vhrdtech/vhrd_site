@@ -62,15 +62,15 @@ ITEMS = {
         ("p14_img02_952x1269.jpeg", (0, 230, 952, 944), "laser-scanner-aoi-rails"),
     ],
     # RockFace under its old name, "MCU tracer - debugger" (page 9): the whole window for the software panel, and
-    # the left part of the timeline view alone for the lab card (4:3, its labels readable at card size; Roman,
-    # 4 Nov 2026). The log view crop is kept for later use.
+    # the left part of the timeline view alone for the lab card (4:3, its labels readable at card size).
+    # The log view crop is kept for later use.
     "rockface": [
         ("p09_img00_1830x1456.png", (112, 76, 1718, 1308), "rockface-window", 20),
         ("p09_img00_1830x1456.png", (126, 676, 686, 1096), "rockface-log"),
         ("p09_img00_1830x1456.png", (126, 188, 610, 551), "rockface-timeline"),
     ],
     # mx3 (page 12): its PCB assembly and BOM editor windows, electronics only, from the tab bar down: the title bar
-    # and the menu row with the server's LAN address are cut off (Roman, 4 Nov 2026).
+    # and the menu row with the server's LAN address are cut off.
     "mx3": [
         ("p12_img00_2031x1703.png", (104, 168, 1928, 1567), "mx3-assemble", 20),
         ("p12_img01_1645x1711.png", (104, 166, 1541, 1574), "mx3-bom-editor", 20),
@@ -86,7 +86,7 @@ ITEMS = {
         ("p17_img01_1946x836.png", None, "eskate-elongboard-1"),
         ("p17_img00_978x1303.png", None, "eskate-elongboard-2"),
     ],
-    # Photos Roman sent on 4 Nov 2026 (~/Downloads/site, REVIEW_DIR for these): shown whole, the pick-and-place
+    # Photos received on 4 Nov 2026 (~/Downloads/site, REVIEW_DIR for these): shown whole, the pick-and-place
     # machine alone cut out of its room.
     "lab-equipment": [
         ("lab pnp zoom and cut only the machine.jpg", (265, 170, 905, 515), "pnp-d600plus"),

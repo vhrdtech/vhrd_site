@@ -8,7 +8,7 @@
 <link rel="preload" as="image" type="image/avif" fetchpriority="high" imagesrcset="{% for w in [640, 1280, 1920] %}{{ get_url(path=hero ~ '-' ~ w ~ '.avif') }} {{ w }}w{% if not loop.last %}, {% endif %}{% endfor %}" imagesizes="(max-width: 52rem) calc(100vw - 2rem), 34rem">
 {#- The intro plays on a first visit from outside the site and on a reload, with JS on, without reduced motion and
     unless a #fragment links to a section. Not when the visitor comes home from inside the site (a link with a
-    same-origin referrer) or goes back or forward to it (Roman, 4 Nov 2026). Set before the first paint, so the page
+    same-origin referrer) or goes back or forward to it. Set before the first paint, so the page
     never flashes before the scope covers it. #}
 <script>(function(){var n=performance.getEntriesByType("navigation")[0],t=n?n.type:"navigate",r="";try{r=document.referrer&&new URL(document.referrer).origin}catch(e){}if(t==="back_forward"||(t!=="reload"&&r===location.origin)||location.hash||matchMedia("(prefers-reduced-motion: reduce)").matches)return;document.documentElement.classList.add("intro")})()</script>
 {%- endblock head %}

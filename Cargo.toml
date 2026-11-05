@@ -1,4 +1,4 @@
-# The notify service behind the site's "Get notified" forms (README "Notify service"): a library with the
+# The notify service behind the site's "Get notified" forms (AGENTS.md "Notify service"): a library with the
 # validator, the store and the HTTP handler, and a thin binary that serves it and manages the signups.
 [workspace]
 members = ["server/vhrd_notify", "server/vhrd_notify_cli"]

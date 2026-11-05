@@ -11,7 +11,7 @@
 # - `stack = true`: a highlight (data/stack.toml, `front = true`) shown in this area too; its card comes from
 #   data/stack.toml, and `crate` here (the same as there) only places it in the area's order.
 # - `private = true`: not public yet. The card says "coming in the future" and has no link, code or logo.
-# - Left off for now, until Roman confirms (4 Nov 2026): romixlab/dot (personal dotfiles), vhrdtech/mx3 (internal
+# - Left off for now, until confirmed: romixlab/dot (personal dotfiles), vhrdtech/mx3 (internal
 #   server), romixlab/shrink_wrap (an old private copy; shrink_wrap lives in wire_weaver), vhrdtech/io_weaver and
 #   romixlab/rockface (paid products, on /software), vhrdtech/usb_io_fw (closed source, its README says so), and
 #   vhrdtech/can_bus and romixlab/power_meter (private, no README or description to write a pitch from yet).

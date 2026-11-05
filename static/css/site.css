@@ -378,7 +378,7 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 .bus { position: relative; height: 48px; border-top: 1px solid var(--line); }
 .bus-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
 
-/* Drawn as you scroll, and undrawn as you scroll back (Roman): the track is uncovered from its top pad down, the
+/* Drawn as you scroll, and undrawn as you scroll back: the track is uncovered from its top pad down, the
    bottom via and the net name fade in over the last fifth; the bus over the footer runs across. The draw progress
    --p (0 to 1) is set per trace by the script at the end of base.html from where the trace is on screen: 0 when a
    fifth of it has come into view, 1 when its middle reaches the middle of the screen, or at the page's end for the
@@ -540,7 +540,7 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .crate-code pre { margin: 0; font-size: 0.75rem; line-height: 1.5; padding: 0.75rem 0.9rem; overflow-x: auto; border-radius: var(--radius); }
 .crate-links { font: 500 0.75rem/1.4 var(--font-mono); }
 
-/* /open-source's own group colours. Highlights, the hand-picked set, is in the brand red (Roman, 4 Nov 2026), its
+/* /open-source's own group colours. Highlights, the hand-picked set, is in the brand red, its
    track running from red into power orange, with a small sparkle that twinkles (still under reduced motion).
    Science and Templates have no signal of their own: category colours of the brand stand in. */
 :root { --signal-highlight: var(--accent); --signal-science: var(--cat-pink); --signal-templates: var(--cat-lime); }
@@ -708,7 +708,7 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
      Source: the CRT phosphor table, curtpalme.com/forum_archived/CRT Phosphors.pdf. In sRGB that is #0029ff (#001dff
      to #004aff), at the gamut's edge. The token is "P11 softened", #2f5bff: toward how a bright beam reads on camera,
      where pure P11 looks dark. A physical colour, not a brand one, so it is its own token here, the one hex value in
-     this file (Roman, 4 Nov 2026). */
+     this file. */
   --phosphor-p11: #2f5bff;
   --trace: var(--phosphor-p11);
   --trace-text: color-mix(in srgb, var(--phosphor-p11) 60%, var(--vhrd-grey-0));

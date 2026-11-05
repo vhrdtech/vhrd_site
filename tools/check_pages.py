@@ -795,7 +795,7 @@ FRAMES = "() => new Promise((r) => requestAnimationFrame(() => requestAnimationF
 SETTLED = """() => new Promise((done) => { let last = -1, same = 0; const f = () => {
   same = scrollY === last ? same + 1 : 0; last = scrollY; same >= 3 ? requestAnimationFrame(done) : requestAnimationFrame(f); };
   requestAnimationFrame(f); })"""
-# Screens the traces are checked on: two phones and three desktops (Roman's 1920 and 2560 wide among them).
+# Screens the traces are checked on: two phones and three desktops (two of them 1920 and 2560 wide).
 DRAW_SIZES = [("Pixel 7", None), ("iPhone 14", None), ("desktop", (1440, 900)), ("desktop", (1920, 1080)),
               ("desktop", (2560, 1440))]
 

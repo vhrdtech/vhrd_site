@@ -1,4 +1,4 @@
-# The notify service behind vhrd.tech's signup forms (vhrd_site README "Notify service"), a user unit of the web
+# The notify service behind vhrd.tech's signup forms (AGENTS.md "Notify service" in this repo), a user unit of the web
 # server's login user, installed by `just deploy-notify` (tpm ship) as ~/.config/systemd/user/vhrd-notify.service.
 # Needs linger. nginx proxies /api/notify to it (deploy/nginx-notify.conf); it listens on loopback only.
 # Signups: ~/vhrd_notify/signups.tsv (0600). Logs: `journalctl _SYSTEMD_USER_UNIT=vhrd-notify.service -f`.

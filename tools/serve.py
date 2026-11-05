@@ -15,7 +15,7 @@ as the page (checked against zola 0.23.6), so nothing else needs to be reachable
 
 When Tailscale is down, falls back to 127.0.0.1 with a clear message: reachable only on this PC.
 
-The signup forms post to a local notify service (README "Notify service"): it is built with cargo and started on the
+The signup forms post to a local notify service (AGENTS.md "Notify service"): it is built with cargo and started on the
 next free port of the same address, with its own settings and store in target/notify-dev/, and the site is told
 where it is through VHRD_NOTIFY_API. It stops with the site. Without cargo the forms have nowhere to post.
 """
