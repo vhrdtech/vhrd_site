@@ -86,10 +86,9 @@ BOARDS = [
           "USB HS to ISO FDCAN bridge (DB-9, SD logging, optional BP)", "usb-fdcan"),
     Board("b129", "b129_cannify_micro", "CANnify Micro (STM32G0, CAN, up to 48 V in)", "cannify-micro"),
     Board("b133", "b133_d600plus_control_board", "D600Plus pick-and-place control board", "d600plus-control"),
-    # B107, B146, B154, B198 for /work (Roman, 4 Nov 2026).
+    # B107, B146, B198 for /work (Roman, 4 Nov 2026).
     Board("b107", "b107_flexy_rj45", "FlexyRJ45 (flexible RJ45 pass-through)", "flexy-rj45"),
     Board("b146", "b146_db9_nanofit", "DB-9 to Nano-Fit CAN adapter", "db9-nanofit"),
-    Board("b154", "b154_usb_io_simbus", "SimBus (early USB IO prototype)", "usb-io-simbus"),
     Board("b198", "b198_jlink_tagconnect", "J-Link to Tag-Connect adapter", "jlink-tagconnect"),
 ]
 

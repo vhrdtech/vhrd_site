@@ -17,7 +17,6 @@ boards = [
   { dir = "b133-d600plus-control", view = "b133_hero", href = "/lab/", sig = "ctrl", pitch = "A control board for the lab's D600Plus pick-and-place machine: an STM32H743 with Ethernet, USB-C and CAN." },
   { dir = "b107-flexy-rj45", view = "b107_hero", href = "/shop/", sig = "bus", pitch = "RJ45 pass-through on a flexible PCB: routes Ethernet through doors, hinges and other hard-to-reach places, or a home LAN." },
   { dir = "b146-db9-nanofit", view = "b146_hero", href = "/can/", sig = "can", pitch = "DB-9 to Nano-Fit, with mounting screws or without: connects a CAN module's Nano-Fit connector to a DB-9 USB or Ethernet bridge." },
-  { dir = "b154-usb-io-simbus", view = "b154_hero", href = "/pinsmith/", sig = "usb", pitch = "The early USB IO prototype that led to Pinsmith; not carried further." },
   { dir = "b198-jlink-tagconnect", view = "b198_hero", href = "/lab/", sig = "ctrl", pitch = "Adapts a J-Link probe's 20-pin header to Tag-Connect, for programming boards without a mating header." },
 ]
 # The bench projects, in this order (static/img/lab/<dir>/manifest.toml); sig colours the card's top edge,

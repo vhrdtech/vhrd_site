@@ -66,7 +66,7 @@
 - `just live` checks its build before anything ships (`tools/check_live.py`): only the file types the site serves, no symlinks, no WordPress path or `.well-known/`, the redirects, the indexable build and the footer stamp.
 - /software shows WireWeaver's evolution check (`ww api check`), a real run with its colours: an API change that keeps old clients and devices working passes with what it accepted, and a breaking one is caught with the rule it breaks and the version bump it needs. The API is wire_weaver's blinky example (`tools/term/ww_evolution`). `just captures` can now run several commands on one screen (`steps`).
 - The exact_units compile error on /software shows the source it failed on above the compiler's output, with the line rustc points at marked. Both come from the same run: `just captures` keeps the file it compiled (`show` in captures.toml).
-- /work has four more board renders (ASSET-1, SITE-10): B107 FlexyRJ45 (flexible RJ45 pass-through, sold in the old shop, so its card links /shop/), B146 DB-9 to Nano-Fit CAN adapter (newest rev B, linked to /can/), B154 SimBus (the early USB IO prototype that led to Pinsmith, linked to /pinsmith/) and B198 J-Link to Tag-Connect adapter (a lab tool, linked to /lab/). `scripts/render_boards.py` now also inserts a plain 2-layer stackup on the temp copy for a board whose `.kicad_pcb` never had one (B198), so the black-mask/white-silk colour patch still applies; a board with inner copper layers and no stackup fails loudly instead. B154's render is missing five small package footprints' 3D models (`kilib check`: DHWQFN-14-1EP, Texas S-PX2QFN-14, Texas UQFN-10, VSSOP-10, Texas R-PDSO-N6_DRL-6, 29 instances total), not in `vhrd-packages3D` yet.
+- /work has three more board renders (ASSET-1, SITE-10): B107 FlexyRJ45 (flexible RJ45 pass-through, sold in the old shop, so its card links /shop/), B146 DB-9 to Nano-Fit CAN adapter (newest rev B, linked to /can/) and B198 J-Link to Tag-Connect adapter (a lab tool, linked to /lab/). `scripts/render_boards.py` now also inserts a plain 2-layer stackup on the temp copy for a board whose `.kicad_pcb` never had one (B198), so the black-mask/white-silk colour patch still applies; a board with inner copper layers and no stackup fails loudly instead.
 - `just serve [PORT]` now serves on this PC's Tailscale address with live reload (PREVIEW-5 tailnet-serve), so any session or Roman can open the working tree from another PC or his phone, without landing, deploying or taking screenshots. `tools/serve.py` picks the port given, or the first free one from 1111 up, and prints the URL to open (the Tailscale MagicDNS name, or the IPv4 address when there is no name). Falls back to `127.0.0.1` with a message when Tailscale is down; never binds `0.0.0.0`.
 
 ### Changed
@@ -119,6 +119,10 @@
 - The board and lab manifests and the `.gitkeep` placeholders no longer ship with the site. The manifests named paths in the private hardware repository; the templates still read them from the source tree.
 - The post-deploy check takes a sample: the stamp, two pages, a stylesheet and a script, one old path per redirect rule and the 404 page. It took 45 s for about 75 requests that mostly repeated each other. `just check-live` keeps the full sweep (`--full`).
 - rePort is Pinsmith now (Roman, 4 Nov 2026): every page, card, alt text and the footer say Pinsmith, and its page moved from /report/ to /pinsmith/ (a golden link). Board and repo names stay (B200, the image folder b200-re-port).
+
+### Removed
+
+- B154 SimBus, the early USB IO prototype, is gone from /work and from `scripts/render_boards.py`'s board list (Roman, 5 Nov 2026): it is not his own project, and the site shows no employer or client work. Its render folder, `static/img/boards/b154-usb-io-simbus/`, is removed; the remaining board renders on /work keep their figure numbers 1 to 9 without a gap.
 
 ### Fixed
 
