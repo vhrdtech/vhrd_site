@@ -193,7 +193,7 @@ def start_notify(root, origin):
     cfg = Path(tmp.name) / "notify.toml"
     # every check posts from 127.0.0.1: a limit the check never reaches (the Rust tests cover the limit)
     cfg.write_text(f'listen = "127.0.0.1:{port}"\nstore = "signups.tsv"\nsite_origin = "{origin}"\n'
-                   'client_ip_header = ""\nrate_limit = 1000\n')
+                   'client_ip_header = ""\nrate_limit = 1000\nrate_limit_network = 1000\n')
     NOTIFY_STORE = Path(tmp.name) / "signups.tsv"
     proc = subprocess.Popen([root / "target/debug/vhrd_notify", "serve", "--config", cfg], stderr=subprocess.DEVNULL)
     atexit.register(tmp.cleanup)

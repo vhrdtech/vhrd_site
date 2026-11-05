@@ -1,7 +1,7 @@
 //! `POST /api/notify`: one signup from the site's form.
 //!
 //! The form (`application/x-www-form-urlencoded`, at most `max_body` bytes) has the fields `email`, `list`,
-//! `consent` (the version of the text shown next to it), `from` (the page it is on) and `website`, a honeypot no
+//! `consent` (the version of the text shown next to it), `from` (the page it is on) and `leave_empty`, a honeypot no
 //! person sees: when it is filled the answer is the same as for a signup, and nothing is stored.
 //!
 //! Two kinds of client get two kinds of answer, and neither ever carries the visitor's input:
@@ -15,6 +15,7 @@
 //! listed above, an Origin of another site) gets a plain 400.
 
 use std::net::{IpAddr, SocketAddr};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -34,18 +35,22 @@ pub struct App {
     cfg: Config,
     store: Arc<Store>,
     limit: Mutex<RateLimit>,
+    /// The client address header was missing once already (said once in the log, not per request).
+    header_missing: AtomicBool,
 }
 
 impl App {
     pub fn new(cfg: Config) -> Arc<App> {
         let limit = RateLimit::new(
             cfg.rate_limit,
+            cfg.rate_limit_network,
             Duration::from_secs(cfg.rate_window_secs),
             cfg.rate_clients,
         );
         Arc::new(App {
             store: Arc::new(Store::new(&cfg.store)),
             limit: Mutex::new(limit),
+            header_missing: AtomicBool::new(false),
             cfg,
         })
     }
@@ -117,7 +122,7 @@ struct Form {
     list: Option<String>,
     consent: Option<String>,
     from: Option<String>,
-    website: Option<String>,
+    leave_empty: Option<String>,
 }
 
 fn parse_form(body: &[u8]) -> Option<Form> {
@@ -128,7 +133,7 @@ fn parse_form(body: &[u8]) -> Option<Form> {
             "list" => &mut f.list,
             "consent" => &mut f.consent,
             "from" => &mut f.from,
-            "website" => &mut f.website,
+            "leave_empty" => &mut f.leave_empty,
             _ => return None,
         };
         if slot.replace(v.into_owned()).is_some() {
@@ -164,7 +169,14 @@ async fn notify(State(app): State<Arc<App>>, req: Request) -> Response {
         return plain(StatusCode::BAD_REQUEST, "bad request\n");
     }
     let peer = req.extensions().get::<ConnectInfo<SocketAddr>>().map(|c| c.0.ip());
-    let ip = client_ip(&headers, &cfg.client_ip_header).or(peer);
+    let ip = client_ip(&headers, &cfg.client_ip_header);
+    if ip.is_none() && !cfg.client_ip_header.is_empty() && !app.header_missing.swap(true, Ordering::Relaxed) {
+        eprintln!(
+            "vhrd_notify: no client address in {}: every such request shares one rate limit (nginx block missing?)",
+            cfg.client_ip_header
+        );
+    }
+    let ip = ip.or(peer);
 
     let Ok(body) = axum::body::to_bytes(req.into_body(), cfg.max_body).await else {
         return plain(StatusCode::BAD_REQUEST, "bad request\n");
@@ -210,7 +222,7 @@ async fn signup(app: &Arc<App>, form: &Form, ip: Option<IpAddr>) -> Outcome {
         eprintln!("vhrd_notify: refused, too many from one client");
         return Outcome::Wait;
     }
-    if form.website.as_deref().is_some_and(|w| !w.is_empty()) {
+    if form.leave_empty.as_deref().is_some_and(|w| !w.is_empty()) {
         eprintln!("vhrd_notify: honeypot filled, nothing stored");
         return Outcome::Ok;
     }
@@ -232,8 +244,11 @@ async fn signup(app: &Arc<App>, form: &Form, ip: Option<IpAddr>) -> Outcome {
     let time = crate::utc::format(crate::utc::now_secs());
     let added = tokio::task::spawn_blocking(move || store.add(&email, &list, &consent, &time, max)).await;
     match added {
-        Ok(Ok(Added::New)) => {
-            eprintln!("vhrd_notify: signed up");
+        Ok(Ok(Added::New(n))) => {
+            eprintln!("vhrd_notify: signed up ({n} in the store)");
+            if n * 5 >= max * 4 {
+                eprintln!("vhrd_notify: the store is over 80 % of max_signups ({max})");
+            }
             Outcome::Ok
         }
         Ok(Ok(Added::Duplicate)) => Outcome::Ok,
@@ -277,9 +292,9 @@ mod tests {
 
     #[test]
     fn form_fields_once_and_known_only() {
-        let f = parse_form(b"email=a%40b.no&list=donguru&consent=v1&from=home&website=").unwrap();
+        let f = parse_form(b"email=a%40b.no&list=donguru&consent=v1&from=home&leave_empty=").unwrap();
         assert_eq!(f.email.as_deref(), Some("a@b.no"));
-        assert_eq!(f.website.as_deref(), Some(""));
+        assert_eq!(f.leave_empty.as_deref(), Some(""));
         assert!(parse_form(b"email=a&email=b").is_none());
         assert!(parse_form(b"email=a&admin=1").is_none());
         // a + is a space in a form body: the address check refuses it later

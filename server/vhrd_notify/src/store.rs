@@ -5,14 +5,15 @@
 //! ```
 //!
 //! time (UTC), list, address, consent text version. A signup is appended and fsynced before the visitor hears it
-//! worked; the same address on the same list is kept out. Deleting an address (a GDPR request) is the one rewrite:
+//! worked; the same address on the same list is kept out. A last line without its newline is a write that never
+//! finished (a full disk, a crash): reads leave it out and the next signup cuts it off. Deleting an address (a GDPR request) is the one rewrite:
 //! the file without its lines goes to a temporary file, is fsynced and renamed over the old one.
 //!
 //! The service and the CLI both take an exclusive lock on a lock file beside it (never on the store itself, which a
 //! delete replaces), so a delete never loses a signup made at the same moment.
 
 use std::fs::{self, File, OpenOptions};
-use std::io::{self, BufRead, BufReader, Write};
+use std::io::{self, Read, Write};
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::{Path, PathBuf};
 
@@ -54,7 +55,8 @@ impl Signup {
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Added {
-    New,
+    /// Written; the store now holds this many lines.
+    New(usize),
     /// Already on that list: nothing written.
     Duplicate,
     /// The store holds `max` lines already: nothing written.
@@ -99,31 +101,36 @@ impl Store {
     /// error, never skipped silently.
     pub fn read(&self) -> io::Result<Vec<Signup>> {
         let _g = self.locked()?;
-        self.read_unlocked()
+        Ok(self.read_unlocked()?.0)
     }
 
-    fn read_unlocked(&self) -> io::Result<Vec<Signup>> {
-        let f = match File::open(&self.path) {
-            Ok(f) => f,
-            Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(Vec::new()),
+    /// The complete lines, and the length of the file up to the end of the last one.
+    fn read_unlocked(&self) -> io::Result<(Vec<Signup>, u64)> {
+        let mut bytes = Vec::new();
+        match File::open(&self.path) {
+            Ok(mut f) => f.read_to_end(&mut bytes)?,
+            Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok((Vec::new(), 0)),
             Err(e) => return Err(e),
         };
+        let complete = bytes.iter().rposition(|b| *b == b'\n').map_or(0, |i| i + 1);
+        let text = std::str::from_utf8(&bytes[..complete]).map_err(|_| self.broken(None))?;
         let mut out = Vec::new();
-        for (n, line) in BufReader::new(f).lines().enumerate() {
-            let line = line?;
-            let s = Signup::parse(&line).ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::InvalidData,
-                    format!("{}:{}: not a signup line", self.path.display(), n + 1),
-                )
-            })?;
-            out.push(s);
+        for (n, line) in text.lines().enumerate() {
+            out.push(Signup::parse(line).ok_or_else(|| self.broken(Some(n + 1)))?);
         }
-        Ok(out)
+        Ok((out, complete as u64))
+    }
+
+    fn broken(&self, line: Option<usize>) -> io::Error {
+        let at = line.map(|n| format!(":{n}")).unwrap_or_default();
+        io::Error::new(
+            io::ErrorKind::InvalidData,
+            format!("{}{at}: not a signup line", self.path.display()),
+        )
     }
 
     /// Appends a signup unless the address is on that list already or the store holds `max` lines. Returns once
-    /// the line is on disk.
+    /// the line is on disk. A duplicate takes an fsync too, so its answer takes as long as a new one's.
     pub fn add(&self, email: &Email, list: &str, consent: &str, time: &str, max: usize) -> io::Result<Added> {
         if !is_token(list) || !is_token(consent) {
             return Err(io::Error::new(
@@ -132,19 +139,24 @@ impl Store {
             ));
         }
         let _g = self.locked()?;
-        let all = self.read_unlocked()?;
-        if all.iter().any(|s| s.list == list && s.email == email.as_str()) {
-            return Ok(Added::Duplicate);
-        }
-        if all.len() >= max {
-            return Ok(Added::Full);
-        }
+        let (all, complete) = self.read_unlocked()?;
         let new = !self.path.exists();
         let mut f = OpenOptions::new()
             .create(true)
             .append(true)
             .mode(0o600)
             .open(&self.path)?;
+        if all.iter().any(|s| s.list == list && s.email == email.as_str()) {
+            f.sync_all()?;
+            return Ok(Added::Duplicate);
+        }
+        if all.len() >= max {
+            return Ok(Added::Full);
+        }
+        // an unfinished last line goes first, so the new one starts on a line of its own
+        if f.metadata()?.len() != complete {
+            f.set_len(complete)?;
+        }
         let line = Signup {
             time: time.into(),
             list: list.into(),
@@ -152,18 +164,21 @@ impl Store {
             consent: consent.into(),
         }
         .line();
-        f.write_all(line.as_bytes())?;
-        f.sync_all()?;
+        if let Err(e) = f.write_all(line.as_bytes()).and_then(|()| f.sync_all()) {
+            // leave no half line behind (best effort: the next signup cuts it off otherwise)
+            let _ = f.set_len(complete);
+            return Err(e);
+        }
         if new {
             sync_dir(&self.path)?;
         }
-        Ok(Added::New)
+        Ok(Added::New(all.len() + 1))
     }
 
     /// Removes every line of this address (on any list). Returns how many went.
     pub fn delete(&self, email: &Email) -> io::Result<usize> {
         let _g = self.locked()?;
-        let all = self.read_unlocked()?;
+        let (all, _) = self.read_unlocked()?;
         let (gone, keep): (Vec<_>, Vec<_>) = all.into_iter().partition(|s| s.email == email.as_str());
         if gone.is_empty() {
             return Ok(0);
@@ -220,13 +235,16 @@ mod tests {
         let t = "2026-11-05T14:03:09Z";
         assert_eq!(
             st.add(&e("a@b.no"), "donguru", "2026-11-05", t, 10).unwrap(),
-            Added::New
+            Added::New(1)
         );
         assert_eq!(
             st.add(&e("A@B.no"), "donguru", "2026-11-05", t, 10).unwrap(),
             Added::Duplicate
         );
-        assert_eq!(st.add(&e("a@b.no"), "other", "2026-11-05", t, 10).unwrap(), Added::New);
+        assert_eq!(
+            st.add(&e("a@b.no"), "other", "2026-11-05", t, 10).unwrap(),
+            Added::New(2)
+        );
         let text = fs::read_to_string(st.path()).unwrap();
         assert_eq!(
             text,
@@ -239,7 +257,7 @@ mod tests {
     fn full_store_refuses() {
         let (dir, st) = temp_store("full");
         let t = "2026-11-05T14:03:09Z";
-        assert_eq!(st.add(&e("a@b.no"), "donguru", "v1", t, 1).unwrap(), Added::New);
+        assert_eq!(st.add(&e("a@b.no"), "donguru", "v1", t, 1).unwrap(), Added::New(1));
         assert_eq!(st.add(&e("c@d.no"), "donguru", "v1", t, 1).unwrap(), Added::Full);
         assert_eq!(st.read().unwrap().len(), 1);
         fs::remove_dir_all(dir).unwrap();
@@ -267,6 +285,22 @@ mod tests {
         let (dir, st) = temp_store("broken");
         fs::write(st.path(), "not a line\n").unwrap();
         assert_eq!(st.read().unwrap_err().kind(), io::ErrorKind::InvalidData);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn an_unfinished_last_line_is_left_out_and_cut_off() {
+        let (dir, st) = temp_store("torn");
+        let t = "2026-11-05T14:03:09Z";
+        st.add(&e("a@b.no"), "donguru", "v1", t, 10).unwrap();
+        let mut f = OpenOptions::new().append(true).open(st.path()).unwrap();
+        f.write_all(b"2026-11-05T14:04:00Z\tdong").unwrap();
+        drop(f);
+        assert_eq!(st.read().unwrap().len(), 1);
+        assert_eq!(st.add(&e("c@d.no"), "donguru", "v1", t, 10).unwrap(), Added::New(2));
+        let text = fs::read_to_string(st.path()).unwrap();
+        assert_eq!(text.lines().count(), 2);
+        assert!(text.ends_with("\tc@d.no\tv1\n"), "{text}");
         fs::remove_dir_all(dir).unwrap();
     }
 

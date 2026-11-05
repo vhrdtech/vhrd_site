@@ -27,10 +27,12 @@ pub struct Config {
     pub max_body: usize,
     /// Signups one client may send in `rate_window_secs` (an IPv6 client counts by its /64).
     pub rate_limit: u32,
+    /// Signups one network may send in `rate_window_secs`: an IPv4 /24 or an IPv6 /48.
+    pub rate_limit_network: u32,
     pub rate_window_secs: u64,
-    /// Clients the rate limit remembers at once; past that, new clients are refused until old ones age out.
+    /// Clients (and networks) the rate limit remembers at once; past that, the one seen longest ago is forgotten.
     pub rate_clients: usize,
-    /// Lines the store may hold; past that, signups are refused (a full disk is worse).
+    /// Lines the store may hold; past that, signups are refused (a full disk is worse). The log warns from 80 %.
     pub max_signups: usize,
     /// The header nginx puts the client's address in. Empty: the connection's own address (no proxy).
     pub client_ip_header: String,
@@ -63,6 +65,7 @@ impl Default for Config {
             ],
             max_body: 1024,
             rate_limit: 5,
+            rate_limit_network: 20,
             rate_window_secs: 3600,
             rate_clients: 10_000,
             max_signups: 50_000,

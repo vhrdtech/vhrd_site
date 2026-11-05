@@ -76,7 +76,7 @@ async fn send(app: &axum::Router, p: Post<'_>) -> (StatusCode, Option<String>, S
 
 fn good(email: &str) -> String {
     format!(
-        "email={}&list=donguru&consent=2026-11-05&from=donguru&website=",
+        "email={}&list=donguru&consent=2026-11-05&from=donguru&leave_empty=",
         email.replace('@', "%40")
     )
 }
@@ -231,7 +231,7 @@ async fn honeypot_looks_fine_and_stores_nothing() {
     let (cfg, dir) = config();
     let store = Store::new(&cfg.store);
     let app = router(App::new(cfg));
-    let body = good("bot@example.com").replace("website=", "website=http%3A%2F%2Fspam.example");
+    let body = good("bot@example.com").replace("leave_empty=", "leave_empty=http%3A%2F%2Fspam.example");
     let (s, _, _) = send(
         &app,
         Post {
