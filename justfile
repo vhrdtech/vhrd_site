@@ -5,6 +5,9 @@
 zola_version := "0.23.6"
 brand := env("VHRD_BRAND", home_directory() / "git/vhrd_brand")
 preview_host := "https://shadow.vhrd.tech"
+# The web server's login, where the notify service runs (README "Notify service")
+web := "roman@vhrd.tech"
+web_port := "7722"
 
 export PATH := home_directory() / ".local/bin:" + env("PATH")
 # The footer's build stamp: short hash (with -dirty) and commit date, read by the templates through get_env
@@ -25,10 +28,11 @@ build:
     zola check --skip-external-links
     zola build
 
-# The site builds (Firefox for the browser check comes with `just install`), internal links resolve, the old WordPress paths redirect to its pages (deploy/redirects.map), every
+# The notify service's tests pass, the site builds (Firefox for the browser check comes with `just install`), internal links resolve, the old WordPress paths redirect to its pages (deploy/redirects.map), every
 # page passes the browser checks, the brand files match vhrd_brand (when it is checked out here)
 test *args:
     zola --version | grep -qF "{{ zola_version }}" || { echo "zola {{ zola_version }} expected: just install"; exit 1; }
+    cargo nextest run --workspace
     zola check --skip-external-links
     zola build --output-dir target/test --force
     python3 tools/check_live.py redirects target/test
@@ -44,10 +48,12 @@ check-browser:
 check-preview url dir="target/shots":
     uv run tools/check_pages.py "{{ url }}" --shots "{{ dir }}"
 
-# No whitespace errors, the tools parse, the deploy workflow passes actionlint and zizmor. Check only: the bytecode
+# No whitespace errors, the notify service formatted and clippy-clean, the tools parse, the deploy workflow passes actionlint and zizmor. Check only: the bytecode
 # goes to a temp dir, never into the tree
 lint:
     git diff --check HEAD
+    cargo fmt --check
+    cargo clippy --workspace --all-targets --quiet -- -D warnings
     PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py tools/samples.py tools/perf.py tools/fonts.py tools/check_live.py tools/mentions.py tools/term_capture.py tools/serve.py scripts/render_boards.py
     uvx --from actionlint-py actionlint .github/workflows/deploy.yml
     uvx zizmor --offline .github/workflows/deploy.yml
@@ -123,3 +129,17 @@ captures *args:
 # widths, from the PNG sources already here (no KiCad needed). Board numbers (b129 b133) limit it to those boards
 renders *args:
     uv run scripts/render_boards.py {{ args }}
+
+# Ship the notify service to the web server as a new release (tpm ship, ship.toml): build a static binary here, upload
+# it with deploy/notify.toml and the user unit, switch, restart, check. Prod: only with Roman's OK; tpm asks first.
+# The nginx block (deploy/nginx-notify.conf) is a root step on the server (README "Notify service")
+deploy-notify:
+    tpm ship web-server vhrd_notify
+
+# Back to the notify service's previous release on the web server
+rollback-notify:
+    tpm ship web-server vhrd_notify --rollback
+
+# The signups on the web server: `just notify count`, `list`, `export > donguru.csv`, `delete ADDRESS`
+notify *args:
+    ssh -p {{ web_port }} {{ web }} vhrd_notify/vhrd_notify {{ args }}

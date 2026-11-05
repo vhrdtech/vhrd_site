@@ -1,20 +1,20 @@
 # vhrd_site
 
-vhrd.tech: the company site, built with [Zola](https://www.getzola.org/) from Markdown and hand-written templates and CSS. No framework; the only script is the theme toggle and the code tabs.
+vhrd.tech: the company site, built with [Zola](https://www.getzola.org/) from Markdown and hand-written templates and CSS. No framework; the only script is the theme toggle, the code tabs and the signup form. The signup forms post to a small Rust service of the site's own, `vhrd_notify` (README "Notify service").
 
 ## Use
 
 ```sh
 just install         # Zola (the version pinned in AGENTS.md) into ~/.local/bin, no root
 just serve [PORT]    # live reload on this PC's Tailscale address (README "Serve on the tailnet")
-just test            # zola check + build, every page in headless Chromium, brand files match vhrd_brand
-just lint            # whitespace, the tools parse
+just test            # the notify service's tests, zola check + build, every page in headless Chromium, brand files match vhrd_brand
+just lint            # whitespace, rustfmt and clippy, the tools parse
 just perf            # the front page's first screen on a slow phone: requests, KB, FCP, LCP
 just live            # the live site for https://vhrd.tech/ into target/live: indexable, nothing of WordPress
 just preview TOKEN   # noindex build for https://shadow.vhrd.tech/TOKEN/ (README "Preview")
 ```
 
-`just test` needs `chromium` and `uv` (the browser check is `tools/check_pages.py`, run with uv).
+`just test` needs `chromium`, `uv` (the browser check is `tools/check_pages.py`, run with uv), Rust and `cargo nextest`.
 
 ## Brand
 
@@ -180,6 +180,39 @@ A preview is a noindex build behind a share link, `https://shadow.vhrd.tech/<tok
 - A build only works under the link it was built for, because every URL carries the token.
 - The link is public to anyone who has it. Nothing private goes into the site.
 - The robots.txt sits in a subdirectory, where crawlers don't read it. The meta tag on each page is what keeps the preview out of search results.
+
+## Notify service
+
+The "Get notified" forms on /donguru and the front page (`vh.notify`) post to `vhrd_notify`, a small Rust service on the web server behind nginx at `/api/notify`. It is the site's only server-side part.
+
+- **Code:** a Cargo workspace in `server/`: `vhrd_notify` (library: the address check, the store, the rate limit, the HTTP endpoint, the settings) and `vhrd_notify_cli` (the `vhrd_notify` binary). axum without its default features, no TLS (nginx terminates it), no C library.
+- **The form:** `email`, `list` (only `donguru`), `consent` (the version of the consent line shown, `extra.notify_consent`), `from` (the page) and `website`, a honeypot off screen. At most 1 KB.
+- **The address:** at most 254 characters and exactly one @. Before it, ASCII letters, digits and `. _ + -` (at most 64, no dot at either end, no two in a row); after it, letters, digits, dots and dashes, at least two labels, the last letters only. It is kept in lower case. Anything else is refused, never repaired.
+- **Answers:** the page's script (`Accept: application/json`) gets 200 (signed up, or already on the list), 400, 429 or 503 with a fixed text. A form without JavaScript gets a 303 back to its page's `#notify-ok`, `#notify-bad`, `#notify-wait` or `#notify-err`, which CSS shows with `:target`. A request that is not the form (another content type, a body over the limit, an unknown or repeated field, an Origin of another site) gets a plain 400. Nothing the visitor sent is ever in an answer, and no cookie is set.
+- **Rate limit:** five signups per client an hour, an IPv6 client counted by its /64. It lives in memory only; the client's address comes from nginx's `X-Real-IP`.
+- **Store:** `~/vhrd_notify/signups.tsv` on the server, outside the web root, mode 0600. One line per signup: UTC time, list, address, consent version, tab-separated. Each signup is appended and fsynced before the visitor hears it worked; the same address on the same list is kept out. A lock file beside it keeps the service and the CLI apart.
+- **Settings:** `deploy/notify.toml`, shipped beside the binary; every field and its default is in `server/vhrd_notify/src/config.rs`. A new consent text gets a new version in `consent_versions` first, then on the site. A broken settings file stops the service with exit code 78, which the unit does not restart.
+
+Managing the list, on the server or through `just notify` from a PC with the server's ssh key:
+
+```sh
+just notify count                      # signups per list
+just notify list [--list donguru]      # every line
+just notify export > donguru.csv       # CSV: email,list,time,consent, for the launch mail
+just notify delete someone@example.com # a removal request: every line of that address goes
+```
+
+`delete` rewrites the file without that address (a temporary file, fsynced, renamed over the old one). Double opt-in (a confirmation mail before an address counts) is a later option, not built.
+
+**Locally:** `just serve` builds the service and starts it beside the site on the next free port, with its own settings and store in `target/notify-dev/`, and tells the site where it is (`VHRD_NOTIFY_API`). The browser check does the same with a temp store and sends the form with and without JavaScript. A preview on shadow.vhrd.tech has no service: its form answers with the error message.
+
+**Deploy** (prod, only with Roman's OK; nothing here deploys it by itself):
+
+1. `just deploy-notify` (`tpm ship web-server vhrd_notify`, `ship.toml`): builds a static musl binary here, uploads it to `~/vhrd_notify/releases/` with `deploy/notify.toml` and the user unit `deploy/vhrd-notify.service`, switches the symlink, restarts and checks `--version`. It runs as the server's login user (linger is on for the mesh node already), listens on 127.0.0.1:8471 only. `just rollback-notify` goes back one release.
+2. Root, once: the block in `deploy/nginx-notify.conf` goes into the vhrd.tech `server { }` in `/etc/nginx/conf.d/vhrd.tech.conf`, then `nginx -t` and `systemctl reload nginx`. Only `POST /api/notify` reaches the service; the rest of `/api/` is a 404.
+3. Then the site itself (`just deploy`), whose forms post to `/api/notify`.
+
+Check after: `curl -si -X POST -H 'Accept: application/json' --data 'email=x' https://vhrd.tech/api/notify` answers 400 "bad request", and `just notify count` works.
 
 ## Deploy
 

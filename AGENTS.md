@@ -1,6 +1,6 @@
 # Working on vhrd_site
 
-vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates in `templates/`, hand-written CSS. It is the home for Donguru's launch, Pinsmith, the CAN line and the software, so every page answers: what it is, why it is good, what to do next.
+vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates in `templates/`, hand-written CSS. Its one server-side part is `vhrd_notify`, a small Rust service for the Get notified forms (`server/`, README "Notify service"). It is the home for Donguru's launch, Pinsmith, the CAN line and the software, so every page answers: what it is, why it is good, what to do next.
 
 ## Zola version
 
@@ -20,9 +20,11 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 - `templates/components.html`: the `vh.*` components, usable in templates and Markdown (README "Components").
 - `templates/index.html`: the landing page; `partials/intro.html` is its oscilloscope intro, with its script in `partials/intro-script.html` at the end of the body (README "Intro"). `page.html` is a plain page, `section.html` is the blog list, and there are `404.html` and `robots.txt`.
 - `static/css/brand/`: `tokens.css` and `vhrd.css` from vhrd_brand (`just brand`). Never edit these here; change vhrd_brand and pull.
-- `static/css/site.css`: the site's own layer. `base.html` inlines all the CSS (fonts.css, the brand files and site.css) into each page with `load_data`, so there is no render-blocking request. `static/js/site.js`: theme toggle, tabs and the image placeholders' marking, nothing else.
+- `static/css/site.css`: the site's own layer. `base.html` inlines all the CSS (fonts.css, the brand files and site.css) into each page with `load_data`, so there is no render-blocking request. `static/js/site.js`: theme toggle, tabs, the image placeholders' marking and the signup form's fetch, nothing else.
 - `static/fonts/`: IBM Plex woff2 subsets and `fonts.css`. `static/img/boards/` holds board renders (`just renders`, README "Board renders") and `static/img/lab/` lab photos.
 - `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check, `tools/perf.py` measures the first screen on a slow phone, `tools/fonts.py` cuts the Core font subsets and the small Greek faces (Ω, μ) from vhrd_brand's full fonts.
+- `server/`: the Cargo workspace (`Cargo.toml` at the root) of the notify service: `vhrd_notify` (library: `email.rs` the address check, `store.rs` the signups file, `limit.rs` the rate limit, `server.rs` the endpoint, `config.rs` the settings) and `vhrd_notify_cli` (the `vhrd_notify` binary: serve, list, count, export, delete). `deploy/notify.toml` is its settings on the server, `deploy/vhrd-notify.service` its user unit, `deploy/nginx-notify.conf` the nginx block, `ship.toml` what `tpm ship` ships. Dependencies without default features and with no C library (no SQLite: the store is a plain file at this size).
+- `content/privacy.md`: the privacy note the forms link to. Any change to what the site or the service keeps changes it in the same commit.
 - `.github/workflows/deploy.yml`: the only way the site reaches vhrd.tech (README "Deploy"); `.github/deploy/known_hosts` pins the server's host key. `tools/check_live.py` checks a live build before upload and the site after it.
 - `data/term/`: the terminal captures on /software (`captures.toml`, and per capture the screen as HTML and its TOML), recorded by `tools/term_capture.py` (`just captures`, README "Terminal captures") and shown by `vh.term`. Never edited by hand. `tools/term/units_demo` is the crate behind the exact_units compile error, `tools/term/ww_evolution` the API behind the evolution check.
 - `data/links.toml`: our projects' names and where a mention leads (a page, a card on /open-source or a repo). `vh.ref` and `vh.linkify` read it, and `tools/mentions.py` (in the browser check) fails a page whose first mention of a name is not a link.
@@ -33,8 +35,8 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 ```sh
 just install          # Zola 0.23.6 into ~/.local/bin
 just serve [PORT]     # live reload on this PC's Tailscale address (README "Serve on the tailnet")
-just test             # zola check, build, browser check of every page, brand files match vhrd_brand
-just lint             # git diff --check, the tools parse
+just test             # the notify service's tests, zola check, build, browser check of every page, brand files match vhrd_brand
+just lint             # git diff --check, rustfmt and clippy, the tools parse
 just brand            # pull tokens.css and vhrd.css from ~/git/vhrd_brand ($VHRD_BRAND)
 just wordmark         # redraw the wordmark and favicon from vhrd_brand's Audiowide
 just check-browser    # the browser check alone
@@ -42,6 +44,9 @@ just perf             # first screen on a slow phone: requests, KB, FCP, LCP (me
 just fonts            # Core subsets of the IBM Plex Latin1 faces, and fonts.css
 just live             # the live site for https://vhrd.tech/ into target/live (indexable, nothing of WordPress), checked
 just deploy           # start the Deploy workflow on GitHub; it waits for approval (README "Deploy")
+just deploy-notify    # ship the notify service to the web server (tpm ship); prod, Roman's OK only (README "Notify service")
+just rollback-notify  # the notify service's previous release
+just notify ARGS      # the signups on the server: count, list, export, delete ADDRESS
 just check-live       # the deployed site against target/live: pages 200, the footer stamp, the old paths' 301s, the 404
 just check-draw [URL] # the traces (draw with the scroll, both ways) and first clicks: the local build by default, or a deployed site
 just preview TOKEN    # noindex build for https://shadow.vhrd.tech/TOKEN/, uploaded with tpm share (README "Preview")
@@ -70,9 +75,10 @@ https://vhrd.tech` after a deploy. The CI deploy workflow does not run it.
 - **Dark first, light equal.** Every change is checked in both themes. Dark is the default whatever the system prefers (`<html data-theme="dark">`, Roman, 4 Nov 2026); light only when the visitor picks it with the toggle, stored in localStorage and applied by the head script before the first paint. Back to dark clears it.
 - **Almost no JavaScript, no framework.** Animation is CSS, off under `prefers-reduced-motion`. The traces draw and undraw with the scroll: a few lines of inline script at the end of `base.html` set each one's draw progress `--p` from its place on screen, the last ones completing at the page's end (scroll-driven CSS stalled on tall screens and does not exist in Firefox); without JavaScript they are simply drawn. The page must work without `site.js`. The front page's intro has a small inline script; without it the intro never shows.
 - **Links through `get_url`**, so the preview under a sub-path works. A link to a page passes `trailing_slash=true` (`get_url(path="/work/", trailing_slash=true)`): without it Zola drops the slash and every click costs a redirect. Internal Markdown links use `@/page.md`. The browser check fails on an internal link without the slash, on one that does not answer 200, and on a page no link reaches.
-- **The name is VHRD; the address is vhrd.tech.** VHRD in titles, copy, product names and the footer; vhrd.tech always lowercase, for URLs and mail; VHRD.TECH AS, the legal name, only in the copyright line (`extra.legal`). Never "Vhrd.tech AS", "VHRD Tech", "VHRD.tech" or "Vhrd.Tech" (Roman, 4 Nov 2026). The wordmark is drawn, not text.
+- **The name is VHRD; the address is vhrd.tech.** VHRD in titles, copy, product names and the footer; vhrd.tech always lowercase, for URLs and mail; VHRD.TECH AS, the legal name, only in the copyright line (`extra.legal`) and on /privacy, where it names who keeps the data. Never "Vhrd.tech AS", "VHRD Tech", "VHRD.tech" or "Vhrd.Tech" (Roman, 4 Nov 2026). The wordmark is drawn, not text.
 - **Brand words** come from ~/git/tpm/area/marketing/brand.md (Roman, 4 Nov 2026). The one line (hero lead, meta description): "Instruments for embedded development, and the open-source software behind them." VHRD builds instruments, not dev boards to ship inside products, for everyone who works where code meets hardware (hardware, firmware and software engineers), not only hardware engineers. "From Norway" stays out of the hero and the meta; Asker, Norway is in the footer and on /about.
 - **Draft copy is marked** (`<span class="v-badge">draft</span>` or `extra.stub = true`) until Marketing and PM have read it.
+- **The signup list is personal data.** The service sets no cookie, echoes nothing a visitor sent, keeps the rate limit in memory only and writes signups only to its store on the server. Addresses never go into the repo, a log line, a test fixture (use example.com) or a message; `just notify` reads them on the server. A new use of the list, a new field or a longer retention needs a new consent version and an updated /privacy first.
 - **Nothing private on the site or the preview.** A share link is public to anyone who has it. No employer work in the lab pages (decided 4 Nov 2026).
 - **Write for reading:** short complete sentences, one fact per list item, open with what it is about.
 - Planning and review notes don't belong in this repo. They live in the tpm project folder (P2633 `design/`).

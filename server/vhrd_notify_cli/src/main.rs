@@ -17,7 +17,7 @@ const VERSION: &str = concat!(
 );
 
 #[derive(Parser)]
-#[command(version = VERSION, about = "The e-mail signup behind vhrd.tech's Get notified forms")]
+#[command(name = "vhrd_notify", version = VERSION, about = "The e-mail signup behind vhrd.tech's Get notified forms")]
 struct Cli {
     /// The settings file [default: $VHRD_NOTIFY_CONFIG, else ~/vhrd_notify/notify.toml]
     #[arg(long, global = true)]

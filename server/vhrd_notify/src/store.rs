@@ -13,6 +13,7 @@
 
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufRead, BufReader, Write};
+use std::os::unix::fs::OpenOptionsExt;
 use std::path::{Path, PathBuf};
 
 use crate::email::Email;
@@ -88,6 +89,7 @@ impl Store {
             .create(true)
             .truncate(false)
             .write(true)
+            .mode(0o600)
             .open(&self.lock)?;
         f.lock()?;
         Ok(Guard(f))
@@ -138,7 +140,11 @@ impl Store {
             return Ok(Added::Full);
         }
         let new = !self.path.exists();
-        let mut f = OpenOptions::new().create(true).append(true).open(&self.path)?;
+        let mut f = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .mode(0o600)
+            .open(&self.path)?;
         let line = Signup {
             time: time.into(),
             list: list.into(),
@@ -166,7 +172,12 @@ impl Store {
         tmp.push(".tmp");
         let tmp = PathBuf::from(tmp);
         {
-            let mut f = File::create(&tmp)?;
+            let mut f = OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .mode(0o600)
+                .open(&tmp)?;
             for s in &keep {
                 f.write_all(s.line().as_bytes())?;
             }
@@ -246,6 +257,8 @@ mod tests {
         let left: Vec<_> = st.read().unwrap().into_iter().map(|s| s.email).collect();
         assert_eq!(left, ["c@d.no"]);
         assert!(!dir.join("signups.tsv.tmp").exists());
+        use std::os::unix::fs::PermissionsExt;
+        assert_eq!(fs::metadata(st.path()).unwrap().permissions().mode() & 0o777, 0o600);
         fs::remove_dir_all(dir).unwrap();
     }
 
