@@ -96,8 +96,14 @@ fn run(cmd: Cmd, cfg: Config) -> Result<(), String> {
                 .enable_all()
                 .build()
                 .map_err(|e| e.to_string())?;
-            rt.block_on(vhrd_notify::server::serve(cfg, env!("GIT_SHA")))
-                .map_err(|e| e.to_string())?;
+            match rt.block_on(vhrd_notify::server::serve(cfg, env!("GIT_SHA"))) {
+                Ok(()) => {}
+                Err(vhrd_notify::server::ServeError::Setup(e)) => {
+                    eprintln!("vhrd_notify: {e}; fix it, then start the service again");
+                    std::process::exit(EXIT_CONFIG);
+                }
+                Err(e) => return Err(e.to_string()),
+            }
         }
         Cmd::List { list } => {
             for r in read()?.iter().filter(|r| of(&list, r)) {

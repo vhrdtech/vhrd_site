@@ -155,8 +155,10 @@ pub enum Sent {
     Ok,
     /// Worth another try later (no connection, a 4xx).
     Later,
-    /// The mail server refused the address for good (a 5xx on RCPT).
+    /// The mail server says the address does not exist (a 550, 551 or 553 to RCPT).
     Never,
+    /// This mail will never go (another 5xx, a text that can't be composed): given up, the record kept.
+    Failed,
 }
 
 /// What [`sent`] did with the record, for the log.
@@ -199,7 +201,7 @@ pub fn sent(records: &mut Vec<Record>, id: Id, outbox: &Outbox, how: Sent, rules
             records.remove(pos);
             After::Deleted
         }
-        Sent::Later | Sent::Never => {
+        Sent::Later | Sent::Never | Sent::Failed => {
             let pause = if how == Sent::Later {
                 rules.retry_secs.get(r.attempts as usize)
             } else {

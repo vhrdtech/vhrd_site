@@ -6,7 +6,9 @@
 pub mod config;
 pub mod email;
 pub mod limit;
+pub mod links;
 pub mod list;
+pub mod mail;
 pub mod outbox;
 pub mod server;
 pub mod store;

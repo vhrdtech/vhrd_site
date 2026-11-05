@@ -51,41 +51,96 @@ pub struct App {
     /// Records pending and in all, as the worker last counted them.
     pub(crate) pending: AtomicUsize,
     pub(crate) records: AtomicUsize,
+    /// The links' key ([`crate::token`]).
+    pub(crate) key: crate::token::Key,
+    /// How mail goes out; none without the settings' `[mail]` table.
+    pub(crate) mailer: Option<crate::mail::Mailer>,
     limit: Mutex<RateLimit>,
+    /// The limits of the confirm and remove buttons, and of the one-click unsubscribe, each counted on its own.
+    pub(crate) link_limit: Mutex<RateLimit>,
+    pub(crate) one_click_limit: Mutex<RateLimit>,
     /// The client address header was missing once already (said once in the log, not per request).
     header_missing: AtomicBool,
 }
 
+/// Why the service can't start: a setting, the key or the mail password. The binary exits 78 on it.
+#[derive(Debug)]
+pub enum ServeError {
+    Setup(String),
+    Io(std::io::Error),
+}
+
+impl std::fmt::Display for ServeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ServeError::Setup(s) => f.write_str(s),
+            ServeError::Io(e) => write!(f, "{e}"),
+        }
+    }
+}
+
+impl From<std::io::Error> for ServeError {
+    fn from(e: std::io::Error) -> Self {
+        ServeError::Io(e)
+    }
+}
+
 impl App {
+    /// For tests: [`App::try_new`], panicking on a setup error.
     pub fn new(cfg: Config) -> Arc<App> {
-        App::with_release(cfg, None)
+        App::try_new(cfg, None).expect("app setup")
     }
 
     /// An app whose answers name `release` in [`RELEASE_HEADER`] (a release name that is not a valid header value
     /// is left out).
     pub fn with_release(cfg: Config, release: Option<&str>) -> Arc<App> {
-        let limit = RateLimit::new(
-            cfg.rate_limit,
-            cfg.rate_limit_network,
-            Duration::from_secs(cfg.rate_window_secs),
-            cfg.rate_clients,
-        );
-        Arc::new(App {
+        App::try_new(cfg, release).expect("app setup")
+    }
+
+    /// Loads (or makes) the token key and readies the mailer; answers name `release` as [`App::with_release`]
+    /// says. A relative `token_key` is taken from the store's folder.
+    pub fn try_new(mut cfg: Config, release: Option<&str>) -> Result<Arc<App>, String> {
+        if cfg.token_key.is_relative()
+            && let Some(dir) = cfg.store.parent()
+        {
+            cfg.token_key = dir.join(&cfg.token_key);
+        }
+        let key = crate::token::Key::load_or_create(&cfg.token_key)?;
+        let mailer = cfg.mail.as_ref().map(crate::mail::Mailer::new).transpose()?;
+        let limit = |client, network| {
+            Mutex::new(RateLimit::new(
+                client,
+                network,
+                Duration::from_secs(cfg.rate_window_secs),
+                cfg.rate_clients,
+            ))
+        };
+        Ok(Arc::new(App {
             store: Arc::new(Store::new(&cfg.store)),
-            limit: Mutex::new(limit),
+            limit: limit(cfg.rate_limit, cfg.rate_limit_network),
+            link_limit: limit(cfg.link_rate_limit, cfg.link_rate_limit_network),
+            one_click_limit: limit(cfg.one_click_rate_limit, cfg.one_click_rate_limit),
             header_missing: AtomicBool::new(false),
             release: release.and_then(|r| HeaderValue::from_str(r).ok()),
             wake: tokio::sync::Notify::new(),
             pending: AtomicUsize::new(0),
             records: AtomicUsize::new(0),
+            key,
+            mailer,
             cfg,
-        })
+        }))
     }
 }
 
 pub fn router(app: Arc<App>) -> Router {
     Router::new()
         .route("/api/notify", post(notify))
+        .route("/api/notify/confirm", post(crate::links::confirm))
+        .route("/api/notify/remove", post(crate::links::remove))
+        .route(
+            "/api/notify/unsubscribe",
+            post(crate::links::one_click).get(crate::links::unsubscribe_page),
+        )
         .fallback(|| async { plain(StatusCode::NOT_FOUND, "not found\n") })
         .layer(middleware::map_response_with_state(app.clone(), stamp))
         .with_state(app)
@@ -99,21 +154,26 @@ async fn stamp(State(app): State<Arc<App>>, mut r: Response) -> Response {
 }
 
 /// Serves until SIGTERM or Ctrl-C; every answer names `release` (see [`RELEASE_HEADER`]).
-pub async fn serve(cfg: Config, release: &str) -> std::io::Result<()> {
+pub async fn serve(cfg: Config, release: &str) -> Result<(), ServeError> {
+    let app = App::try_new(cfg, Some(release)).map_err(ServeError::Setup)?;
+    let cfg = &app.cfg;
+    if app.mailer.is_none() {
+        eprintln!("vhrd_notify: no [mail] settings: mails stay in the outbox");
+    }
     let listener = tokio::net::TcpListener::bind(&cfg.listen).await?;
     eprintln!(
         "vhrd_notify: listening on {}, store {}",
         listener.local_addr()?,
         cfg.store.display()
     );
-    let app = App::with_release(cfg, Some(release));
     // the first round before the first request: a store that can't be read fails the start, not a signup
     crate::outbox::tick(&app, crate::utc::now_secs())?;
     tokio::spawn(crate::outbox::run(app.clone()));
     let app = router(app);
     axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>())
         .with_graceful_shutdown(shutdown())
-        .await
+        .await?;
+    Ok(())
 }
 
 async fn shutdown() {
@@ -190,32 +250,11 @@ async fn notify(State(app): State<Arc<App>>, req: Request) -> Response {
     if origin.is_some() && !same_site {
         return plain(StatusCode::BAD_REQUEST, "bad request\n");
     }
-    let script = headers
-        .get(header::ACCEPT)
-        .and_then(|a| a.to_str().ok())
-        .is_some_and(|a| a.contains("application/json"));
-    let is_form = headers
-        .get(header::CONTENT_TYPE)
-        .and_then(|c| c.to_str().ok())
-        .is_some_and(|c| {
-            c.split(';')
-                .next()
-                .unwrap_or("")
-                .trim()
-                .eq_ignore_ascii_case("application/x-www-form-urlencoded")
-        });
-    if !is_form {
+    let script = wants_json(&headers);
+    if !content_type_is(&headers, "application/x-www-form-urlencoded") {
         return plain(StatusCode::BAD_REQUEST, "bad request\n");
     }
-    let peer = req.extensions().get::<ConnectInfo<SocketAddr>>().map(|c| c.0.ip());
-    let ip = client_ip(&headers, &cfg.client_ip_header);
-    if ip.is_none() && !cfg.client_ip_header.is_empty() && !app.header_missing.swap(true, Ordering::Relaxed) {
-        eprintln!(
-            "vhrd_notify: no client address in {}: every such request shares one rate limit (nginx block missing?)",
-            cfg.client_ip_header
-        );
-    }
-    let ip = ip.or(peer);
+    let ip = app.client(&headers, &req);
 
     let Ok(body) = axum::body::to_bytes(req.into_body(), cfg.max_body).await else {
         return plain(StatusCode::BAD_REQUEST, "bad request\n");
@@ -314,6 +353,68 @@ async fn signup(app: &Arc<App>, form: &Form, ip: Option<IpAddr>) -> Outcome {
     }
 }
 
+impl App {
+    /// The client's address: from nginx's header, else the connection's (said once in the log when the header is
+    /// missing).
+    pub(crate) fn client(&self, headers: &HeaderMap, req: &Request) -> Option<IpAddr> {
+        let cfg = &self.cfg;
+        let peer = req.extensions().get::<ConnectInfo<SocketAddr>>().map(|c| c.0.ip());
+        let ip = client_ip(headers, &cfg.client_ip_header);
+        if ip.is_none() && !cfg.client_ip_header.is_empty() && !self.header_missing.swap(true, Ordering::Relaxed) {
+            eprintln!(
+                "vhrd_notify: no client address in {}: every such request shares one rate limit (nginx block missing?)",
+                cfg.client_ip_header
+            );
+        }
+        ip.or(peer)
+    }
+}
+
+/// The page's script asks for a status instead of a redirect.
+pub(crate) fn wants_json(headers: &HeaderMap) -> bool {
+    headers
+        .get(header::ACCEPT)
+        .and_then(|a| a.to_str().ok())
+        .is_some_and(|a| a.contains("application/json"))
+}
+
+pub(crate) fn content_type_is(headers: &HeaderMap, want: &str) -> bool {
+    headers
+        .get(header::CONTENT_TYPE)
+        .and_then(|c| c.to_str().ok())
+        .is_some_and(|c| c.split(';').next().unwrap_or("").trim().eq_ignore_ascii_case(want))
+}
+
+/// The Origin header is the site's or missing; `Some(origin)` when it is the site's.
+pub(crate) fn origin_ok(cfg: &Config, headers: &HeaderMap) -> Result<Option<HeaderValue>, ()> {
+    match headers.get(header::ORIGIN) {
+        None => Ok(None),
+        Some(o) if o.as_bytes() == cfg.site_origin.as_bytes() => Ok(Some(o.clone())),
+        Some(_) => Err(()),
+    }
+}
+
+/// CORS for the site's own script.
+pub(crate) fn allow_origin(resp: &mut Response, origin: Option<HeaderValue>) {
+    if let Some(o) = origin {
+        let h = resp.headers_mut();
+        h.insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, o);
+        h.insert(header::VARY, HeaderValue::from_static("Origin"));
+    }
+}
+
+/// A 303 to `to`, which the caller built only from settings and checked tokens.
+pub(crate) fn see_other(to: &str) -> Response {
+    let mut r = plain(StatusCode::SEE_OTHER, "");
+    match HeaderValue::from_str(to) {
+        Ok(v) => {
+            r.headers_mut().insert(header::LOCATION, v);
+            r
+        }
+        Err(_) => plain(StatusCode::INTERNAL_SERVER_ERROR, "server error\n"),
+    }
+}
+
 fn client_ip(headers: &HeaderMap, name: &str) -> Option<IpAddr> {
     if name.is_empty() {
         return None;
@@ -321,7 +422,7 @@ fn client_ip(headers: &HeaderMap, name: &str) -> Option<IpAddr> {
     headers.get(name)?.to_str().ok()?.trim().parse().ok()
 }
 
-fn plain(status: StatusCode, text: &'static str) -> Response {
+pub(crate) fn plain(status: StatusCode, text: &'static str) -> Response {
     let mut r = (status, Body::from(text)).into_response();
     let h = r.headers_mut();
     h.insert(

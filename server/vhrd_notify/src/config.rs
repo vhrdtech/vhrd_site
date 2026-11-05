@@ -1,6 +1,7 @@
 //! The service's settings, one TOML file (`deploy/notify.toml` is the server's). Every field has its default here;
 //! a missing file means all defaults. Relative paths are taken from the file's own folder.
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
@@ -30,6 +31,12 @@ pub struct Config {
     /// Signups one network may send in `rate_window_secs`: an IPv4 /24 or an IPv6 /48.
     pub rate_limit_network: u32,
     pub rate_window_secs: u64,
+    /// Presses of the confirm and remove buttons one client, and one network, may send in `rate_window_secs`.
+    pub link_rate_limit: u32,
+    pub link_rate_limit_network: u32,
+    /// One-click unsubscribes (RFC 8058) per client and per network in `rate_window_secs`. They come from the mail
+    /// providers' servers, many people's from one address, so this is high.
+    pub one_click_rate_limit: u32,
     /// Clients (and networks) the rate limit remembers at once; past that, the one seen longest ago is forgotten.
     pub rate_clients: usize,
     /// Records the store may hold; past that, signups are refused (a full disk is worse). The log warns from 80 %.
@@ -48,6 +55,66 @@ pub struct Config {
     pub max_intake_bytes: u64,
     /// The header nginx puts the client's address in. Empty: the connection's own address (no proxy).
     pub client_ip_header: String,
+    /// The key the links in our mails are made with ([`crate::token`]): made by the service when missing, mode 0600,
+    /// never shipped. Keep it outside the folder releases are installed into.
+    pub token_key: PathBuf,
+    /// Each list's name as the mails say it.
+    pub titles: BTreeMap<String, String>,
+    /// How mail goes out. Without this table no mail is sent: the outbox only fills (a test or a local service).
+    pub mail: Option<Mail>,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum MailTls {
+    /// TLS from the first byte (SMTP submission on port 465), the server's certificate checked against the system's
+    /// roots.
+    Implicit,
+    /// No TLS at all: only to a loopback address (a test's mail server).
+    None,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct Mail {
+    pub host: String,
+    pub port: u16,
+    pub tls: MailTls,
+    /// The login on the mail server. Its password is in `password_file`, never here.
+    pub user: String,
+    /// One line, the SMTP password; mode 0600, outside the folder releases are installed into.
+    pub password_file: PathBuf,
+    /// The sender, in From and in the envelope (bounces come back to it).
+    pub from: String,
+    pub from_name: String,
+    /// The name this host gives itself in EHLO.
+    pub hello: String,
+    /// The longest one mail may take, connection included, in seconds.
+    pub timeout_secs: u64,
+    /// Confirmation mails sent at most in an hour and in a day, for all addresses together. Past that they wait.
+    pub per_hour: u32,
+    pub per_day: u32,
+    /// List mails (`vhrd_notify send`) sent at most in a minute.
+    pub list_per_minute: u32,
+}
+
+impl Default for Mail {
+    fn default() -> Mail {
+        Mail {
+            host: "mail.vhrd.tech".into(),
+            port: 465,
+            tls: MailTls::Implicit,
+            user: "notify-sender@vhrd.tech".into(),
+            password_file: "smtp-password".into(),
+            from: "donguru@vhrd.tech".into(),
+            from_name: "VHRD".into(),
+            hello: "vhrd.tech".into(),
+            timeout_secs: 30,
+            per_hour: 60,
+            per_day: 300,
+            list_per_minute: 20,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -79,6 +146,9 @@ impl Default for Config {
             rate_limit: 5,
             rate_limit_network: 20,
             rate_window_secs: 3600,
+            link_rate_limit: 20,
+            link_rate_limit_network: 100,
+            one_click_rate_limit: 2000,
             rate_clients: 10_000,
             max_signups: 50_000,
             pending_days: 7,
@@ -88,6 +158,9 @@ impl Default for Config {
             retry_secs: vec![60, 300, 1800, 7200, 21600],
             max_intake_bytes: 1 << 20,
             client_ip_header: "x-real-ip".into(),
+            token_key: "token-key".into(),
+            titles: BTreeMap::from([("donguru".into(), "Donguru".into())]),
+            mail: None,
         }
     }
 }
@@ -103,10 +176,19 @@ impl Config {
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Config::default(),
             Err(e) => return Err(format!("{}: {e}", path.display())),
         };
-        if c.store.is_relative()
-            && let Some(dir) = path.parent()
-        {
-            c.store = dir.join(&c.store);
+        if let Some(dir) = path.parent() {
+            for p in [
+                Some(&mut c.store),
+                Some(&mut c.token_key),
+                c.mail.as_mut().map(|m| &mut m.password_file),
+            ]
+            .into_iter()
+            .flatten()
+            {
+                if p.is_relative() {
+                    *p = dir.join(&*p);
+                }
+            }
         }
         c.check().map_err(|e| format!("{}: {e}", path.display()))?;
         Ok(c)
@@ -134,6 +216,36 @@ impl Config {
             || self.site_origin.contains(['\r', '\n'])
         {
             return Err("site_origin: scheme and host, no trailing /".into());
+        }
+        for l in &self.lists {
+            if !self.titles.contains_key(l) {
+                return Err(format!("titles: no title for the list {l:?}"));
+            }
+        }
+        for t in self.titles.values() {
+            if t.is_empty() || t.len() > 64 || t.chars().any(char::is_control) {
+                return Err("titles: a plain name of up to 64 characters".into());
+            }
+        }
+        if let Some(m) = &self.mail {
+            if crate::Email::parse(&m.from).is_err() || m.user.is_empty() || m.user.chars().any(char::is_control) {
+                return Err("mail.from: an address; mail.user: the login".into());
+            }
+            if m.from_name.is_empty() || !m.from_name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b' ') {
+                return Err("mail.from_name: letters, digits and spaces".into());
+            }
+            let host_ok = |h: &str| !h.is_empty() && h.bytes().all(|b| b.is_ascii_alphanumeric() || b".-".contains(&b));
+            if !host_ok(&m.host) || !host_ok(&m.hello) || m.port == 0 || m.timeout_secs == 0 {
+                return Err("mail: host and hello are host names, port and timeout_secs more than 0".into());
+            }
+            if m.tls == MailTls::None && !m.host.parse::<std::net::IpAddr>().is_ok_and(|ip| ip.is_loopback()) {
+                return Err(
+                    "mail.tls = \"none\" only to a loopback address: a password never goes out in the clear".into(),
+                );
+            }
+            if m.per_hour == 0 || m.per_day == 0 || m.list_per_minute == 0 {
+                return Err("mail: per_hour, per_day and list_per_minute more than 0".into());
+            }
         }
         if self.max_body == 0 || self.rate_window_secs == 0 || self.pending_days == 0 || self.max_confirm_mails == 0 {
             return Err("max_body, rate_window_secs, pending_days and max_confirm_mails: more than 0".into());
@@ -185,5 +297,24 @@ mod tests {
         assert!(bad(|c| c.consent_versions.push("a\tb".into())));
         assert!(bad(|c| c.site_origin = "https://vhrd.tech/".into()));
         assert!(bad(|c| c.max_body = 0));
+        assert!(bad(|c| c.lists.push("other".into())));
+        let mail = |f: fn(&mut Mail)| {
+            let mut m = Mail::default();
+            f(&mut m);
+            let c = Config {
+                mail: Some(m),
+                ..Config::default()
+            };
+            c.check().is_err()
+        };
+        assert!(!mail(|_| {}));
+        assert!(mail(|m| m.tls = MailTls::None));
+        assert!(!mail(|m| {
+            m.tls = MailTls::None;
+            m.host = "127.0.0.1".into();
+        }));
+        assert!(mail(|m| m.from = "not an address".into()));
+        assert!(mail(|m| m.from_name = "VHRD\r\nBcc: x@y.no".into()));
+        assert!(mail(|m| m.host = "mail.vhrd.tech:25".into()));
     }
 }

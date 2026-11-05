@@ -1,0 +1,15 @@
+Confirm your {title} signup
+Hello,
+
+Someone, hopefully you, left this address on vhrd.tech to hear from VHRD when the {title} campaign opens.
+
+To confirm, open this link and press the button on the page:
+{confirm}
+
+Nothing goes on the list until you do. If it wasn't you, ignore this mail: the address is deleted in {days} days.
+
+To delete it now:
+{remove}
+
+VHRD, Asker, Norway
+What we keep and why: {privacy}
