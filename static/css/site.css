@@ -570,13 +570,6 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .js-sent .notify-msg:target:not(.is-shown) { display: none; }
 .notify-msg:focus { outline: none; }
 .notify-msg:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
-/* The mail links' pages (notify-link.html, NOTIFY-4 double-opt-in): the token field shows only without JavaScript.
-   Once done, or the link is old, the button goes. */
-.notify-paste { margin: 0 0 1rem; }
-.notify-paste .notify-input { display: block; width: 100%; margin-top: 0.5rem; }
-.notify-hint { display: block; font-size: 0.875rem; color: var(--muted); }
-.notify-link:has(#notify-done:target, #notify-gone:target) .notify-act, .notify-link.is-finished .notify-act { display: none; }
-.notify-link .notify-msg a { color: inherit; }
 /* On a phone the diagram keeps a readable size and scrolls sideways inside its frame. */
 .bd-scroll { overflow-x: auto; }
 .bd-scroll .bd { min-width: 34rem; }

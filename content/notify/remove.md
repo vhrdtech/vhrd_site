@@ -5,6 +5,7 @@ path = "notify/remove/"
 template = "notify-link.html"
 
 [extra]
+styles = ["notify"]
 label = "Get notified"
 headline = "Remove your address"
 sig = "usb"

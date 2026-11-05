@@ -5,6 +5,7 @@ path = "notify/confirm/"
 template = "notify-link.html"
 
 [extra]
+styles = ["notify"]
 label = "Get notified"
 headline = "Confirm your address"
 sig = "usb"
