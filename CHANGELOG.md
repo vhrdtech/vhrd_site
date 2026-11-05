@@ -130,6 +130,7 @@
 - The board and lab manifests and the `.gitkeep` placeholders no longer ship with the site. The manifests named paths in the private hardware repository; the templates still read them from the source tree.
 - The post-deploy check takes a sample: the stamp, two pages, a stylesheet and a script, one old path per redirect rule and the 404 page. It took 45 s for about 75 requests that mostly repeated each other. `just check-live` keeps the full sweep (`--full`).
 - rePort is Pinsmith now (Roman, 4 Nov 2026): every page, card, alt text and the footer say Pinsmith, and its page moved from /report/ to /pinsmith/ (a golden link). Board and repo names stay (B200, the image folder b200-re-port).
+- The copy follows the voice rule "I, we and neither". Most sentences name the product or VHRD. "I" stays on /about, /services and the personal FAQ answers, and "we" only in /privacy and the signup consent. /about has a "With help from" part that names the friends' roles.
 
 ### Removed
 

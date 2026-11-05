@@ -10,7 +10,7 @@
 
   <section class="work-group" id="boards">
     {{ <vh.label text="Boards" n="01" /> }}
-    <h2>Our own boards</h2>
+    <h2>VHRD's own boards</h2>
     {% <vh.cards> %}
     {%- for b in page.extra.boards %}
     {%- set m = load_data(path="static/img/boards/" ~ b.dir ~ "/manifest.toml") %}
@@ -60,7 +60,7 @@
   <section class="work-group" id="services">
     {{ <vh.label text="Services" n="03" /> }}
     <h2>Need something like this?</h2>
-    <p>I take on design work when there's a slot.</p>
+    <p>Design work for your project is possible when there's a slot.</p>
     <div class="ctas"><a class="v-btn" href="{{ get_url(path='/services/', trailing_slash=true) }}">Services</a></div>
   </section>
 </article>

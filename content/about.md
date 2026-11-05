@@ -14,13 +14,23 @@ VHRD makes instruments for embedded development: debug and IO tools, the softwar
 
 I am Roman Isaikin, the founder of VHRD. I design the boards, write the firmware and build the software around them. You can see some of that work on [the work page](@/work.md), in [the lab](@/lab.md) and on [the open-source page](@/open-source.md).
 
-## What we make
+## With help from {#help}
+
+VHRD is one person. Friends help now and then, next to their own full-time jobs:
+
+<!-- One item per friend. A name goes in only once that friend has agreed, as "- **Name**, electronics engineer." -->
+- an electronics engineer,
+- an embedded developer,
+- a programmer,
+- and others.
+
+## What VHRD makes
 
 - [Donguru](@/donguru.md): one cable from your PC to your board.
 - [Pinsmith](@/pinsmith.md): digital and analog I/O over USB, with no programming needed.
 - [The CAN line](@/can.md): USB and Ethernet to isolated CAN FD bridges.
-- [IOWeaver and RockFace](@/software.md): the desktop software for our instruments.
-- [FlexyRJ45 and our other boards](@/shop.md): the shop is moving, so they are ordered by mail for now.
+- [IOWeaver and RockFace](@/software.md): the desktop software for the instruments.
+- [FlexyRJ45 and the other boards](@/shop.md): the shop is moving, so they are ordered by mail for now.
 
 ## Where it ships from
 

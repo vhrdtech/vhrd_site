@@ -1,6 +1,6 @@
 +++
 title = "Work"
-description = "Selected work from our own bench: digital, power, communications and motors."
+description = "Selected work from VHRD's own bench: digital, power, communications and motors."
 template = "work.html"
 
 [extra]

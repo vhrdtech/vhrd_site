@@ -84,8 +84,8 @@
 
 {{ <vh.trace sig="analog" from={30} to={70} label="AIN" /> }}
 
-{% <vh.section label="From the lab" n="04" id="lab" title="Work we are proud of"> %}
-<p class="v-muted section-lead">Four pieces from our own bench: Ethernet and USB to CAN FD, a laser scanner and a firmware debugger.</p>
+{% <vh.section label="From the lab" n="04" id="lab" title="Selected work"> %}
+<p class="v-muted section-lead">Four pieces from VHRD's own bench: Ethernet and USB to CAN FD, a laser scanner and a firmware debugger.</p>
 {% <vh.cards> %}
 {{ <vh.card title="Ethernet to CAN FD" href="/can/" sig="can" n="5" badge="In development" badge_cls=""
    stem="img/boards/b125-eth-2fdcan/b125_hero" alt="B125 Ethernet to two isolated CAN FD bridge, three-quarter view" caption="B125"
@@ -105,7 +105,7 @@
    pitch="A firmware debugger for running systems. Commercial release: TBD."
    specs={["Logs: from a fleet", "Graphs: stack, CPU use", "Profiling: zero-cost"]} /> }}
 {% </vh.cards> %}
-<p class="more"><a class="go" href="{{ get_url(path='/work/', trailing_slash=true) }}">More of our work</a></p>
+<p class="more"><a class="go" href="{{ get_url(path='/work/', trailing_slash=true) }}">More work</a></p>
 {% </vh.section> %}
 
 {{ <vh.trace sig="can" from={70} to={8} label="CAN_H / CAN_L" /> }}

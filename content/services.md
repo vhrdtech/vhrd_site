@@ -10,7 +10,7 @@ sig = "ctrl"
 
 ## Availability
 
-Right now most of my time goes into our own products: [Donguru](@/donguru.md), [Pinsmith](@/pinsmith.md), [the CAN line](@/can.md) and [the software tools](@/software.md). I take on outside work only when a slot opens up, so I can't promise a start date.
+Right now most of my time goes into VHRD's own products: [Donguru](@/donguru.md), [Pinsmith](@/pinsmith.md), [the CAN line](@/can.md) and [the software tools](@/software.md). I take on outside work only when a slot opens up, so I can't promise a start date.
 
 You are still welcome to get in touch. I answer every message, even if it is "not right now". Sometimes a short call or a pointer to the right part is all a project needs.
 
@@ -25,7 +25,7 @@ You are still welcome to get in touch. I answer every message, even if it is "no
 
 ## See what I've built
 
-- [Work](@/work.md): our own boards and the projects from the bench, from CAN FD bridges to motor controllers and a laser scanner.
+- [Work](@/work.md): VHRD's own boards and the projects from the bench, from CAN FD bridges to motor controllers and a laser scanner.
 - [Open source](@/open-source.md): the Rust crates and tools the products stand on, from register to GUI.
 - [Software](@/software.md): {{ <vh.ref name="IOWeaver" /> }}, {{ <vh.ref name="RockFace" /> }} and {{ <vh.ref name="mx3" /> }}, with real runs of the command-line tools.
 
@@ -33,7 +33,7 @@ You are still welcome to get in touch. I answer every message, even if it is "no
 
 1. You tell me what you are building and what you need.
 2. I answer honestly: whether I have a slot, a rough estimate, or who else could help.
-3. If it's a fit, we agree on scope and milestones. You get the design files, the source code and the documentation.
+3. If it's a fit, you and I agree on scope and milestones. You get the design files, the source code and the documentation.
 
 ## Get in touch
 
