@@ -6,7 +6,7 @@ vhrd.tech: the company site, built with [Zola](https://www.getzola.org/) from Ma
 
 ```sh
 just install         # Zola (the version pinned in AGENTS.md) into ~/.local/bin, no root
-just serve           # http://127.0.0.1:1111 with live reload
+just serve [PORT]    # live reload on this PC's Tailscale address (README "Serve on the tailnet")
 just test            # zola check + build, every page in headless Chromium, brand files match vhrd_brand
 just lint            # whitespace, the tools parse
 just perf            # the front page's first screen on a slow phone: requests, KB, FCP, LCP
@@ -156,6 +156,17 @@ A picture still on its way shows as a small oscilloscope screen in its own box, 
 - The screen is two pseudo-elements on `.fig-frame`: the glass and graticule as gradients, the trace as a mask over the token colour. No request, one keyframe.
 - The box has the image's width and height from the start, so nothing shifts.
 - Under reduced motion the screen stays, without the sweep, and the picture appears without a fade.
+
+## Serve on the tailnet
+
+`just serve [PORT]` runs `zola serve` on this PC's Tailscale address (PREVIEW-5 tailnet-serve), so any session or Roman can open the working tree live, with live reload, from another PC or his phone, without landing, deploying or taking screenshots:
+
+1. `tools/serve.py` (run with `uv`) reads this PC's Tailscale IPv4 (`tailscale ip -4`) and MagicDNS name (`tailscale status --json` `Self.DNSName`), picks a free port (the port given, or the first free one from 1111 up, so several sessions can serve at once on one PC), and execs `zola serve --interface <tailscale IP> --port <port> --base-url <MagicDNS name or IP>`.
+2. It never binds `0.0.0.0`: these PCs sit on public wifi too. When Tailscale is down it falls back to `127.0.0.1` with a clear message, reachable only on that PC.
+3. It prints the URL to open: `http://<MagicDNS name or IP>:<port>/`. zola's live reload runs its websocket on that same port (checked against zola 0.23.6), so nothing beyond the one port needs to be reachable.
+4. No firewall change is needed: build-1 runs no firewall, and a port opened this way answered on gpd-omarchy and omarchy-m1 too (Tailscale traffic on `tailscale0` is already let through on every PC; checked 5 Nov 2026).
+
+A session starts it with `run_in_background`, reads the printed URL from the task output for its parent, and stops the task before `tpm work ready`.
 
 ## Preview
 

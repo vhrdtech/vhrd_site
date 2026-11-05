@@ -15,9 +15,10 @@ export VHRD_BUILT := `git log -1 --format=%cd --date=format:'%-d %b %Y' 2>/dev/n
 default:
     @just --list
 
-# Serve with live reload on http://127.0.0.1:1111
-serve:
-    zola serve
+# Serve with live reload on this PC's Tailscale address (README "Serve on the tailnet"), falling back to
+# 127.0.0.1 when Tailscale is down. An optional port, default the first free one from 1111
+serve *port:
+    uv run tools/serve.py {{ port }}
 
 # Build into public/ (links and the site's own files checked first)
 build:
@@ -47,7 +48,7 @@ check-preview url dir="target/shots":
 # goes to a temp dir, never into the tree
 lint:
     git diff --check HEAD
-    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py tools/samples.py tools/perf.py tools/fonts.py tools/check_live.py tools/mentions.py tools/term_capture.py scripts/render_boards.py
+    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py tools/samples.py tools/perf.py tools/fonts.py tools/check_live.py tools/mentions.py tools/term_capture.py tools/serve.py scripts/render_boards.py
     uvx --from actionlint-py actionlint .github/workflows/deploy.yml
     uvx zizmor --offline .github/workflows/deploy.yml
 

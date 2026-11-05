@@ -32,7 +32,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 
 ```sh
 just install          # Zola 0.23.6 into ~/.local/bin
-just serve            # live reload on :1111
+just serve [PORT]     # live reload on this PC's Tailscale address (README "Serve on the tailnet")
 just test             # zola check, build, browser check of every page, brand files match vhrd_brand
 just lint             # git diff --check, the tools parse
 just brand            # pull tokens.css and vhrd.css from ~/git/vhrd_brand ($VHRD_BRAND)
@@ -51,6 +51,11 @@ just renders          # rebuild static/img/boards/ from ~/git/hw (KiCad); needs 
                        # library and the silkscreen fonts in fc-list (README "Board renders")
 just renders --variants  # only the missing web widths, from the PNG sources (no KiCad)
 ```
+
+`just serve` binds this PC's Tailscale address, never `0.0.0.0`, and prints the URL to open from another PC or a
+phone on the tailnet (README "Serve on the tailnet"). A session starts it with `run_in_background`, puts the
+printed URL in the message to its parent, and stops the background task before `tpm work ready` — `just serve`
+never ends on its own.
 
 The browser check runs Chromium and Playwright's Firefox (`just install` fetches it).
 
