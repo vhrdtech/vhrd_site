@@ -386,3 +386,46 @@ async fn over_a_real_socket() {
     assert_eq!(store.read().unwrap().len(), 1);
     std::fs::remove_dir_all(dir).unwrap();
 }
+
+/// Every answer names the release (the Deploy workflow's check from outside), and a probe that is not the form
+/// costs the prober none of its rate limit.
+#[tokio::test]
+async fn answers_name_the_release() {
+    use vhrd_notify::server::RELEASE_HEADER;
+    let (cfg, dir) = config();
+    let app = router(App::with_release(Config { rate_limit: 1, ..cfg }, Some("abc1234")));
+    for _ in 0..3 {
+        let req = Request::post("/api/notify")
+            .header(header::CONTENT_TYPE, FORM)
+            .header(header::ACCEPT, "application/json")
+            .header("x-real-ip", "192.0.2.10")
+            .body(Body::from("probe=1"))
+            .unwrap();
+        let resp = app.clone().oneshot(req).await.unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+        assert_eq!(resp.headers()[RELEASE_HEADER], "abc1234");
+    }
+    let req = Request::get("/elsewhere").body(Body::empty()).unwrap();
+    assert_eq!(
+        app.clone().oneshot(req).await.unwrap().headers()[RELEASE_HEADER],
+        "abc1234"
+    );
+    // the probes above used none of the one signup this client may send
+    let body = good("probe@example.com");
+    let (s, _, _) = send(
+        &app,
+        Post {
+            body: &body,
+            ..Default::default()
+        },
+    )
+    .await;
+    assert_eq!(s, StatusCode::OK);
+    // without a release, no header
+    let (cfg, dir2) = config();
+    let req = Request::get("/elsewhere").body(Body::empty()).unwrap();
+    let resp = router(App::new(cfg)).oneshot(req).await.unwrap();
+    assert_eq!(resp.headers().get(RELEASE_HEADER), None);
+    std::fs::remove_dir_all(dir).unwrap();
+    std::fs::remove_dir_all(dir2).unwrap();
+}

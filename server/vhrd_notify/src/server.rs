@@ -12,7 +12,10 @@
 //!   `#notify-wait` or `#notify-err`, which the page shows (CSS `:target`).
 //!
 //! A request that is not the form at all (another content type, a body over the limit, a field twice or one not
-//! listed above, an Origin of another site) gets a plain 400.
+//! listed above, an Origin of another site) gets a plain 400, and counts against no rate limit.
+//!
+//! Every answer carries [`RELEASE_HEADER`] with the release's git sha (the same one the site's footer shows), so the
+//! Deploy workflow can tell from outside that the release it uploaded is the one answering.
 
 use std::net::{IpAddr, SocketAddr};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -23,6 +26,7 @@ use axum::Router;
 use axum::body::Body;
 use axum::extract::{ConnectInfo, Request, State};
 use axum::http::{HeaderMap, HeaderValue, StatusCode, header};
+use axum::middleware;
 use axum::response::{IntoResponse, Response};
 use axum::routing::post;
 
@@ -31,8 +35,13 @@ use crate::email::Email;
 use crate::limit::RateLimit;
 use crate::store::{Added, Store};
 
+/// The response header that names the release answering (`vhrd_notify --version`'s git sha).
+pub const RELEASE_HEADER: &str = "x-vhrd-release";
+
 pub struct App {
     cfg: Config,
+    /// The value of [`RELEASE_HEADER`]; none in tests that don't set one.
+    release: Option<HeaderValue>,
     store: Arc<Store>,
     limit: Mutex<RateLimit>,
     /// The client address header was missing once already (said once in the log, not per request).
@@ -41,6 +50,12 @@ pub struct App {
 
 impl App {
     pub fn new(cfg: Config) -> Arc<App> {
+        App::with_release(cfg, None)
+    }
+
+    /// An app whose answers name `release` in [`RELEASE_HEADER`] (a release name that is not a valid header value
+    /// is left out).
+    pub fn with_release(cfg: Config, release: Option<&str>) -> Arc<App> {
         let limit = RateLimit::new(
             cfg.rate_limit,
             cfg.rate_limit_network,
@@ -51,6 +66,7 @@ impl App {
             store: Arc::new(Store::new(&cfg.store)),
             limit: Mutex::new(limit),
             header_missing: AtomicBool::new(false),
+            release: release.and_then(|r| HeaderValue::from_str(r).ok()),
             cfg,
         })
     }
@@ -60,18 +76,26 @@ pub fn router(app: Arc<App>) -> Router {
     Router::new()
         .route("/api/notify", post(notify))
         .fallback(|| async { plain(StatusCode::NOT_FOUND, "not found\n") })
+        .layer(middleware::map_response_with_state(app.clone(), stamp))
         .with_state(app)
 }
 
-/// Serves until SIGTERM or Ctrl-C.
-pub async fn serve(cfg: Config) -> std::io::Result<()> {
+async fn stamp(State(app): State<Arc<App>>, mut r: Response) -> Response {
+    if let Some(v) = &app.release {
+        r.headers_mut().insert(RELEASE_HEADER, v.clone());
+    }
+    r
+}
+
+/// Serves until SIGTERM or Ctrl-C; every answer names `release` (see [`RELEASE_HEADER`]).
+pub async fn serve(cfg: Config, release: &str) -> std::io::Result<()> {
     let listener = tokio::net::TcpListener::bind(&cfg.listen).await?;
     eprintln!(
         "vhrd_notify: listening on {}, store {}",
         listener.local_addr()?,
         cfg.store.display()
     );
-    let app = router(App::new(cfg));
+    let app = router(App::with_release(cfg, Some(release)));
     axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>())
         .with_graceful_shutdown(shutdown())
         .await

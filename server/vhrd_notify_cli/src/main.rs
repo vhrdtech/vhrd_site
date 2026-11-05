@@ -82,7 +82,7 @@ fn run(cmd: Cmd, cfg: Config) -> Result<(), String> {
                 .enable_all()
                 .build()
                 .map_err(|e| e.to_string())?;
-            rt.block_on(vhrd_notify::server::serve(cfg))
+            rt.block_on(vhrd_notify::server::serve(cfg, env!("GIT_SHA")))
                 .map_err(|e| e.to_string())?;
         }
         Cmd::List { list } => {
