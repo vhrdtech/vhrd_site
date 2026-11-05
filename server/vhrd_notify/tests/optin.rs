@@ -30,9 +30,22 @@ enum Mode {
     BadLogin,
 }
 
+/// A recipient the fake server holds at RCPT until the test lets it go.
+#[derive(Default)]
+struct Hold {
+    /// The held RCPT arrived.
+    arrived: tokio::sync::Notify,
+    go: tokio::sync::Notify,
+}
+
 /// An SMTP server on loopback: AUTH PLAIN, then MAIL, RCPT, DATA. A recipient starting with `nosuch` gets 550,
 /// one starting with `later` gets 451.
 async fn smtp(mode: Mode) -> (u16, Arc<Mutex<Vec<Got>>>, Arc<AtomicU32>) {
+    smtp_holding(mode, None).await
+}
+
+/// [`smtp`], and a recipient starting with `hold` waits at RCPT for `hold.go`.
+async fn smtp_holding(mode: Mode, hold: Option<Arc<Hold>>) -> (u16, Arc<Mutex<Vec<Got>>>, Arc<AtomicU32>) {
     let l = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let port = l.local_addr().unwrap().port();
     let got = Arc::new(Mutex::new(Vec::new()));
@@ -41,7 +54,7 @@ async fn smtp(mode: Mode) -> (u16, Arc<Mutex<Vec<Got>>>, Arc<AtomicU32>) {
     tokio::spawn(async move {
         loop {
             let (s, _) = l.accept().await.unwrap();
-            let (g, n) = (g.clone(), n.clone());
+            let (g, n, hold) = (g.clone(), n.clone(), hold.clone());
             tokio::spawn(async move {
                 let (r, mut w) = s.into_split();
                 let mut r = BufReader::new(r);
@@ -67,6 +80,10 @@ async fn smtp(mode: Mode) -> (u16, Arc<Mutex<Vec<Got>>>, Arc<AtomicU32>) {
                         b"250 ok\r\n"
                     } else if cmd.starts_with("RCPT TO") {
                         to = line.trim_end()[9..].trim_matches(['<', '>', ' ']).to_owned();
+                        if let Some(h) = hold.as_ref().filter(|_| to.starts_with("hold")) {
+                            h.arrived.notify_one();
+                            h.go.notified().await;
+                        }
                         if to.starts_with("nosuch") {
                             b"550 5.1.1 no such user\r\n"
                         } else if to.starts_with("later") {
@@ -386,6 +403,50 @@ async fn a_refused_login_costs_no_mail_a_try() {
     let rs = records(&cfg);
     assert_eq!((rs.len(), rs[0].attempts, rs[0].outbox.is_some()), (1, 0, true));
     assert!(got.lock().unwrap().is_empty());
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+/// A record removed while the worker's round is busy with another mail gets no mail: the worker looks at each
+/// record again just before its mail goes, not at what it read when the round began.
+#[tokio::test]
+async fn a_record_removed_during_a_round_gets_no_mail() {
+    let dir = temp_dir();
+    let hold = Arc::new(Hold::default());
+    let (smtp_port, got, _) = smtp_holding(Mode::Take, Some(hold.clone())).await;
+    // both waiting before the service starts, so its first round has both, the held one first
+    let store = Store::new(dir.join("signups.tsv"));
+    for email in ["hold@example.com", "gone@example.com"] {
+        let i = vhrd_notify::store::Intake {
+            time: vhrd_notify::utc::now_secs(),
+            list: "donguru".into(),
+            email: vhrd_notify::Email::parse(email).unwrap(),
+            consent: "2026-11-06".into(),
+        };
+        assert!(store.accept(&i, 1 << 20).unwrap());
+    }
+    let arrived = hold.arrived.notified();
+    let (addr, cfg) = service(&dir, smtp_port).await;
+    arrived.await;
+    // the address's owner removes it (here as `vhrd_notify delete` does) while the first mail is out
+    let gone = vhrd_notify::Email::parse("gone@example.com").unwrap();
+    let n = store
+        .transact(|_, st| {
+            let n = vhrd_notify::list::delete_address(&mut st.records, &gone);
+            Ok((true, n))
+        })
+        .unwrap();
+    assert_eq!(n, 1);
+    hold.go.notify_one();
+    // a later signup's mail goes in a later round, so once it is here the first round is over
+    assert!(signup(addr, "next-round@example.com").await.starts_with("HTTP/1.1 200"));
+    until("the later round", || {
+        got.lock().unwrap().iter().any(|g| g.to == "next-round@example.com")
+    })
+    .await;
+    let to: Vec<String> = got.lock().unwrap().iter().map(|g| g.to.clone()).collect();
+    assert!(!to.contains(&"gone@example.com".to_owned()), "{to:?}");
+    assert!(to.contains(&"hold@example.com".to_owned()), "{to:?}");
+    assert!(records(&cfg).iter().all(|r| r.email != gone));
     std::fs::remove_dir_all(dir).unwrap();
 }
 

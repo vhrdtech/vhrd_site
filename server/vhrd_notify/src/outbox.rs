@@ -9,6 +9,8 @@
 //!   The counts are in memory, so a restart starts them again; the unit's start limit bounds how often.
 //! - A mail goes out at least once: the store is changed after the mail server took it, so a crash in between sends
 //!   it again.
+//! - Each record is read again just before its mail goes: one removed, confirmed or given another mail since the
+//!   round began gets none.
 //! - When the mail server can't be reached or refuses the login or the sender ([`Fail::Down`]), the round stops,
 //!   no mail loses a try, and the worker waits a minute, then doubling up to half an hour. The log says it once per
 //!   change.
@@ -149,9 +151,20 @@ impl Sender {
                 waiting += 1;
                 continue;
             }
-            let Some(r) = records.iter().find(|r| r.id == id) else {
+            // the record as it is now, not as the round found it: removed, confirmed or changed meanwhile, it gets
+            // no mail
+            let a = app.clone();
+            let r = match tokio::task::spawn_blocking(move || a.store.read()).await {
+                Ok(Ok(rs)) => rs
+                    .into_iter()
+                    .find(|r| r.id == id && r.outbox.as_ref() == Some(&kind) && r.next_try <= now),
+                Ok(Err(e)) => return eprintln!("vhrd_notify: store: {e}"),
+                Err(e) => return eprintln!("vhrd_notify: worker: {e}"),
+            };
+            let Some(r) = r else {
                 continue;
             };
+            let r = &r;
             let message = match compose(app, m, r, &kind) {
                 Ok(msg) => msg,
                 Err(e) => {
