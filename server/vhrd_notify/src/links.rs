@@ -7,7 +7,7 @@
 //!   `-err`.
 //! - `POST /api/notify/unsubscribe?t=TOKEN`: the one-click unsubscribe of RFC 8058, the remove token in the URL
 //!   (nginx logs no query of this location). The body is `List-Unsubscribe=One-Click` as a form or multipart; mail
-//!   providers send no Origin. 200 for any well-formed token.
+//!   providers send no Origin. 200 when the record is removed or gone already, 404 for a token that does not check.
 //! - `GET /api/notify/unsubscribe?t=TOKEN`: a mail program that opens that URL in a browser. It removes nothing:
 //!   303 to `/notify/remove/#TOKEN`, the page with the button.
 //!
