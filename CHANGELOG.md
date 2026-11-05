@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- The traces' scroll-linked draw and the first clicks (LOOK-3 grid-and-traces) are no longer part of `just test` or `just check-browser`: `just test` takes about a minute again instead of seven. `just check-draw [URL]` runs that check alone, against the local build by default or a deployed site's URL.
+
 ### Added
 
 - /software has a "From the terminal" section with real runs of the command-line tools, as text with their colours (BLOCK-6 term-captures): `cnt tui` watching a B135 board through a J-Link, `ww api tree` of the GPIO example API, `bedrock-lint check` on the cnt test firmware, and the compile error exact_units gives for a torque converted to an energy. Each one names its version, what it ran on and the day it was recorded.

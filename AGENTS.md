@@ -43,7 +43,7 @@ just fonts            # Core subsets of the IBM Plex Latin1 faces, and fonts.css
 just live             # the live site for https://vhrd.tech/ into target/live (indexable, nothing of WordPress), checked
 just deploy           # start the Deploy workflow on GitHub; it waits for approval (README "Deploy")
 just check-live       # the deployed site against target/live: pages 200, the footer stamp, the old paths' 301s, the 404
-just check-draw URL   # the traces (draw with the scroll, both ways) and first clicks on a deployed site
+just check-draw [URL] # the traces (draw with the scroll, both ways) and first clicks: the local build by default, or a deployed site
 just preview TOKEN    # noindex build for https://shadow.vhrd.tech/TOKEN/, uploaded with tpm share (README "Preview")
 just check-preview URL  # the browser check against a deployed preview, screenshots into target/shots
 just captures         # record the terminal captures on /software again (data/term/captures.toml)
@@ -54,7 +54,10 @@ just renders --variants  # only the missing web widths, from the PNG sources (no
 
 The browser check runs Chromium and Playwright's Firefox (`just install` fetches it).
 
-`just test` accepts and ignores `--changed`: the site is one unit, and a full test takes about seven minutes (most of it the traces, scrolled on every page in two browsers at five screen sizes).
+`just test` accepts and ignores `--changed`: the site is one unit, and a full test takes about a minute. The traces'
+scroll-linked draw and the first clicks, on every page in two browsers at five screen sizes, are slow (about 5 min)
+and not part of it: run `just check-draw` after changing traces, scroll or intro code, and `just check-draw
+https://vhrd.tech` after a deploy. The CI deploy workflow does not run it.
 
 ## Conventions
 

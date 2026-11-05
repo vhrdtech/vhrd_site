@@ -97,8 +97,9 @@ deploy:
 check-live url="https://vhrd.tech":
     python3 tools/check_live.py site "{{ url }}" --built target/live --stamp "$VHRD_GIT" --full
 
-# The traces and first clicks on a deployed site, in Chromium and Firefox, phones and desktops
-check-draw url="https://vhrd.tech":
+# The traces (draw with the scroll, both ways) and first clicks, in Chromium and Firefox, phones and desktops: the
+# local build by default, or a deployed site's URL (about 5 min; not part of `just test`)
+check-draw url="":
     uv run tools/check_pages.py "{{ url }}" --only draw
 
 # Build a noindex preview for https://shadow.vhrd.tech/TOKEN/ into target/preview/TOKEN. TOKEN is the share link's

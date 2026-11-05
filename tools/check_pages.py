@@ -23,10 +23,11 @@ The front page's intro: on every load it shows and clears by itself without wait
 for a late hero render and fires (TRIG'D), says after 5 s how to skip and a click skips it, a key skips it, the
 replay button plays the slow path as a demo; never with a #fragment, under reduced motion or without JavaScript.
 On every page the figures are numbered 1, 2, 3... in order, without a gap.
-In Chromium and Firefox, on two phones and three desktops (up to 2560x1440): the PCB traces and the footer's bus draw and
+With --only draw (`just check-draw [URL]`, not part of the default run: it takes about 5 min against every page, in
+Chromium and Firefox, on two phones and three desktops up to 2560x1440): the PCB traces and the footer's bus draw and
 undraw with the scroll (undrawn below the fold, all drawn at the page's end, the bus falling when the page scrolls back
-up and the same at the same place either way); with --only draw, that and the clicks alone (`just check-draw URL`); on /lab the first click on each nav link, the wordmark,
-a footer link and the GitHub link navigates.
+up and the same at the same place either way); on /lab the first click on each nav link, the wordmark, a footer link
+and the GitHub link navigates.
 Every text in a table cell is 4.5:1 on the cell's background, in dark and light.
 Links: every page in the site map is reached from the front page by links (no orphans), and every internal
 href on every page reached ends in '/' when it names a page and answers 200 without a redirect. On every page reached,
@@ -905,9 +906,6 @@ def main():
         failures += check_placeholders(browser, base)
         failures += check_table_contrast(browser, base)
         failures += check_mail(browser, base, out)
-        for name, b in browsers(p, browser):
-            failures += check_draw(name, p, b, base)
-            failures += check_clicks(name, b, base)
 
         # Interactions, on a desktop page in a browser that prefers light: dark all the same on a first visit (the
         # default, from the HTML, so no light flash), the toggle switches to light and remembers it, and back to dark
