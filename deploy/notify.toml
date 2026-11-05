@@ -1,0 +1,23 @@
+# vhrd_notify on the web server (README "Notify service"): shipped by `just deploy-notify` to
+# ~/vhrd_notify/notify.toml. Every field and its default: server/vhrd_notify/src/config.rs.
+
+# nginx proxies /api/ here; nothing else reaches it
+listen = "127.0.0.1:8471"
+# beside this file, outside the web root
+store = "signups.tsv"
+lists = ["donguru"]
+# the site's extra.notify_consent; a new consent text adds its version here first
+consent_versions = ["2026-11-05"]
+site_origin = "https://vhrd.tech"
+pages = [
+  { name = "donguru", path = "/donguru/" },
+  { name = "home", path = "/" },
+]
+max_body = 1024
+# signups per client (IPv4 address or IPv6 /64) per hour
+rate_limit = 5
+rate_window_secs = 3600
+rate_clients = 10000
+max_signups = 50000
+# set by the nginx location block
+client_ip_header = "x-real-ip"
