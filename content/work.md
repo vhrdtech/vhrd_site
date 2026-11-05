@@ -34,6 +34,6 @@ items = [
   { dir = "propeller-test-stand", sig = "power" },
   { dir = "granite-cnc", sig = "bus", badge = "Design, not built" },
   { dir = "eskate-elongboard", sig = "power" },
-  { dir = "vg095-eth-can", sig = "can" },
+  { dir = "b095-eth-can", sig = "can" },
 ]
 +++

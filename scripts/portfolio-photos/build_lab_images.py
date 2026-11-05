@@ -103,8 +103,8 @@ ITEMS = {
         ("b156a.jpg", None, "b156a-header"),
         ("b156a 2.jpg", None, "b156a-pogo"),
     ],
-    "vg095-eth-can": [
-        ("vg095 first eth to can prototype.jpg", None, "vg095"),
+    "b095-eth-can": [
+        ("vg095 first eth to can prototype.jpg", None, "b095"),
     ],
 }
 
