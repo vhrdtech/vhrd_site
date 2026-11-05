@@ -401,6 +401,16 @@ main > .section:first-child::before, main > .section:first-child::after { displa
 .prose h2 { margin-top: 2.5rem; }
 .prose ul { padding-left: 1.25rem; }
 .prose .fig { margin-bottom: 1.25rem; }
+/* FAQ: <details> items ruled like a datasheet's table, one open at a time by eye, not by the browser. */
+.prose details { border-bottom: 1px solid var(--line); }
+.prose h2 + details { border-top: 1px solid var(--line); }
+.prose summary { cursor: pointer; list-style: none; position: relative; padding: 0.9rem 2rem 0.9rem 0; font-weight: 500; }
+.prose summary::-webkit-details-marker { display: none; }
+.prose summary::after { content: "+"; position: absolute; right: 0.25rem; top: 0.8rem; font: 400 1.25rem/1 var(--font-mono); color: var(--muted); transition: transform 0.2s; }
+.prose details[open] summary::after { transform: rotate(45deg); }
+.prose summary:hover::after { color: var(--accent); }
+.prose details p { margin: 0 0 1rem; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .prose summary::after { transition: none; } }
 .post-list { list-style: none; padding: 0; margin-top: 2rem; }
 .post-list li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.75rem 0; border-top: 1px solid var(--line); }
 

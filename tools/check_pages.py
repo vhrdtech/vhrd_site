@@ -67,7 +67,7 @@ import mentions
 import samples
 
 PAGES = ["", "donguru/", "pinsmith/", "can/", "software/", "open-source/", "lab/", "work/", "services/", "about/", "shop/",
-         "privacy/", "no-such-page/"]
+         "privacy/", "faq/", "no-such-page/"]
 WIDTHS = {"phone": 390, "tablet": 820, "desktop": 1440}
 BUDGET_KB = 200
 
