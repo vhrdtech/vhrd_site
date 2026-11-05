@@ -77,6 +77,7 @@
 
 ### Changed
 
+- "Just Screw It" (B156) is "Screw It" everywhere on the site (a native-speaking friend told Roman the "Just" can go, 5 Nov 2026): its lab folder, manifest, image alt text and the portfolio-photos script's slug are renamed from `just-screw-it` to `screw-it`.
 - The traces' scroll-linked draw and the first clicks (LOOK-3 grid-and-traces) are no longer part of `just test` or `just check-browser`: `just test` takes about a minute again instead of seven. `just check-draw [URL]` runs that check alone, against the local build by default or a deployed site's URL.
 - The front page's software section loses its tabbed panel (FIG. 5: the IOWeaver and RockFace screens and a WireWeaver sample). It repeated /software and the crate stack. The three short columns stay, with a link to /software, and the figures now run FIG. 1 to FIG. 8. The keyboard check for code tabs moves to /donguru (SITE-5 landing-page).
 - The PCB traces and the footer's bus draw and undraw with the scroll again, as Roman liked them. Each trace's progress follows its place on screen, and the bus completes exactly at the page's end, on a phone and on a 2560x1440 screen alike. One small inline script drives it in every browser. `just check-draw URL` runs the trace check against a deployed site (LOOK-3 grid-and-traces).

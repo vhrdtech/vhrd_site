@@ -1,5 +1,5 @@
-title = "Just Screw It (B156)"
-alt = "B156 Just Screw It debug adapter, 3D render"
+title = "Screw It (B156)"
+alt = "B156 Screw It debug adapter, 3D render"
 
 facts = [
     "A PCB connector at no part cost: tiny screws tapped straight into the board hold it",
@@ -13,9 +13,9 @@ tools = ["KiCad", "FreeCAD"]
 [[images]]
 file = "b156a-header"
 widths = [640, 1280]
-alt = "3D render of the B156 Just Screw It adapter: a box header on top, two screws and the alignment pins below"
+alt = "3D render of the B156 Screw It adapter: a box header on top, two screws and the alignment pins below"
 
 [[images]]
 file = "b156a-pogo"
 widths = [640, 1280]
-alt = "3D render of the B156 Just Screw It adapter from the pogo-pin side, with six pogo pins between the alignment pins"
+alt = "3D render of the B156 Screw It adapter from the pogo-pin side, with six pogo pins between the alignment pins"

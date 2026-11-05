@@ -99,7 +99,7 @@ ITEMS = {
     "b135-photo": [
         ("b135b real photo.jpg", None, "b135b-photo"),
     ],
-    "just-screw-it": [
+    "screw-it": [
         ("b156a.jpg", None, "b156a-header"),
         ("b156a 2.jpg", None, "b156a-pogo"),
     ],

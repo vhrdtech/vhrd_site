@@ -23,7 +23,7 @@ boards = [
 # all shows every image of the manifest instead of the first.
 items = [
   { dir = "laser-scanner-aoi", sig = "ctrl" },
-  { dir = "just-screw-it", sig = "bus", all = true },
+  { dir = "screw-it", sig = "bus", all = true },
   { dir = "motor-controller-6step-foc", sig = "power" },
   { dir = "bms-50a-100a", sig = "power" },
   { dir = "torque-sensor-afe", sig = "analog" },
