@@ -1,7 +1,9 @@
 //! The rate limit, in memory only (nothing about a visitor is written down for it), counted twice:
 //!
 //! - per client: an IPv4 address, or an IPv6 /64, since one IPv6 line usually holds a whole /64;
-//! - per network: an IPv4 /24 or an IPv6 /48, so a block of addresses cannot sign up thousands of addresses an hour.
+//! - per network: an IPv4 /24 or an IPv6 /48, so a block of addresses cannot sign up thousands of addresses an hour;
+//! - per network and day, for the signups only ([`RateLimit::per_network_day`]): each signup can cost a mail from
+//!   our own mail server, and one network at its hourly limit all day would use the whole daily mail budget.
 //!
 //! Each count remembers at most `max_clients` keys; when it is full, the key seen longest ago is forgotten, so a
 //! flood of new addresses never locks out a real visitor. Time comes in as an argument, so the tests set it.
@@ -10,9 +12,12 @@ use std::collections::{HashMap, VecDeque};
 use std::net::IpAddr;
 use std::time::{Duration, Instant};
 
+const DAY: Duration = Duration::from_secs(24 * 3600);
+
 pub struct RateLimit {
     client: Count,
     network: Count,
+    network_day: Option<Count>,
 }
 
 impl RateLimit {
@@ -20,17 +25,30 @@ impl RateLimit {
         RateLimit {
             client: Count::new(limit, window, max_clients),
             network: Count::new(network_limit, window, max_clients),
+            network_day: None,
         }
+    }
+
+    /// Also at most `limit` requests from one network in 24 hours.
+    pub fn per_network_day(mut self, limit: u32) -> RateLimit {
+        self.network_day = Some(Count::new(limit, DAY, self.network.max_keys));
+        self
     }
 
     /// Counts one request from `ip` at `now`; false when it is over either limit (then it is not counted).
     pub fn allow(&mut self, ip: IpAddr, now: Instant) -> bool {
         let (client, network) = keys(ip);
-        if !self.client.has_room(client, now) || !self.network.has_room(network, now) {
+        if !self.client.has_room(client, now)
+            || !self.network.has_room(network, now)
+            || self.network_day.as_mut().is_some_and(|d| !d.has_room(network, now))
+        {
             return false;
         }
         self.client.add(client, now);
         self.network.add(network, now);
+        if let Some(d) = &mut self.network_day {
+            d.add(network, now);
+        }
         true
     }
 }
@@ -149,6 +167,24 @@ mod tests {
         }
         assert!(!r.allow(ip("198.51.100.200"), t0));
         assert!(r.allow(ip("198.51.101.1"), t0));
+    }
+
+    #[test]
+    fn a_network_has_a_daily_limit_too() {
+        let mut r = RateLimit::new(5, 20, HOUR, 100).per_network_day(30);
+        let t0 = Instant::now();
+        // 20 an hour from one /24: the second hour lets 10 more in, then the day is full
+        let mut n = 0;
+        for h in 0..24u64 {
+            for i in 0..20u64 {
+                let at = t0 + HOUR * h as u32 + Duration::from_secs(i);
+                n += r.allow(ip(&format!("198.51.100.{}", (h * 20 + i) % 250 + 1)), at) as u32;
+            }
+        }
+        assert_eq!(n, 30);
+        // another network is not held back, and the first one has room again a day after
+        assert!(r.allow(ip("203.0.113.1"), t0 + HOUR));
+        assert!(r.allow(ip("198.51.100.1"), t0 + DAY + HOUR));
     }
 
     #[test]

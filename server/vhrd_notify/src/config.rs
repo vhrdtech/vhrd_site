@@ -30,6 +30,9 @@ pub struct Config {
     pub rate_limit: u32,
     /// Signups one network may send in `rate_window_secs`: an IPv4 /24 or an IPv6 /48.
     pub rate_limit_network: u32,
+    /// Signups one network may send in 24 hours. Each can cost a confirmation mail, and the mail budget
+    /// (`mail.per_day`) is shared by everyone: at this cap one network takes at most a share of it.
+    pub rate_limit_network_day: u32,
     pub rate_window_secs: u64,
     /// Presses of the confirm and remove buttons one client, and one network, may send in `rate_window_secs`.
     pub link_rate_limit: u32,
@@ -145,6 +148,7 @@ impl Default for Config {
             max_body: 1024,
             rate_limit: 5,
             rate_limit_network: 20,
+            rate_limit_network_day: 40,
             rate_window_secs: 3600,
             link_rate_limit: 20,
             link_rate_limit_network: 100,

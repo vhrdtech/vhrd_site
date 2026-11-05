@@ -108,18 +108,20 @@ impl App {
         let key = crate::token::Key::load_or_create(&cfg.token_key)?;
         let mailer = cfg.mail.as_ref().map(crate::mail::Mailer::new).transpose()?;
         let limit = |client, network| {
-            Mutex::new(RateLimit::new(
+            RateLimit::new(
                 client,
                 network,
                 Duration::from_secs(cfg.rate_window_secs),
                 cfg.rate_clients,
-            ))
+            )
         };
         Ok(Arc::new(App {
             store: Arc::new(Store::new(&cfg.store)),
-            limit: limit(cfg.rate_limit, cfg.rate_limit_network),
-            link_limit: limit(cfg.link_rate_limit, cfg.link_rate_limit_network),
-            one_click_limit: limit(cfg.one_click_rate_limit, cfg.one_click_rate_limit),
+            limit: Mutex::new(
+                limit(cfg.rate_limit, cfg.rate_limit_network).per_network_day(cfg.rate_limit_network_day),
+            ),
+            link_limit: Mutex::new(limit(cfg.link_rate_limit, cfg.link_rate_limit_network)),
+            one_click_limit: Mutex::new(limit(cfg.one_click_rate_limit, cfg.one_click_rate_limit)),
             header_missing: AtomicBool::new(false),
             release: release.and_then(|r| HeaderValue::from_str(r).ok()),
             wake: tokio::sync::Notify::new(),

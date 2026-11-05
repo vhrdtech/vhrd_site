@@ -39,7 +39,7 @@ When you leave your address in a "Get notified" form for [Donguru](@/donguru.md)
 
 **How long:** until the campaign has opened and the mail has gone out, then we delete the list within three months.
 
-**To stop abuse,** the server remembers how many sign-ups and how many presses of the buttons in our mails came from your IP address in the last hour. That count stays in memory only and is never written down.
+**To stop abuse,** the server remembers how many sign-ups and how many presses of the buttons in our mails came from your IP address in the last hour, and how many sign-ups came from its network in the last day. That count stays in memory only and is never written down.
 
 ## Your rights
 

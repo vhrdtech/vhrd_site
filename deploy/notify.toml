@@ -18,6 +18,8 @@ max_body = 1024
 rate_limit = 5
 # and per network (IPv4 /24, IPv6 /48)
 rate_limit_network = 20
+# and per network a day: one network can't use up the day's confirmation mails (mail.per_day)
+rate_limit_network_day = 40
 rate_window_secs = 3600
 rate_clients = 10000
 max_signups = 50000
