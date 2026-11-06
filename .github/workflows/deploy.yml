@@ -11,6 +11,11 @@ name: Deploy vhrd.tech
 
 on:
   workflow_dispatch:
+    inputs:
+      notify:
+        description: Build and ship the notify service even when it has not changed since the live release
+        type: boolean
+        default: false
 
 permissions: {}
 
@@ -78,9 +83,10 @@ jobs:
           if-no-files-found: error
 
   # The notify service as a static musl binary, with the settings it ships with and the server-side files root
-  # installs by hand (the activator, also static, and the units). Every run builds it, so one Deploy leaves the
-  # site and the service at the same commit; the server's activator restarts the service for each new release.
-  # No cache: the build takes a minute or two, and a cache shared with other runs would be one more input.
+  # installs by hand (the activator, also static, and the units). It is built and shipped only when something
+  # that feeds it changed since the release that answers on https://vhrd.tech/api/notify; the server's activator
+  # restarts the service for each new release. No cache: the build takes a minute or two, and a cache shared with
+  # other runs would be one more input.
   build-notify:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
@@ -88,30 +94,73 @@ jobs:
     permissions:
       contents: read
     outputs:
-      git: ${{ steps.pack.outputs.git }}
+      # "true": the release below is uploaded; "false": the live release `git` stays and nothing is uploaded
+      ship: ${{ steps.plan.outputs.ship }}
+      git: ${{ steps.pack.outputs.git || steps.plan.outputs.git }}
       version: ${{ steps.pack.outputs.version }}
       digest: ${{ steps.pack.outputs.digest }}
     steps:
+      # The whole history, for the ancestor check below
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0
+
+      # Skip the build and the upload only when all of this holds; anything else ships, safety over speed:
+      # - the run was not asked to ship the service (input `notify`);
+      # - https://vhrd.tech/api/notify answers the probe with 400 and a short sha in x-vhrd-release;
+      # - that sha is one commit here and an ancestor of the commit being deployed;
+      # - nothing changed between the two outside the paths that only the site uses. It is a list of what does not
+      #   feed the service, so a new file anywhere else (and any change to this workflow) ships it.
+      # The header is checked against its shape before git sees it, and printed only after that.
+      - name: Does the notify service need shipping
+        id: plan
+        env:
+          FORCE: ${{ inputs.notify }}
+          URL: https://vhrd.tech/api/notify
+        run: |
+          ship() {
+            echo "ship=true" >> "$GITHUB_OUTPUT"
+            echo "### vhrd_notify: built and shipped, $1" | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          }
+          [ "$FORCE" != true ] || ship "as the run was asked to"
+          got="$(curl -s -o /dev/null --max-time 10 -w '%{http_code} %header{x-vhrd-release}' -X POST \
+            -H 'Accept: application/json' -H 'Content-Type: application/x-www-form-urlencoded' --data probe=1 "$URL" || true)"
+          [[ "$got" =~ ^400\ ([0-9a-f]{7,12})$ ]] || ship "as the live release is not known"
+          live="${BASH_REMATCH[1]}"
+          commit="$(git rev-parse --verify --quiet "$live^{commit}")" || ship "as the live release $live is not one commit here"
+          git merge-base --is-ancestor "$commit" HEAD || ship "as the live release $live is not an ancestor of this commit"
+          git diff --quiet "$commit" HEAD -- . ':!content' ':!templates' ':!static' ':!data' ':!tools' ':!scripts' \
+            ':!config.toml' ':!CHANGELOG.md' ':!FEATURES.md' ':!AGENTS.md' ':!README.md' ':!CLAUDE.md' ':!LICENSE-*' \
+            ':!justfile' ':!ship.toml' ':!.gitignore' ':!.github/deploy' ':!deploy/redirects.map' ':!deploy/old-urls.txt' \
+            ':!deploy/golden-links.txt' ':!deploy/nginx-notify.conf' || ship "as it changed since the live release $live"
+          {
+            echo "ship=false"
+            echo "git=$live"
+          } >> "$GITHUB_OUTPUT"
+          echo "### vhrd_notify: unchanged since the live release $live, not built or shipped" | tee -a "$GITHUB_STEP_SUMMARY"
 
       # rustup checks each component's sha256 from the channel manifest
       - name: Install Rust (pinned) with the musl target
+        if: steps.plan.outputs.ship == 'true'
         run: |
           rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal --target "$MUSL"
           cargo "+$RUST_TOOLCHAIN" --version
 
       - name: Test
+        if: steps.plan.outputs.ship == 'true'
         run: cargo "+$RUST_TOOLCHAIN" test --locked --workspace
 
       - name: Build
+        if: steps.plan.outputs.ship == 'true'
         run: cargo "+$RUST_TOOLCHAIN" build --locked --release --target "$MUSL" -p vhrd_notify_cli -p vhrd_notify_activate
 
       # The release's name and git sha come from the binary's own --version, the same words the server checks.
       # The sha256 of every file goes into the run's summary too: root checks the activator against it.
       - name: Pack
         id: pack
+        if: steps.plan.outputs.ship == 'true'
         run: |
           bin="target/$MUSL/release/vhrd_notify"
           act="target/$MUSL/release/vhrd_notify_activate"
@@ -145,6 +194,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: steps.plan.outputs.ship == 'true'
         with:
           name: notify
           path: ${{ runner.temp }}/notify.tar
@@ -200,6 +250,7 @@ jobs:
           path: ${{ runner.temp }}/artifact
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        if: needs.build-notify.outputs.ship == 'true'
         with:
           name: notify
           path: ${{ runner.temp }}/artifact
@@ -215,6 +266,7 @@ jobs:
       # The manifest is written here, not in the build: its seq (run number and attempt) must grow with a re-run of
       # this job too, or the server would take a retry for the old upload and ignore it.
       - name: Unpack the notify release it approved
+        if: needs.build-notify.outputs.ship == 'true'
         env:
           DIGEST: ${{ needs.build-notify.outputs.digest }}
           VERSION: ${{ needs.build-notify.outputs.version }}
@@ -238,6 +290,7 @@ jobs:
       # folder. The binary, the settings and the files for root go first, the manifest last and on its own: the
       # server's activator starts when the manifest changes, and takes nothing that does not match it.
       - name: Upload the notify release
+        if: needs.build-notify.outputs.ship == 'true'
         env:
           NOTIFY_SSH_KEY: ${{ secrets.NOTIFY_SSH_KEY }}
         run: |
@@ -258,12 +311,15 @@ jobs:
       # From outside, through nginx: a body that is not the form answers 400 without using a rate limit, and the
       # x-vhrd-release header names the release that answers. It must be the new one, and still be after the
       # activator has watched it (5 s, then 60 s more: a release that dies in that time is rolled back). Then one
-      # bad address, which goes through the form's own checks, must answer 400 too.
-      - name: The new notify release answers
+      # bad address, which goes through the form's own checks, must answer 400 too. When nothing was shipped, the
+      # release that must answer is the live one the build found, and there is nothing to watch.
+      - name: The notify release answers
         env:
+          SHIP: ${{ needs.build-notify.outputs.ship }}
           GIT: ${{ needs.build-notify.outputs.git }}
           URL: https://vhrd.tech/api/notify
         run: |
+          [[ "$SHIP" =~ ^(true|false)$ && "$GIT" =~ ^[0-9a-f]{7,12}$ ]] || { echo "::error::no release to expect"; exit 1; }
           post() {
             curl -s -o /dev/null --max-time 10 -w '%{http_code} %header{x-vhrd-release}' -X POST \
               -H 'Accept: application/json' -H 'Content-Type: application/x-www-form-urlencoded' --data "$1" "$URL" || true
@@ -275,9 +331,11 @@ jobs:
             sleep 5
           done
           [ -n "$up" ] || { echo "::error::$URL answers '$got', not 400 from $GIT: the server refused or rolled back the release (journalctl _SYSTEMD_USER_UNIT=vhrd-notify-activate.service as vhrd-notify)"; exit 1; }
-          sleep 80
-          got="$(post probe=1)"
-          [ "$got" = "400 $GIT" ] || { echo "::error::$GIT answered, then not ('$got'): it did not stay up, and the activator went back to the previous release or found none (its journal on the server)"; exit 1; }
+          if [ "$SHIP" = true ]; then
+            sleep 80
+            got="$(post probe=1)"
+            [ "$got" = "400 $GIT" ] || { echo "::error::$GIT answered, then not ('$got'): it did not stay up, and the activator went back to the previous release or found none (its journal on the server)"; exit 1; }
+          fi
           got="$(post 'email=not-an-address&list=donguru&consent=none&from=home&leave_empty=')"
           [ "$got" = "400 $GIT" ] || { echo "::error::a bad address got '$got', not 400 from $GIT"; exit 1; }
           echo "vhrd_notify $GIT is live: $URL answers 400 to a bad address"
