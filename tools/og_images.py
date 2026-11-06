@@ -61,6 +61,9 @@ JPEG_QUALITY = 90  # no subsampling (4:4:4) and not progressive, so a scraper th
 # a progressive JPEG (or one that chokes on 4:2:0 chroma) still gets the whole, sharp image
 
 RED = (242, 76, 68, 255)  # vhrd_brand dark.red (#f24c44): the corner marks and the wordmark only, never text
+TEXT_RED = (0xc8, 0x14, 0x1c, 255)  # vhrd_brand --vhrd-red / light.accent (#c8141c): the headline's product
+# name, on every image alike (Roman, round 5, "one more round" pass, 6 Nov 2026) — a different red from the
+# corners' and wordmark's #f24c44, which stays theirs only.
 INK = (26, 26, 26, 255)  # vhrd_brand light.text (#1a1a1a): the JPEG headline's body colour, solid, on white
 WHITE = (255, 255, 255, 255)  # the PNG headline's body colour, solid, with a soft dark shadow (SHADOW_* below)
 GLOW = (255, 255, 255, 16)  # a faint halo behind the board, just enough that a dark board's edge doesn't vanish
@@ -72,81 +75,62 @@ MARK_LEN, MARK_W = 28, 5  # the corner marks' leg length and thickness, like .fi
 # round 5, 6 Nov 2026).
 FRAME_MARGIN = 32
 # Everything — headline, board, wordmark — stays inside the corner-marked frame with its own margin, clear of
-# the corner marks' own legs too.
+# the corner marks' own legs too. The bottom margin is a little tighter than the top's: there is no headline
+# text to clear down there, only the wordmark's own row.
 CONTENT_PAD_X = 16
-CONTENT_PAD_Y = MARK_LEN + 10
+CONTENT_PAD_Y_TOP = MARK_LEN + 10
+CONTENT_PAD_Y_BOTTOM = MARK_LEN + 4
 
-# The headline: Audiowide (the wordmark's face), left-aligned at the top of the frame, wrapped to at most two
-# lines, shrinking from HEAD_TARGET_CAP down to HEAD_MIN_CAP ("no small print") if it does not fit. The words
-# up to " · " (the product headlines below) are set in that page's own signal colour (`sig`, the same one its
-# traces use on the real page) rather than the brand red, which is reserved for the corners and the wordmark;
-# the rest is the body colour (AGENTS.md "Conventions", Roman, round 5, 6 Nov 2026).
-HEAD_TARGET_CAP = 48
-HEAD_MIN_CAP = 40
+# The headline: Audiowide (the wordmark's face), its capital letters' ink flush with the left corners' own
+# outer edge (not an extra inset — "the D of Donguru" sits on the imaginary line the corner marks' vertical
+# strokes draw), wrapped to at most two lines at HEAD_TARGET_CAP ("no small print"; every headline below fits
+# two lines there, so there is no further shrink floor this round). The words up to " · " (the product
+# headlines below) are set in TEXT_RED; the rest is the body colour (AGENTS.md "Conventions", Roman, round 5,
+# 6 Nov 2026).
+HEAD_TARGET_CAP = 42
+HEAD_MIN_CAP = 40  # a floor, not reached by any headline below at the current width; kept for a future one
 HEAD_MAX_LINES = 2
 HEAD_LINE_PITCH_FACTOR = 1.25
-HEAD_BLOCK_H = 156  # reserved above the board, fixed across pages so the board sits at the same height on each
-HEAD_BOARD_GAP = 16
+HEAD_BLOCK_H = 140  # reserved above the board, fixed across pages so the board sits at the same height on each
+HEAD_BOARD_GAP = 32  # a clearly visible gap: the headline sat right on top of the board before this (Roman,
+# round 5, "one more round" pass, 6 Nov 2026)
 
 # The board's own bounding box (the render's margin is transparent) is scaled to fit this box, centred
 # horizontally on the canvas and vertically in the band below the headline and above the wordmark, well inside
 # the HxH square a square crop keeps.
 SAFE_W = 580
-WORDMARK_H = 20
-BOARD_WORDMARK_GAP = 10
+WORDMARK_H = 26  # 1.3x the wordmark's previous 20px (Roman, round 5, "one more round" pass, 6 Nov 2026)
+BOARD_WORDMARK_GAP = 6
 # A soft dark shadow behind the white PNG headline (not an outline, which read as hollow), so it still reads on
 # a light background once a platform composites the transparency away.
 SHADOW_COLOR = (8, 8, 10, 170)
 SHADOW_OFFSET = (0, 3)
 SHADOW_BLUR = 4
 
-# The page's own signal colour (vhrd_brand web/tokens.css, the same one its traces use for this `sig`) for the
-# headline's product name, on white (the JPEG) and on black (the PNG, the dark-theme value, already lightened
-# enough for 4.5:1 there). --signal-power on white is only about 3:1, too weak for text, so that one case falls
-# back to the brand's --warning (#775403, 6.9:1), the next darker warm brand colour, rather than computing one
-# of our own (Roman, round 5, 6 Nov 2026).
-SIGNAL_LIGHT = {
-    "power": (0x77, 0x54, 0x03, 255),  # --warning, standing in for --signal-power (too weak on white)
-    "usb": (0x15, 0x65, 0xc0, 255),
-    "bus": (0x2e, 0x7d, 0x32, 255),
-    "can": (0x00, 0x83, 0x8f, 255),
-    "analog": (0x6a, 0x1b, 0x9a, 255),
-    "ctrl": (0x6e, 0x6e, 0x6e, 255),
-}
-SIGNAL_DARK = {
-    "power": (0xff, 0x9a, 0x3c, 255),
-    "usb": (0x5c, 0x9c, 0xf5, 255),
-    "bus": (0x5c, 0xb8, 0x60, 255),
-    "can": (0x26, 0xc6, 0xda, 255),
-    "analog": (0xb4, 0x7c, 0xd8, 255),
-    "ctrl": (0x9a, 0x9a, 0x9a, 255),
-}
-
 # the image's base name (static/img/og/<name>.png, transparent, for twitter:image, and <name>.jpg, flattened
-# onto white, for og:image), the board's render directory, its view, the image's alt text, the headline, and
-# the page's own `sig` (its signal colour, for the product name before " · "; None where there is no name).
+# onto white, for og:image), the board's render directory, its view, the image's alt text, and the headline.
 # Each name carries a version so LinkedIn, Facebook and Telegram, which cache a preview by its image URL, fetch
 # the new file instead of one they already have: "-4" for this round's headline and the /donguru image split
 # off the site default (Roman, round 5 of link previews, 6 Nov 2026).
 IMAGES = [
     ("default-4", "b153-donguru", "hero",
      "Donguru (B153), a USB-C dongle PCB, framed by red corner marks and the VHRD.TECH wordmark",
-     "Instruments for embedded development", None),
+     "Instruments for embedded development"),
     ("donguru-4", "b153-donguru", "hero",
      "Donguru (B153), a USB-C dongle PCB, framed by red corner marks and the VHRD.TECH wordmark",
-     "Donguru · one cable from your PC to your board", "usb"),
+     "Donguru · one cable from your PC to your board"),
     ("pinsmith-4", "b200-re-port", "hero",
      "Pinsmith (B200), a USB I/O PCB, framed by red corner marks and the VHRD.TECH wordmark",
-     "Pinsmith · digital and analog I/O over USB", "bus"),
+     "Pinsmith · digital and analog I/O over USB"),
     ("can-4", "b125-eth-2fdcan", "hero",
      "An Ethernet to dual isolated CAN FD bridge PCB (B125), framed by red corner marks and the VHRD.TECH wordmark",
-     "The CAN line · USB and Ethernet to isolated CAN FD", "can"),
+     "The CAN line · USB and Ethernet to isolated CAN FD"),
     ("software-4", "b129-cannify-micro", "hero",
      "CANnify Micro (B129), a breadboard CAN FD node PCB, framed by red corner marks and the VHRD.TECH wordmark",
-     "The software for our instruments", "usb"),
+     "The software for our instruments"),
     ("work-4", "b135-usb-fdcan", "hero",
      "A USB to isolated CAN FD bridge PCB (B135), framed by red corner marks and the VHRD.TECH wordmark",
-     "Boards and projects from the VHRD lab", "analog"),
+     "Boards and projects from the VHRD lab"),
 ]
 
 # Backgrounds the transparent PNG (twitter:image) might be filled with instead of its own alpha: X's three
@@ -173,7 +157,7 @@ def content_box():
     """The frame's interior, clear of the corner marks' own legs: everything drawn (headline, board, wordmark)
     stays inside this box."""
     fx0, fy0, fx1, fy1 = frame_box()
-    return fx0 + CONTENT_PAD_X, fy0 + CONTENT_PAD_Y, fx1 - CONTENT_PAD_X, fy1 - CONTENT_PAD_Y
+    return fx0 + CONTENT_PAD_X, fy0 + CONTENT_PAD_Y_TOP, fx1 - CONTENT_PAD_X, fy1 - CONTENT_PAD_Y_BOTTOM
 
 
 def board_render(board_dir, view):
@@ -188,11 +172,13 @@ def board_render(board_dir, view):
 
 def wordmark_png(width, height):
     """The VHRD.TECH wordmark (static/img/wordmark.svg), recoloured to a single red that reads on white and on
-    black alike, rasterised to the given pixel size with a transparent background."""
+    black alike, rasterised to the given pixel size with a transparent background, then cropped to its own ink
+    (not the raster canvas, which may carry a little padding) so the caller can align its right edge exactly."""
     svg = (ROOT / "static/img/wordmark.svg").read_text()
     svg = re.sub(r'fill="#[0-9a-fA-F]{6}"', f'fill="rgb{RED[:3]}"', svg)
     png_bytes = cairosvg.svg2png(bytestring=svg.encode(), output_width=width, output_height=height)
-    return Image.open(io.BytesIO(png_bytes)).convert("RGBA")
+    im = Image.open(io.BytesIO(png_bytes)).convert("RGBA")
+    return im.crop(im.getbbox())
 
 
 def draw_corner_marks(canvas):
@@ -247,19 +233,30 @@ def wrap_headline(headline, font, max_width, max_lines):
 
 
 def draw_headline(canvas, font_path, headline, fill, accent, shadow=False):
-    """The headline in Audiowide, left-aligned at the top of the frame's interior: up to two lines, shrinking
-    from HEAD_TARGET_CAP towards HEAD_MIN_CAP if it does not fit inside the frame, the words up to " · " in
-    accent (the page's own signal colour, or fill when there is no product name). shadow draws a soft dark halo
-    behind it first (the PNG variant, for a light background), rather than an outline."""
-    cx0, cy0, cx1, _ = content_box()
-    max_width = cx1 - cx0
+    """The headline in Audiowide: up to two lines at HEAD_TARGET_CAP (shrinking towards HEAD_MIN_CAP if one
+    somehow does not fit), the words up to " · " in accent (TEXT_RED), the rest in fill. The first line's
+    leading glyph's own ink — not its left side bearing — sits flush on the frame's left edge (the same line
+    the left corner marks' outer vertical edge draws), so it reads as "inside the frame" exactly, not inset
+    from it (Roman, round 5, "one more round" pass, 6 Nov 2026). shadow draws a soft dark halo behind the text
+    first (the PNG variant, for a light background), rather than an outline."""
+    fx0, _, fx1, _ = frame_box()
+    cy0 = content_box()[1]
     cap = HEAD_TARGET_CAP
     while True:
         font = font_for_cap_height(font_path, cap)
+        # the wrap width as if text started exactly at fx0: close enough for wrapping (the bearing correction
+        # below shifts the whole block by at most a few px) and never widens a line past the frame's own edge.
+        max_width = (fx1 - CONTENT_PAD_X) - fx0
         lines, fits = wrap_headline(headline, font, max_width, HEAD_MAX_LINES)
         if fits or cap <= HEAD_MIN_CAP:
             break
         cap -= 2
+
+    # The first glyph's own left bearing (the gap PIL's draw origin leaves before the ink starts): subtract it
+    # so the glyph's ink, not the nominal draw position, lands exactly on fx0.
+    first_word = lines[0][0][1]
+    bearing = ImageDraw.Draw(canvas).textbbox((0, 0), first_word, font=font)[0]
+    x_start = fx0 - bearing
 
     dot_at = next((i for i, w in enumerate(headline.split(" ")) if w == "·"), None)
     space = font.getlength(" ")
@@ -268,7 +265,7 @@ def draw_headline(canvas, font_path, headline, fill, accent, shadow=False):
     def paint(draw_fn):
         y = cy0
         for line in lines:
-            x = cx0
+            x = x_start
             for i, word in line:
                 colour = accent if dot_at is not None and i < dot_at else fill
                 draw_fn(x, y, word, colour)
@@ -315,10 +312,12 @@ def compose(board_dir, view, headline, font_path, headline_fill, accent, headlin
     canvas.alpha_composite(board, (x, y))
     draw_corner_marks(canvas)
 
-    # The wordmark sits in its own row at the bottom of the frame's interior, right-aligned: a fixed gap above
-    # the frame's bottom edge and below the board, so the two never touch (Roman, round 5, 6 Nov 2026).
+    # The wordmark sits in its own row at the bottom of the frame's interior, its own ink flush with the right
+    # corners' outer vertical edge (the same treatment as the headline's left edge, above), with a fixed gap
+    # above the frame's bottom edge and below the board, so the two never touch (Roman, round 5, 6 Nov 2026).
+    fx1 = frame_box()[2]
     wm = wordmark_png(round(WORDMARK_H * 13424 / 1434), WORDMARK_H)
-    wm_x, wm_y = cx1 - wm.width, cy1 - wm.height
+    wm_x, wm_y = fx1 - wm.width, cy1 - wm.height
     canvas.alpha_composite(wm, (wm_x, wm_y))
 
     draw_headline(canvas, font_path, headline, headline_fill, accent, headline_shadow)
@@ -367,17 +366,15 @@ def main():
     if W / H < MIN_CARD_RATIO:
         sys.exit(f"{W}x{H} is {W / H:.3f}:1, under the {MIN_CARD_RATIO}:1 LinkedIn needs for its large card")
     OUT.mkdir(parents=True, exist_ok=True)
-    for name, board_dir, view, _, headline, sig in IMAGES:
-        accent_light = SIGNAL_LIGHT[sig] if sig else INK
-        accent_dark = SIGNAL_DARK[sig] if sig else WHITE
-        img, bbox = compose(board_dir, view, headline, font_path, INK, accent_light)
+    for name, board_dir, view, _, headline in IMAGES:
+        img, bbox = compose(board_dir, view, headline, font_path, INK, TEXT_RED)
         # the square crop LinkedIn and messengers make from a 1.91:1 card: the middle H x H of the canvas
         square_left, square_right = (W - H) // 2, (W - H) // 2 + H
         if bbox[0] < square_left or bbox[2] > square_right:
             sys.exit(f"{name}: the board reaches x {bbox[0]}-{bbox[2]}, outside the {H}px square crop ({square_left}-{square_right})")
         # The transparent PNG, headline solid white with a soft dark shadow so it reads on X's light theme too.
         # Kept for twitter:image.
-        png_img, _ = compose(board_dir, view, headline, font_path, WHITE, accent_dark, headline_shadow=True)
+        png_img, _ = compose(board_dir, view, headline, font_path, WHITE, TEXT_RED, headline_shadow=True)
         write_image(OUT / f"{name}.png", png_img, "PNG", optimize=True)
         # The same frame flattened onto white, headline solid near-black, for og:image: quality ~90, 4:4:4
         # chroma (subsampling=0) and not progressive, so LinkedIn and Facebook show it sharp on the white card

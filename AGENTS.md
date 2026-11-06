@@ -239,25 +239,25 @@ per page (no blog, no articles), so `author` is the same for every page and ther
     earlier pass framed a narrower square in the middle, letting the headline bleed past it and the wordmark
     overlap the board. LinkedIn's narrower 1:1 centre crop cuts the corners and the headline — intended, since
     only the board needs to stay inside that one (above; Roman, round 5, 6 Nov 2026).
-  - **The headline** sits left-aligned at the top of the frame's interior, up to two lines, Audiowide sized as
-    large as it can be while still fitting — shrinking from a 48px cap height down to a 40px floor ("no small
-    print") if it does not fit two lines at the frame's width. The words up to a " · " separator are set in
-    that page's own signal colour (`--signal-<sig>` in vhrd_brand's `web/tokens.css`, the same one its traces
-    use), not the brand red, which is reserved for the corners and the wordmark; the rest is in the body
-    colour. `--signal-power` is only about 3:1 on white, too weak for text, so a page whose `sig` is `power`
-    falls back to `--warning` there (6.9:1), the next darker warm brand colour, rather than a colour made up
-    for the purpose; the PNG always uses the dark-theme value of the signal colour, already light enough for
-    4.5:1 on black.
-  - The board is scaled to fit well inside a fixed band below the headline (a reserved height, the same on
-    every page, so the board sits at the same height across them) and above the wordmark's own row, centred
-    horizontally on the canvas, with margin either side of the 627×627 square crop LinkedIn and messengers make
-    from a 1.91:1 card, so the whole board stays in view there too; the script refuses to write a file where it
-    wouldn't.
+  - **The headline** sits at the top of the frame's interior, its first line's leading glyph's own ink — not
+    the font's left side bearing — flush with the left corners' outer vertical edge, the same line their
+    strokes draw ("the D of Donguru" exactly on it, every image; Roman, round 5, "one more round" pass, 6 Nov
+    2026). Up to two lines, Audiowide at a 42px cap height (every headline below fits two lines there, so there
+    is no further shrink floor this round). The words up to a " · " separator are set in `--vhrd-red` /
+    light-theme `--accent` (`#c8141c`), a different red from the corners' and wordmark's `#f24c44`; the rest is
+    in the body colour.
+  - The board is scaled to fit well inside a fixed band below the headline, with a clearly visible gap between
+    them (a first pass sat the board right under the text) — a reserved band height, the same on every page, so
+    the board sits at the same height across them — and above the wordmark's own row, centred horizontally on
+    the canvas, with margin either side of the 627×627 square crop LinkedIn and messengers make from a 1.91:1
+    card, so the whole board stays in view there too; the script refuses to write a file where it wouldn't.
   - A faint white halo (blurred, low opacity, tight to the board) sits behind it: close to invisible on a white
     or light card, and just enough to keep a dark board's edge from vanishing into a black one.
-  - A small red VHRD.TECH wordmark (from `static/img/wordmark.svg`, recoloured to the one red so it reads on
-    white and on black alike) sits in its own row at the bottom of the frame's interior, right-aligned, with a
-    fixed gap above the frame's bottom edge and below the board, so the two never touch.
+  - A red VHRD.TECH wordmark (from `static/img/wordmark.svg`, recoloured to the one red so it reads on white
+    and on black alike; about 1.3× its first-round size), its own ink — not the raster canvas's edge — flush
+    with the right corners' outer vertical edge, same treatment as the headline's left edge, sits in its own
+    row at the bottom of the frame's interior, with a fixed gap above the frame's bottom edge and below the
+    board, so the two never touch.
   - Each image stays a few hundred KB, under the script's 1 MB budget: LinkedIn and Facebook accept files up to
     5-8 MB, but a smaller one loads faster.
   - Run it again after a change to a board's hero render, a headline, the wordmark or the script itself; `just
