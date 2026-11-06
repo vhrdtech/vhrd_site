@@ -212,38 +212,52 @@ per page (no blog, no articles), so `author` is the same for every page and ther
 - **LinkedIn's small thumbnail matters more than the large card.** Since 2024, LinkedIn shows an *organic*
   share (not a paid one) with that small, centre-cropped ~160px thumbnail; only paid posts get the large card.
   So the board stays big, centred and high-contrast, well inside the 627×627 square crop that thumbnail comes
-  from, and the headline (below) is secondary: it is for the platforms that do show the large card (X,
-  Facebook, Slack, messengers), and may be cropped away in LinkedIn's small thumbnail without harm, since the
-  board alone carries that one (Roman, round 5).
+  from, and the headline (below) is secondary: it is for the platforms that do show the large card instead (X,
+  Facebook, Slack, messengers). The corner marks sit near the card's own edges (below), wider than that square
+  crop, so LinkedIn's crop cuts them and the headline along with it — that is fine, since only the board needs
+  to survive it, and it does (Roman, round 5).
 - `just og` (`tools/og_images.py`, uv, Pillow and cairosvg) takes vhrd_brand's Audiowide ttf (the same one `just
   wordmark` uses; the font itself is baked into these raster images, never shipped) and composes, per page, a
   large headline in it above a board's hero render, inside the 1200×627 canvas, then writes each as two files:
   - `static/img/og/<name>.png`, on a **transparent** background, a truecolour RGBA PNG, lossless, no palette
     quantization (a 256-colour palette version came out blurry and posterised on LinkedIn's Post Inspector,
-    Roman, 6 Nov 2026) — `extra.twitter_image`. The headline is white with a dark outline, so it still reads on
-    X's light theme once X composites the transparency away.
+    Roman, 6 Nov 2026) — `extra.twitter_image`. The headline is solid white with a soft dark shadow behind it
+    (not an outline, which read as hollow once X composited the transparency away), so it still shows some
+    contrast on X's light theme and reads clearly on its two dark ones.
   - `static/img/og/<name>.jpg`, the same frame flattened onto **white**, a baseline (not progressive) JPEG,
-    quality 90, 4:4:4 chroma (no subsampling) — `extra.og_image`. The headline is near-black (vhrd_brand's
-    light-theme text colour).
+    quality 90, 4:4:4 chroma (no subsampling) — `extra.og_image`. The headline is solid near-black (vhrd_brand's
+    light-theme text colour), no shadow needed on its own white card.
   `tools/check_live.py built` (`just test` and `just live`) ships a `.png` or `.jpg` only under `img/og/`: every
   other PNG or JPEG (a board render's source, "Board renders" above) still stops the build.
   - **Each file name carries a version** (`default-4.png`/`.jpg`, not `default.png`): LinkedIn, Facebook and
     Telegram cache a link's preview by its image URL, so a change to an image itself needs a new name too, or
     they go on showing the old file. A change to `IMAGES` in `tools/og_images.py` is followed by the same names
     in `config.toml`'s `extra.og_image` / `extra.twitter_image` and each page's own, in its front matter.
-  - **The headline** sits left-aligned above the board, up to two lines, Audiowide sized so its capital letters
-    are at least ~40px tall at this 1200px width (no small print): the words up to a " · " separator are set in
-    the brand red, like the one accented word in a real page's hero headline, the rest in the body colour. It
-    may run past the square crop's edges — that is the trade described above, not a bug.
-  - The board is scaled to fit well inside a 580×391 box below the headline, centred horizontally on the
-    canvas, with margin either side of the 627×627 square crop LinkedIn and messengers make from a 1.91:1 card,
-    so the whole board stays in view there too; the script refuses to write a file where it wouldn't.
+  - **Four red corner marks sit near the card's own edges** (brand red, like `.fig-frame`'s datasheet corners;
+    an even inset from the 1200×627 canvas, not from the square crop), enclosing the headline, the board and
+    the wordmark with a margin, clear of the marks' own legs too (`content_box()` in the script): after an
+    earlier pass framed a narrower square in the middle, letting the headline bleed past it and the wordmark
+    overlap the board. LinkedIn's narrower 1:1 centre crop cuts the corners and the headline — intended, since
+    only the board needs to stay inside that one (above; Roman, round 5, 6 Nov 2026).
+  - **The headline** sits left-aligned at the top of the frame's interior, up to two lines, Audiowide sized as
+    large as it can be while still fitting — shrinking from a 48px cap height down to a 40px floor ("no small
+    print") if it does not fit two lines at the frame's width. The words up to a " · " separator are set in
+    that page's own signal colour (`--signal-<sig>` in vhrd_brand's `web/tokens.css`, the same one its traces
+    use), not the brand red, which is reserved for the corners and the wordmark; the rest is in the body
+    colour. `--signal-power` is only about 3:1 on white, too weak for text, so a page whose `sig` is `power`
+    falls back to `--warning` there (6.9:1), the next darker warm brand colour, rather than a colour made up
+    for the purpose; the PNG always uses the dark-theme value of the signal colour, already light enough for
+    4.5:1 on black.
+  - The board is scaled to fit well inside a fixed band below the headline (a reserved height, the same on
+    every page, so the board sits at the same height across them) and above the wordmark's own row, centred
+    horizontally on the canvas, with margin either side of the 627×627 square crop LinkedIn and messengers make
+    from a 1.91:1 card, so the whole board stays in view there too; the script refuses to write a file where it
+    wouldn't.
   - A faint white halo (blurred, low opacity, tight to the board) sits behind it: close to invisible on a white
     or light card, and just enough to keep a dark board's edge from vanishing into a black one.
-  - Four red corner marks (brand red, like `.fig-frame`'s datasheet corners) and a small red VHRD.TECH wordmark
-    (bottom right, from `static/img/wordmark.svg`, recoloured to the one red so it reads on white and on black
-    alike) frame the board. The frame sits inside the square crop's edges too, so it survives a square-crop
-    platform as well as the full card.
+  - A small red VHRD.TECH wordmark (from `static/img/wordmark.svg`, recoloured to the one red so it reads on
+    white and on black alike) sits in its own row at the bottom of the frame's interior, right-aligned, with a
+    fixed gap above the frame's bottom edge and below the board, so the two never touch.
   - Each image stays a few hundred KB, under the script's 1 MB budget: LinkedIn and Facebook accept files up to
     5-8 MB, but a smaller one loads faster.
   - Run it again after a change to a board's hero render, a headline, the wordmark or the script itself; `just
