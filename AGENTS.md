@@ -199,6 +199,7 @@ just deploy           # start the Deploy workflow on GitHub (site and notify ser
 just deploy-notify    # fallback without GitHub: tpm ship to the web-notify node; prod, needs sign-off first ("Notify service" below)
 just rollback-notify  # fallback: the notify service's previous release (the activator rolls back by itself)
 just notify ARGS      # the signups on the server, as vhrd-notify: count, list, export, delete ADDRESS
+just stats [DAY]      # the visitor stats report from the server over ssh, opened here ("Visitor stats" below)
 just check-live       # the deployed site against target/live: pages 200, the footer stamp, the old paths' 301s, the 404
 just check-draw [URL] # the traces (draw with the scroll, both ways) and first clicks: the local build by default, or a deployed site
 just preview TOKEN    # noindex build for https://shadow.vhrd.tech/TOKEN/, uploaded with tpm share ("Preview" below)
@@ -304,6 +305,18 @@ Every answer of the service names its release in `x-vhrd-release`, the short git
 **Without GitHub** (fallback only): `just deploy-notify` runs `tpm ship web-notify vhrd_notify` (`ship.toml`). It builds the static binary on a PC and installs it as the vhrd-notify user in the same layout and history, and the activator carries on from there. It needs a tpm node `web-notify` (`ssh = "vhrd-notify@vhrd.tech"`, `port = 7722`) and a key root adds for the occasion and removes after. tpm ship knows nothing of the activator: stop its path unit first (`systemctl --user stop vhrd-notify-activate.path` as vhrd-notify), and start it again after, so the two never switch at once. Neither exists on purpose. `just rollback-notify` goes back one release the same way.
 
 Check by hand: `curl -si -X POST -H 'Accept: application/json' --data 'email=x' https://vhrd.tech/api/notify` answers 400 "bad request" with `x-vhrd-release`, and `just notify count` works.
+
+## Visitor stats
+
+Interest in the site is judged from the web server's own access log, with GoAccess, not from anything on the pages (SITE-18 site-stats). The server side is set up by a root brief (tpm P2633 `design/stats-server-brief.md`).
+
+- No script, cookie or banner on the site. nginx's log `/var/log/nginx/vhrd.tech.access.log` is the only source.
+- A daily timer runs GoAccess as the user `vhrd-stats`, which reads only that log (an ACL, not the adm group).
+- Bots and crawlers are left out. Each IP address is shortened (`--anonymize-ip`) before it is counted, and the per-IP panel is off, so no visitor address is in the report or GoAccess's database.
+- GoAccess keeps an incremental database of 730 days, so the counts outlive the log's 15 days. Each day also gets a report of its own, for views per page per day.
+- Countries come from DB-IP's IP to Country Lite (CC BY 4.0: "IP Geolocation by DB-IP", with a link to db-ip.com wherever its results are shown), updated by a monthly timer.
+- The report is never public: `/var/lib/vhrd-stats/report/index.html` (and `day/DATE.html`) is outside every web root and readable by roman only. `just stats [DATE]` fetches it over ssh into `target/stats/` and opens it.
+- /privacy and the FAQ (`#tracking`) say what is counted and that the counts are kept 24 months. A change to what is counted or how long changes them in the same commit.
 
 ## Deploy
 

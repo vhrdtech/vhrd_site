@@ -14,9 +14,10 @@ This site is run by VHRD.TECH AS, Asker, Norway. Questions about your data go to
 
 ## What the site keeps
 
-- **No cookies, no analytics, nothing from other sites.** Pages, fonts and pictures all come from this server.
+- **No cookies, no analytics scripts, nothing from other sites.** Pages, fonts and pictures all come from this server.
 - **Your theme choice**, if you switch to the light theme, stays in your own browser. It never reaches us.
 - **Access logs.** Like any web server, ours writes down each request: your IP address, the time, the page asked for and what your browser says it is. We keep them to run the site and to find and stop abuse, and delete them after about 15 days.
+- **Visitor counts.** Once a day the server counts from those logs how often each page was viewed, from which countries and from which sites people came. Known bots are left out, and each IP address is shortened before anything is counted, so the counts hold totals only: no IP address, no cookie, no script on the pages, nothing that singles out one visitor. The country comes from a free database (DB-IP) kept on the server; nothing is sent to anyone else. We use the counts to judge which pages and products people are interested in, nobody else sees them, and we keep them for 24 months.
 
 ## The signup list
 

@@ -9,6 +9,8 @@ preview_host := "https://shadow.vhrd.tech"
 web := "roman@vhrd.tech"
 web_port := "7722"
 notify_dir := "/home/vhrd-notify/vhrd_notify"
+# The visitor stats' reports there, readable by roman only (AGENTS.md "Visitor stats")
+stats_dir := "/var/lib/vhrd-stats/report"
 
 export PATH := home_directory() / ".local/bin:" + env("PATH")
 # The footer's build stamp: short hash (with -dirty) and commit date, read by the templates through get_env
@@ -145,3 +147,10 @@ rollback-notify:
 # `list`, `export > donguru.csv`, `delete ADDRESS`
 notify *args:
     ssh -p {{ web_port }} {{ web }} sudo -n -u vhrd-notify {{ notify_dir }}/vhrd_notify --config {{ notify_dir }}/notify.toml {{ args }}
+
+# The visitor stats from the web server's access log (AGENTS.md "Visitor stats"), fetched over ssh into target/stats
+# and opened: the whole kept range by default, or one day's report (`just stats 2026-11-05`)
+stats day="":
+    mkdir -p target/stats
+    rsync -e "ssh -p {{ web_port }}" "{{ web }}:{{ stats_dir }}/{{ if day == "" { "index" } else { "day/" + day } }}.html" target/stats/
+    xdg-open "target/stats/{{ if day == "" { "index" } else { day } }}.html"
