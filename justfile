@@ -31,14 +31,14 @@ build:
     zola check --skip-external-links
     zola build
 
-# The notify service's and its activator's tests pass, the site builds (Firefox for the browser check comes with `just install`), internal links resolve, the old WordPress paths redirect to its pages (deploy/redirects.map), every
+# The notify service's and its activator's tests pass, the site builds (Firefox for the browser check comes with `just install`), it passes the same live-build check `just live` runs (every file a type the site ships, no WordPress path, internal links resolve, deploy/redirects.map), every
 # page passes the browser checks, the brand files match vhrd_brand (when it is checked out here)
 test *args:
     zola --version | grep -qF "{{ zola_version }}" || { echo "zola {{ zola_version }} expected: just install"; exit 1; }
     cargo nextest run --workspace
     zola check --skip-external-links
     zola build --output-dir target/test --force
-    python3 tools/check_live.py redirects target/test
+    python3 tools/check_live.py built target/test --stamp "$VHRD_GIT"
     python3 tools/test_notify_plan.py
     uv run tools/check_pages.py
     if [ -d "{{ brand }}/web" ]; then diff -q "{{ brand }}/web/tokens.css" static/css/brand/tokens.css && diff -q "{{ brand }}/web/vhrd.css" static/css/brand/vhrd.css; else echo "note: {{ brand }} missing, brand files not compared"; fi

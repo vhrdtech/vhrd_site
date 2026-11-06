@@ -160,6 +160,7 @@
 
 ### Fixed
 
+- The live build's check refused `static/img/og/*.png` (ASSET-2 og-images) and `static/term/cnt-tui.cast` (BLOCK-7 term-live) as types the site does not ship, so deploy run 42191397718 failed "Build the live site" and nothing went live. `tools/check_live.py built` now allows a `.png` under `img/og/` and a `.cast` under `term/`, and still refuses both everywhere else (a board render's PNG source among them). `just test` now runs the same `built` check against `target/test` (it used to run only `redirects`, a part of it), so a new file type the build ships fails before landing, not at deploy.
 - The live build's check refused the mail links' pages for being noindex, which stopped every deploy since NOTIFY-4. `tools/check_live.py built` now requires noindex on those two pages and refuses it anywhere else.
 - The traces did not draw on the live site, on phones or desktops: they popped in. The drawn state had no clip-path (`none`), and a clip-path does not interpolate from an inset to `none`, so the 0.9 s transition jumped in one frame. The browser check only looked at the end state, so it passed. It now records the traces at positions near the end of every page, down and back up, in Chromium and Firefox, and fails on that (LOOK-3 grid-and-traces).
 - The deploy job checks out `deploy/redirects.map` and `deploy/old-urls.txt`. The post-deploy check reads them and stopped with FileNotFoundError after a good upload.

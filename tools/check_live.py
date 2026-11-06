@@ -6,9 +6,12 @@ Usage: python3 tools/check_live.py built DIR [--stamp HASH]
 
 Standard library only: the deploy workflow runs it with the runner's python3, without uv.
 
-`built` checks a folder made by `just live` before it goes to vhrd.tech:
+`built` checks a folder made by `just live` (and, against target/test, by `just test`) before it goes to
+vhrd.tech:
 - the site's own files are there (index.html, 404.html, robots.txt, sitemap.xml);
 - every file has a type the site ships (no PNG render source, no PHP, no manifest) and nothing is a symlink;
+  a .png ships only under img/og/ (the share images) and a .cast only under term/ (a recorded terminal
+  session), both refused everywhere else;
 - no top-level name is a WordPress path (wp-*, *.php, /cart/, /product/, /feed/, ...): WordPress is gone, its paths
   redirect, and nothing of it ever ships;
 - the redirects (deploy/redirects.map, as `redirects` checks them);
@@ -38,6 +41,10 @@ REQUIRED = ["index.html", "404.html", "robots.txt", "sitemap.xml"]
 # What the site ships. Anything else (a .png render source, a .php, a manifest) stops the upload.
 TYPES = {".html", ".css", ".js", ".svg", ".xml", ".txt", ".woff2", ".avif", ".webp", ".jpg", ".ico"}
 NAMES = {"VERSION"}
+# A type the site ships only under one path: a share image (ASSET-2 og-images) is the one PNG that ships (every
+# other PNG is a board render source, kept out of the build), and a recorded terminal session (BLOCK-7 term-live)
+# is the one .cast. Elsewhere those extensions are still refused.
+EXTRA_TYPES = {".png": re.compile(r"^img/og/"), ".cast": re.compile(r"^term/")}
 # WordPress paths. WordPress is gone from vhrd.tech (4 Nov 2026), and nothing like it ever ships.
 WORDPRESS = re.compile(r"^(wp-.*|.*\.php|product|product-category|cart|checkout|my-account|feed|comments"
                        r"|category|tag|author|page|xmlrpc|wc-api|\.well-known)$")
@@ -62,7 +69,9 @@ def built(folder, stamp):
         if path.is_symlink():
             problems.append(f"{rel}: a symlink")
         elif path.is_file() and path.suffix not in TYPES and path.name not in NAMES:
-            problems.append(f"{rel}: not a type the site ships")
+            allowed = EXTRA_TYPES.get(path.suffix)
+            if not allowed or not allowed.match(rel):
+                problems.append(f"{rel}: not a type the site ships")
     for top in sorted(folder.iterdir()):
         if WORDPRESS.match(top.name):
             problems.append(f"{top.name}: a WordPress path; nothing of WordPress ships")
