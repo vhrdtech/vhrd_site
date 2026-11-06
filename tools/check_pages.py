@@ -23,6 +23,9 @@ The front page's intro: on every load it shows and clears by itself without wait
 for a late hero render and fires (TRIG'D), says after 5 s how to skip and a click skips it, a key skips it, the
 replay button plays the slow path as a demo; never with a #fragment, under reduced motion or without JavaScript.
 On every page the figures are numbered 1, 2, 3... in order, without a gap.
+The terminal captures on /software, at 390, 768, 1440, 1920 and 2560 px in dark and light: each shows one screen, the
+narrow one on a phone and the wide one from a laptop up, wider than the prose there; nothing in them is cut off (a
+line longer than its box scrolls, shown from its start), and a box scrolls only where its face is at its smallest.
 With --only draw (`just check-draw [URL]`, not part of the default run: it takes about 5 min against every page, in
 Chromium and Firefox, on two phones and three desktops up to 2560x1440): the PCB traces and the footer's bus draw and
 undraw with the scroll (undrawn below the fold, all drawn at the page's end, the bus falling when the page scrolls back
@@ -45,7 +48,8 @@ them, and the CSS every page carries stays under SHARED_CSS_KB (Firefox's first 
 The mail links' pages /notify/confirm/ and /notify/remove/ (also only against the local build, the service's answers
 stubbed): the token after '#' fills the form, each answer shows its message; without JavaScript the token field shows.
 They are the orphan rule's exception: noindex, out of the site map, and only our mail links to them.
-With --shots, writes a full-page screenshot per width in dark (traces shown drawn: reduced motion).
+With --shots, writes a full-page screenshot per width in dark (traces shown drawn: reduced motion), and /software's
+at each terminal width in both themes, and each terminal figure on its own.
 """
 
 import argparse
@@ -105,6 +109,22 @@ CODE_SHOWN = """() => [...document.querySelectorAll('.crate .code-wide')]
 # Figure numbers in page order (FIG. n captions and code panel labels): they must run 1, 2, 3... without a gap.
 FIG_NUMBERS = """() => [...document.querySelectorAll('.fig-no, .code-tabs-bar > .v-label')]
   .map((e) => e.textContent.match(/^FIG\\. (\\d+)/)).filter(Boolean).map((m) => +m[1])"""
+# Terminal figures (vh.term): the screens shown, and every box in the figure whose content is wider than it, with
+# what it does with the rest (scroll or clip) and where it is scrolled to.
+TERMS = """() => [...document.querySelectorAll('.term-fig')].map((f) => ({
+  id: f.id,
+  width: f.getBoundingClientRect().width,
+  left: f.getBoundingClientRect().left,
+  right: f.getBoundingClientRect().right,
+  prose: document.querySelector('.prose').getBoundingClientRect().width,
+  two: f.classList.contains('term-two'),
+  shown: [...f.querySelectorAll('.term-screen')].filter((p) => p.getClientRects().length)
+    .map((p) => ({cls: p.className, font: parseFloat(getComputedStyle(p).fontSize), over: p.scrollWidth - p.clientWidth})),
+  over: [f, ...f.querySelectorAll('*')].filter((e) => e.clientWidth && e.scrollWidth > e.clientWidth + 1)
+    .map((e) => ({tag: e.tagName.toLowerCase() + '.' + [...e.classList].join('.'), x: getComputedStyle(e).overflowX,
+                  at: e.scrollLeft})),
+}))"""
+TERM_WIDTHS = (390, 768, 1440, 1920, 2560)
 IMAGES_WITHOUT = """() => [...document.images]
   .filter((i) => !i.hasAttribute("alt") || !i.getAttribute("width") || !i.getAttribute("height"))
   .map((i) => i.currentSrc || i.src)"""
@@ -401,6 +421,56 @@ def check_code_fits(browser, base):
                 if w >= 1280 and not wide:
                     failures.append(f"{path or '/'} {w}px: the {crate} card is held to its narrow code on a wide screen")
         ctx.close()
+    return failures
+
+
+def check_terms(browser, base, shots):
+    """The terminal figures on /software at every TERM_WIDTHS width, in dark and light: one screen each, narrow on a
+    phone and wide from 1440px, the figure wider than the prose on a desktop and inside the page; nothing clipped,
+    a box that scrolls sideways shown from the start of its lines, and only once its face is at the smallest (11px
+    wide, 10px narrow), so a capture that can fit does."""
+    failures = []
+    for scheme in ("dark", "light"):
+        for w in TERM_WIDTHS:
+            ctx = browser.new_context(viewport={"width": w, "height": 1000}, reduced_motion="reduce")
+            if scheme == "light":
+                ctx.add_init_script("try { localStorage.setItem('theme', 'light') } catch (e) {}")
+            page = ctx.new_page()
+            page.goto(base + "software/")
+            page.wait_for_load_state("load")
+            page.evaluate("document.fonts.ready")
+            at = f"/software/ {w}px {scheme}"
+            terms = page.evaluate(TERMS)
+            if not terms:
+                failures.append(f"{at}: no terminal figures")
+            for t in terms:
+                if len(t["shown"]) != 1:
+                    failures.append(f"{at}: {t['id']} shows {len(t['shown'])} screens, expected one")
+                    continue
+                shown = t["shown"][0]
+                if t["two"] and w <= 390 and "term-narrow" not in shown["cls"]:
+                    failures.append(f"{at}: {t['id']} shows its wide screen on a phone")
+                if t["two"] and w >= 1440 and "term-wide" not in shown["cls"]:
+                    failures.append(f"{at}: {t['id']} is held to its narrow screen on a desktop")
+                if w >= 1440 and t["width"] <= t["prose"] + 1:
+                    failures.append(f"{at}: {t['id']} is {t['width']:.0f}px, no wider than the prose")
+                if t["left"] < 0 or t["right"] > w:
+                    failures.append(f"{at}: {t['id']} runs off the page ({t['left']:.0f} to {t['right']:.0f}px)")
+                floor = 10 if "term-narrow" in shown["cls"] else 11
+                if shown["over"] > 0 and shown["font"] > floor + 0.1:
+                    failures.append(f"{at}: {t['id']} scrolls by {shown['over']}px at {shown['font']}px, "
+                                    f"above its smallest face {floor}px")
+                for o in t["over"]:
+                    if o["x"] in ("hidden", "clip"):  # visible spills into its box, checked in turn
+                        failures.append(f"{at}: {t['id']}: {o['tag']} cuts its text off (overflow-x {o['x']})")
+                    elif o["at"]:
+                        failures.append(f"{at}: {t['id']}: {o['tag']} is scrolled to {o['at']}px, not its start")
+            if shots:
+                Path(shots).mkdir(parents=True, exist_ok=True)
+                page.screenshot(path=f"{shots}/software-{scheme}-{w}.png", full_page=True)
+                for t in terms:
+                    page.locator(f"#{t['id']}").screenshot(path=f"{shots}/{t['id']}-{scheme}-{w}.png")
+            ctx.close()
     return failures
 
 
@@ -1155,6 +1225,7 @@ def main():
         ctx.close()
 
         failures += check_code_fits(browser, base)
+        failures += check_terms(browser, base, a.shots)
         failures += check_repos(browser, base)
         failures += check_intro(browser, base)
         failures += check_placeholders(browser, base)

@@ -1,0 +1,196 @@
+<!-- tools/term_capture.py bedrock-lint: `bedrock-lint check`, bedrock-lint 0.1.0 (46ba0ee, commit 3 Nov 2026 14:43 UTC), the cnt test firmware (cnt/fixtures/counters_fw), 44×195, recorded 2026-11-06. Recorded, not edited: run it again to change it. -->
+<span class="f-red t-b">error[STK-1]</span>: <span class="t-b">no linker set for thumbv7em-no</span>
+<span class="t-b">ne-eabihf: it links with rust-lld, not flip-</span>
+<span class="t-b">link; a stack overflow runs into .data and .</span>
+<span class="t-b">bss unnoticed.</span>
+  <span class="f-blue t-b">--&gt;</span> .cargo/config.toml:4
+   <span class="f-blue t-b">|</span> [target.thumbv7em-none-eabihf]
+   <span class="f-blue t-b">=</span> fix: add `linker = "flip-link"` under `
+[target.&lt;triple&gt;]` in .cargo/config.toml (ca
+rgo install flip-link); a `cargo:rustc-linke
+r` line in build.rs does nothing (STK-2)
+   <span class="f-blue t-b">=</span> <span class="t-d">STK-1: flip-link not the linker: linker</span>
+<span class="t-d"> = "flip-link" under [target.&lt;triple&gt;] in .c</span>
+<span class="t-d">argo/config.toml</span> <span class="t-d">(bedrock-lint explain STK-1</span>
+<span class="t-d">)</span>
+<span></span>
+<span class="f-red t-b">error[FLT-1]</span>: <span class="t-b">no HardFault handler: cortex-m</span>
+<span class="t-b">-rt's default spins in `loop {}`, so a fault</span>
+<span class="t-b"> hangs the board until someone power-cycles</span>
+<span class="t-b">it</span>
+  <span class="f-blue t-b">--&gt;</span> src/main.rs:20:4
+   <span class="f-blue t-b">|</span> fn main() -&gt; ! {
+   <span class="f-blue t-b">=</span> fix: save a crash record (bedrock_crash
+::capture_fault) and reset (bedrock_crash::r
+eset(), SCB::sys_reset()) instead of spinnin
+g
+   <span class="f-blue t-b">=</span> <span class="t-d">FLT-1: HardFault handler that spins (lo</span>
+<span class="t-d">op {}) in a shipped build: record (crash cap</span>
+<span class="t-d">ture) and reset</span> <span class="t-d">(bedrock-lint explain FLT-1)</span>
+<span></span>
+<span class="f-red t-b">error[FLT-7]</span>: <span class="t-b">no watchdog: a hang in a task</span>
+<span class="t-b">or a stuck bus stays hung until someone powe</span>
+<span class="t-b">r-cycles the board</span>
+  <span class="f-blue t-b">--&gt;</span> src/main.rs:20:4
+   <span class="f-blue t-b">|</span> fn main() -&gt; ! {
+   <span class="f-blue t-b">=</span> fix: start the independent watchdog at
+boot and feed it from a supervisor that chec
+ks the tasks made progress
+   <span class="f-blue t-b">=</span> <span class="t-d">FLT-7: No watchdog, or a watchdog fed f</span>
+<span class="t-d">rom an interrupt or from a loop not bounded</span>
+<span class="t-d">by a timeout; window not calibrated to the r</span>
+<span class="t-d">eal period</span> <span class="t-d">(bedrock-lint explain FLT-7)</span>
+<span></span>
+<span class="f-brown t-b">warning[IRQ-8]</span>: <span class="t-b">no #[exception] fn DefaultHa</span>
+<span class="t-b">ndler in the source seen: an interrupt that</span>
+<span class="t-b">fires on an unbound vector goes unnoticed in</span>
+<span class="t-b">stead of being counted</span><span class="t-d"> (estimate)</span>
+  <span class="f-blue t-b">--&gt;</span> Cargo.toml:13
+   <span class="f-blue t-b">|</span> cortex-m-rt = "0.7"
+   <span class="f-blue t-b">=</span> fix: add #[exception] fn DefaultHandler
+(irqn: i16) that records irqn raw (a static,
+ the crash record or cnt!)
+   <span class="f-blue t-b">=</span> <span class="t-d">IRQ-8: Unused interrupt vectors not cau</span>
+<span class="t-d">ght: DefaultHandler must record the IRQ numb</span>
+<span class="t-d">er (raw: a static, the crash record or a cou</span>
+<span class="t-d">nter; not logging it, FLT-2)</span> <span class="t-d">(bedrock-lint e</span>
+<span class="t-d">xplain IRQ-8)</span>
+<span></span>
+<span class="f-brown t-b">warning[FLT-4]</span>: <span class="t-b">no UsageFault, MemoryManagem</span>
+<span class="t-b">ent, BusFault handler: these faults escalate</span>
+<span class="t-b"> to HardFault, and the crash record cannot t</span>
+<span class="t-b">ell them apart</span>
+  <span class="f-blue t-b">--&gt;</span> src/main.rs:20:4
+   <span class="f-blue t-b">|</span> fn main() -&gt; ! {
+   <span class="f-blue t-b">=</span> fix: add `#[exception]` handlers for Us
+ageFault, MemoryManagement and BusFault that
+ record and reset, and enable them in SHCSR
+(`scb.enable(Exception::UsageFault)`, ...)
+   <span class="f-blue t-b">=</span> <span class="t-d">FLT-4: No UsageFault, MemManage and Bus</span>
+<span class="t-d">Fault handlers (or not enabled in SHCSR) whe</span>
+<span class="t-d">re the core has them</span> <span class="t-d">(bedrock-lint explain F</span>
+<span class="t-d">LT-4)</span>
+<span></span>
+<span class="f-brown t-b">warning[FLT-5]</span>: <span class="t-b">the reset cause is never rea</span>
+<span class="t-b">d: a brown-out, a watchdog or a lockup reset</span>
+<span class="t-b"> looks like a normal start</span>
+  <span class="f-blue t-b">--&gt;</span> src/main.rs:20:4
+   <span class="f-blue t-b">|</span> fn main() -&gt; ! {
+   <span class="f-blue t-b">=</span> fix: read the reset flags at boot (RCC_
+CSR / RCC_RSR, RP CHIP_RESET and WATCHDOG.RE
+ASON), clear them, and report the cause (the
+ template's last_reset.rs, `bedrock_crash::b
+oot`)
+   <span class="f-blue t-b">=</span> <span class="t-d">FLT-5: Reset cause not read and reporte</span>
+<span class="t-d">d at boot (power-on, brown-out, watchdog, so</span>
+<span class="t-d">ftware, pin, lockup)</span> <span class="t-d">(bedrock-lint explain F</span>
+<span class="t-d">LT-5)</span>
+<span></span>
+<span class="f-brown t-b">warning[FLT-8]</span>: <span class="t-b">no boot-loop rescue: a crash</span>
+<span class="t-b"> at start-up repeats on every boot, and only</span>
+<span class="t-b"> a probe gets the board back</span>
+  <span class="f-blue t-b">--&gt;</span> src/main.rs:20:4
+   <span class="f-blue t-b">|</span> fn main() -&gt; ! {
+   <span class="f-blue t-b">=</span> fix: count boots without a healthy mark
+ in a backup register and fall back to the R
+OM bootloader after a few (bedrock_rom_boot:
+:early, the template's boot.rs)
+   <span class="f-blue t-b">=</span> <span class="t-d">FLT-8: No boot-loop rescue: count boots</span>
+<span class="t-d"> without a healthy mark in a backup register</span>
+<span class="t-d">, fall back to the ROM bootloader after a fe</span>
+<span class="t-d">w</span> <span class="t-d">(bedrock-lint explain FLT-8)</span>
+<span></span>
+<span class="f-brown t-b">warning[FLS-4]</span>: <span class="t-b">nothing checks the image in</span>
+<span class="t-b">flash: a flipped bit runs until the code it</span>
+<span class="t-b">is in executes</span>
+  <span class="f-blue t-b">--&gt;</span> src/main.rs:20:4
+   <span class="f-blue t-b">|</span> fn main() -&gt; ! {
+   <span class="f-blue t-b">=</span> fix: compute a CRC of the image at boot
+ and periodically in a low-priority task, co
+mpare it with the one the build stored, and
+count a mismatch
+   <span class="f-blue t-b">=</span> <span class="t-d">FLS-4: No periodic CRC of the image in</span>
+<span class="t-d">flash, no ECC on flash and RAM where the par</span>
+<span class="t-d">t has it</span> <span class="t-d">(bedrock-lint explain FLS-4)</span>
+<span></span>
+<span class="f-brown t-b">warning[CNT-1]</span>: <span class="t-b">`Err(winner)` is handled in</span>
+<span class="t-b">`cnt::buffers::Index::allocate` without a co</span>
+<span class="t-b">unter</span><span class="t-d"> (candidate)</span>
+  <span class="f-blue t-b">--&gt;</span> ../../cnt/src/buffers.rs:116:13<span class="t-d"> error</span>
+<span class="t-d">branch</span>
+   <span class="f-blue t-b">|</span> Err(winner) =&gt; winner,
+   <span class="f-blue t-b">=</span> fix: count it: `cnt!(what_happened)` in
+ the branch (cnt crate), so it shows in `cnt
+ read`
+   <span class="f-blue t-b">=</span> <span class="t-d">CNT-1: Error branch (an Err handled, a</span>
+<span class="t-d">timeout, a retry, a dropped frame, an overru</span>
+<span class="t-d">n) without a cnt! counter: unexpected events</span>
+<span class="t-d"> must be counted</span> <span class="t-d">(bedrock-lint explain CNT-1</span>
+<span class="t-d">)</span>
+<span></span>
+<span class="f-brown t-b">warning[CFG-7]</span>: <span class="t-b">no bedrock_build dependency:</span>
+<span class="t-b"> the build carries no git SHA or dirty flag,</span>
+<span class="t-b"> so a dirty build flashed by mistake can't b</span>
+<span class="t-b">e told apart from a clean one by reading the</span>
+<span class="t-b"> device</span><span class="t-d"> (estimate)</span>
+  <span class="f-blue t-b">--&gt;</span> Cargo.toml
+   <span class="f-blue t-b">=</span> fix: add bedrock_build as a build-depen
+dency and call serialize_build_info() from b
+uild.rs (book/build_info.md)
+   <span class="f-blue t-b">=</span> <span class="t-d">CFG-7: Dirty build flashed without a ma</span>
+<span class="t-d">rk: build info carries the git SHA and a dir</span>
+<span class="t-d">ty flag, read back from the device</span> <span class="t-d">(bedrock-</span>
+<span class="t-d">lint explain CFG-7)</span>
+<span></span>
+<span class="f-cyan t-b">suggestion[SIZ-4]</span>: <span class="t-b">release profile is missin</span>
+<span class="t-b">g lto, panic = "abort": opt-level alone is t</span>
+<span class="t-b">he smallest lever (z vs 3 is 10-25 % speed,</span>
+<span class="t-b">measure before choosing)</span><span class="t-d"> (estimate)</span>
+  <span class="f-blue t-b">--&gt;</span> Cargo.toml:16
+   <span class="f-blue t-b">|</span> [profile.release]
+   <span class="f-blue t-b">=</span> fix: add lto, panic = "abort" to [profi
+le.release]
+   <span class="f-blue t-b">=</span> <span class="t-d">SIZ-4: Release profile without codegen-</span>
+<span class="t-d">units = 1, lto, panic = "abort", and an opt-</span>
+<span class="t-d">level chosen by measurement (z vs 3 is the l</span>
+<span class="t-d">argest lever: Donguru 501.7 → 321.8 KiB, 10-</span>
+<span class="t-d">25 % slower USB)</span> <span class="t-d">(bedrock-lint explain SIZ-4</span>
+<span class="t-d">)</span>
+<span></span>
+<span class="t-b">Not run:</span>
+  <span class="t-d">DMA-1</span> no ELF given: pass --elf target/&lt;tri
+ple&gt;/release/&lt;name&gt;
+  <span class="t-d">DMA-2</span> bedrock_fw.json names no chip (answe
+rs.chip)
+  <span class="t-d">DMA-6</span> bedrock_fw.json names no chip (answe
+rs.chip)
+  <span class="t-d">STK-3</span> no ELF given: pass --elf target/&lt;tri
+ple&gt;/release/&lt;name&gt;
+  <span class="t-d">STK-5</span> no ELF given: pass --elf target/&lt;tri
+ple&gt;/release/&lt;name&gt;
+  <span class="t-d">STK-6</span> no ELF given: pass --elf target/&lt;tri
+ple&gt;/release/&lt;name&gt;
+  <span class="t-d">MEM-3</span> no ELF given: pass --elf target/&lt;tri
+ple&gt;/release/&lt;name&gt;
+  <span class="t-d">MEM-6</span> no ELF given: pass --elf target/&lt;tri
+ple&gt;/release/&lt;name&gt;
+  <span class="t-d">MEM-10</span> no ELF given: pass --elf target/&lt;tr
+iple&gt;/release/&lt;name&gt;
+  <span class="t-d">SIZ-1</span> no ELF given: pass --elf target/&lt;tri
+ple&gt;/release/&lt;name&gt;
+  <span class="t-d">SIZ-6</span> no ELF given: pass --elf target/&lt;tri
+ple&gt;/release/&lt;name&gt;
+  <span class="t-d">ERR-3</span> no ELF given: pass --elf target/&lt;tri
+ple&gt;/release/&lt;name&gt;
+  <span class="t-d">CFG-2</span> bedrock_fw.json names no chip (answe
+rs.chip)
+  <span class="t-d">CFG-5</span> bedrock_fw.json names no chip (answe
+rs.chip)
+  <span class="t-d">PERF-2</span> no ELF given: pass --elf target/&lt;tr
+iple&gt;/release/&lt;name&gt;
+  <span class="t-d">PERF-3</span> no ELF given: pass --elf target/&lt;tr
+iple&gt;/release/&lt;name&gt;
+<span></span>
+<span class="f-red t-b">counters_fw: 3 errors, 7 warnings, 1 suggest</span>
+<span class="f-red t-b">ion · 81 checks ran, 16 not run · 97 of 116</span>
+<span class="f-red t-b">automatic catalogue checks implemented</span>

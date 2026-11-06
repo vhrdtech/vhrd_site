@@ -1,4 +1,4 @@
-<!-- tools/term_capture.py bedrock-lint: `bedrock-lint check`, bedrock-lint 0.1.0 (46ba0ee, commit 3 Nov 2026 14:43 UTC), the cnt test firmware (cnt/fixtures/counters_fw), 200×85, recorded 2026-11-04. Recorded, not edited: run it again to change it. -->
+<!-- tools/term_capture.py bedrock-lint: `bedrock-lint check`, bedrock-lint 0.1.0 (46ba0ee, commit 3 Nov 2026 14:43 UTC), the cnt test firmware (cnt/fixtures/counters_fw), 240×84, recorded 2026-11-06. Recorded, not edited: run it again to change it. -->
 <span class="f-red t-b">error[STK-1]</span>: <span class="t-b">no linker set for thumbv7em-none-eabihf: it links with rust-lld, not flip-link; a stack overflow runs into .data and .bss unnoticed.</span>
   <span class="f-blue t-b">--&gt;</span> .cargo/config.toml:4
    <span class="f-blue t-b">|</span> [target.thumbv7em-none-eabihf]
@@ -62,8 +62,7 @@
   <span class="f-blue t-b">--&gt;</span> Cargo.toml:16
    <span class="f-blue t-b">|</span> [profile.release]
    <span class="f-blue t-b">=</span> fix: add lto, panic = "abort" to [profile.release]
-   <span class="f-blue t-b">=</span> <span class="t-d">SIZ-4: Release profile without codegen-units = 1, lto, panic = "abort", and an opt-level chosen by measurement (z vs 3 is the largest lever: Donguru 501.7 → 321.8 KiB, 10-25 % slower USB)</span> <span class="t-d">(bedroc</span>
-<span class="t-d">k-lint explain SIZ-4)</span>
+   <span class="f-blue t-b">=</span> <span class="t-d">SIZ-4: Release profile without codegen-units = 1, lto, panic = "abort", and an opt-level chosen by measurement (z vs 3 is the largest lever: Donguru 501.7 → 321.8 KiB, 10-25 % slower USB)</span> <span class="t-d">(bedrock-lint explain SIZ-4)</span>
 <span></span>
 <span class="t-b">Not run:</span>
   <span class="t-d">DMA-1</span> no ELF given: pass --elf target/&lt;triple&gt;/release/&lt;name&gt;

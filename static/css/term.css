@@ -15,6 +15,7 @@
   --t-magenta: var(--cat-violet);
   --t-cyan: var(--cat-teal);
   --t-white: var(--vhrd-grey-300);
+  --t-edge: color-mix(in oklch, var(--vhrd-grey-200) 45%, transparent);
   background: var(--t-bg);
   color: var(--t-fg);
   border: 1px solid var(--vhrd-grey-800);
@@ -40,26 +41,51 @@
   font: 500 0.6875rem/1.4 var(--font-mono);
   letter-spacing: 0.04em;
 }
-.term-bar span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.term-bar span:first-child { min-width: 0; overflow-wrap: anywhere; }
 .term-screen {
   margin: 0;
   padding: 0.75rem 0.9rem;
   max-height: 34lh;
   overflow: auto;
-  background: transparent;
   border: 0;
   color: inherit;
-  font: 0.75rem/1.35 var(--font-mono);
+  font: var(--t-size, 0.75rem)/1.35 var(--font-mono);
   tab-size: 8;
+  /* A line longer than the box scrolls, never clips: a glow at the edge with more beyond it (covered where the
+     text ends), and a scrollbar that shows. */
+  background:
+    linear-gradient(to right, var(--t-bg) 50%, transparent) left / 2.5rem 100% no-repeat local,
+    linear-gradient(to left, var(--t-bg) 50%, transparent) right / 2.5rem 100% no-repeat local,
+    linear-gradient(to right, var(--t-edge), transparent) left / 1.75rem 100% no-repeat scroll,
+    linear-gradient(to left, var(--t-edge), transparent) right / 1.75rem 100% no-repeat scroll,
+    var(--t-bg);
+  scrollbar-width: thin;
+  scrollbar-color: var(--vhrd-grey-600) transparent;
 }
 .term-screen:focus-visible { outline-offset: -2px; }
 .term-prompt { color: var(--t-green); }
 /* The source a run read, above its output: the code highlighting in its dark colours, the line the output points at
    edged in the terminal's red. */
 .term-src { border-bottom: 1px solid var(--vhrd-grey-800); }
-.term-src pre.giallo { margin: 0; border: 0; border-radius: 0; padding: 0.6rem 0.9rem; background-color: transparent !important; font-size: 0.75rem; line-height: 1.45; overflow-x: auto; }
+.term-src pre.giallo { scrollbar-width: thin; scrollbar-color: var(--vhrd-grey-600) transparent; margin: 0; border: 0; border-radius: 0; padding: 0.6rem 0.9rem; background-color: transparent !important; font-size: 0.75rem; line-height: 1.45; overflow-x: auto; }
 .term-src .giallo-ln { display: inline-block; min-width: 2ch; margin-right: 1.25ch; text-align: right; }
 .term-src .giallo-l[style*="background-color"] { background: color-mix(in oklch, var(--t-red) 16%, transparent) !important; box-shadow: inset 2px 0 var(--t-red); }
+/* The figures take the column's whole width, wider than the prose around them, which keeps its measure. Each run is
+   there at its natural width and at a phone's 44 columns: the wide one shows where the figure is 40rem or more (or
+   where it fits whole at the smallest face, term-wN), the narrow one below that. The face shrinks from 0.75rem to fit
+   the longest line (--cols, at 0.6em a column), down to 0.6875rem wide and 0.625rem narrow; past that the box
+   scrolls. 4.3rem + 2px is the frame's, the screen's and a scrollbar's room. */
+.page:has(.term-fig) { container: column / inline-size; }
+.prose > .term-fig { width: 100cqi; }
+.term-fig { container: term / inline-size; }
+.term-wide { --t-size: clamp(0.6875rem, (100cqi - 4.3rem - 2px) / (var(--cols) * 0.6), 0.75rem); }
+.term-narrow { --t-size: clamp(0.625rem, (100cqi - 4.3rem - 2px) / 26.4, 0.75rem); }
+.term-two .term-wide { display: none; }
+@container term (min-width: 40rem) { .term-two .term-wide { display: revert; } .term-two .term-narrow { display: none; } }
+@container term (min-width: 25.25rem) { .term-w50 .term-wide { display: revert; } .term-w50 .term-narrow { display: none; } }
+@container term (min-width: 29.25rem) { .term-w60 .term-wide { display: revert; } .term-w60 .term-narrow { display: none; } }
+@container term (min-width: 33.5rem) { .term-w70 .term-wide { display: revert; } .term-w70 .term-narrow { display: none; } }
+@container term (min-width: 37.5rem) { .term-w80 .term-wide { display: revert; } .term-w80 .term-narrow { display: none; } }
 .term-fig figcaption { align-items: baseline; text-transform: none; letter-spacing: 0.02em; }
 .term-meta { color: var(--muted); }
 .term .f-black { color: var(--t-black); } .term .f-red { color: var(--t-red); } .term .f-green { color: var(--t-green); }

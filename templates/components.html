@@ -150,20 +150,30 @@
 {#- A real terminal run, recorded by tools/term_capture.py into data/term/ID.html and ID.toml (data/term/captures.toml
     lists them): the screen with its colours as static HTML, the command on a prompt line above it (`prompt={false}`
     for a full-screen program), and a caption with the version, what it ran on and the date. A capture with a `file`
-    (`show` in captures.toml) has that source above the output, with the line the output points at marked. Nothing runs at build
+    (`show` in captures.toml) has that source above the output, with the line the output points at marked. Each run is
+    there twice, at its natural width and at a phone's 44 columns (ID.narrow.html); a container query on the figure
+    shows the one that fits (term.css). `--cols` is the wide screen's longest line, which its face is fitted to, and
+    `term-wN` says from what width it fits at the smallest face. Nothing runs at build
     time: {{ <vh.term id="ww-api-tree" n="6" caption="ww api tree: the API of a device" /> }} -#}
 {% component vh.term(id: string, n: string = "", caption: string = "", prompt: bool = true) %}
 {%- set m = load_data(path="data/term/" ~ id ~ ".toml") -%}
 {%- set screen = load_data(path="data/term/" ~ id ~ ".html", format="plain") | split(pat=" -->\n") -%}
-<figure class="fig term-fig" id="term-{{ id }}"><div class="fig-frame">
+{%- set cols = m.cols | default(value=m.size | split(pat="×") | first) | int -%}
+{%- set narrow = m.narrow_size | default(value="") -%}
+{%- if cols <= 50 %}{% set fit = " term-w50" %}{% elif cols <= 60 %}{% set fit = " term-w60" %}{% elif cols <= 70 %}{% set fit = " term-w70" %}{% elif cols <= 80 %}{% set fit = " term-w80" %}{% else %}{% set fit = "" %}{% endif -%}
+{%- set head %}{% if prompt %}<span class="term-prompt">$ </span>{{ m.cmd }}
+{% endif %}{% endset -%}
+<figure class="fig term-fig{% if narrow %} term-two{{ fit }}{% endif %}" id="term-{{ id }}" style="--cols: {{ cols }}"><div class="fig-frame">
 <div class="term">
 {%- if m.file | default(value="") %}{% set src = load_data(path="data/term/" ~ id ~ ".src", format="plain") %}
 <p class="term-bar"><span>{{ m.file }}</span><span>line {{ m.mark }}</span></p>
 <div class="term-src">{{ ("```" ~ m.lang ~ ",linenos,hl_lines=" ~ m.mark ~ "\n" ~ src ~ "```") | markdown | safe }}</div>
 {%- endif %}
-<p class="term-bar"><span>{{ m.cmd }}</span><span>{{ m.size }}</span></p>
-<pre class="term-screen" tabindex="0" role="region" aria-label="Terminal: {{ m.cmd }}">{% if prompt %}<span class="term-prompt">$ </span>{{ m.cmd }}
-{% endif %}{{ screen[1] | trim_end | safe }}</pre></div>
+<p class="term-bar"><span>{{ m.cmd }}</span><span class="term-wide">{{ m.size }}</span>{% if narrow %}<span class="term-narrow">{{ narrow }}</span>{% endif %}</p>
+<pre class="term-screen term-wide" tabindex="0" role="region" aria-label="Terminal: {{ m.cmd }}">{{ head | safe }}{{ screen[1] | trim_end | safe }}</pre>
+{%- if narrow %}{% set small = load_data(path="data/term/" ~ id ~ ".narrow.html", format="plain") | split(pat=" -->\n") %}
+<pre class="term-screen term-narrow" tabindex="0" role="region" aria-label="Terminal: {{ m.cmd }}">{{ head | safe }}{{ small[1] | trim_end | safe }}</pre>
+{%- endif %}</div>
 </div><figcaption>{% if n %}<span class="fig-no">FIG. {{ n }}</span>{% endif %}<span>{{ caption }} <span class="term-meta">· {{ m.version }} · {{ m.source }} · recorded {{ m.recorded | date(format="%-d %b %Y") }}</span></span></figcaption></figure>
 {%- endcomponent vh.term %}
 

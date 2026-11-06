@@ -3,14 +3,15 @@
 #
 # - `cmd`: the command as typed and shown; `cwd`: where it runs (under this repo, or ~/... for another checkout);
 #   `repo`: the checkout it runs in, named on the page with its commit.
-# - `cols`: the terminal's width; a program that ends by itself is kept whole, however long.
+# - `wide`: the terminal's width on a desktop, wide enough that no line wraps (the tool stops when one fills it); every
+#   capture is also recorded at 44 columns for a phone. A program that ends by itself is kept whole, however long.
 # - `version`: the command whose first line names the version (default: the program with --version); `source`: what
 #   it ran on, when that is not the checkout `cwd` is in.
 # - `show`: a file the run read, shown above the output with the line the output points at marked.
 # - `remap`: [from, to] pairs for rustc's --remap-path-prefix, so paths read as on any machine; `target`: the cargo
 #   target dir under this repo.
 # - `cast = true`: recorded on a bench with its hardware (asciicast v2, `--cast ID=FILE`), replayed to second `at`;
-#   `version` and `source` are then the recording's notes.
+#   `version` and `source` are then the recording's notes, and it has the one width it was recorded at.
 
 [[capture]]
 id = "cnt-tui"
@@ -25,7 +26,7 @@ id = "ww-api-tree"
 cmd = ["ww", "api", "tree", "-d", "examples/all_gpio_api"]
 cwd = "~/git/wire_weaver"
 repo = "wire_weaver"
-cols = 160
+wide = 160
 
 [[capture]]
 id = "bedrock-lint"
@@ -33,7 +34,7 @@ cmd = ["bedrock-lint", "check"]
 cwd = "~/git/cnt/fixtures/counters_fw"
 repo = "cnt"
 source = "the cnt test firmware (cnt/fixtures/counters_fw)"
-cols = 200
+wide = 240
 
 [[capture]]
 id = "exact-units-error"
@@ -42,7 +43,7 @@ cwd = "tools/term/units_demo"
 show = "src/main.rs"
 repo = "vhrd_site"
 source = "tools/term/units_demo against exact_units at 90d25ff"
-cols = 200
+wide = 300
 version = ["rustc", "--version"]
 remap = [["~/.cargo", "~/.cargo"], ["{sysroot}/lib/rustlib/src/rust", "/rustc/{commit}"]]
 target = "target/term"
@@ -53,4 +54,4 @@ steps = [["ww", "api", "check", "compatible"], ["ww", "api", "check", "breaking"
 cwd = "tools/term/ww_evolution"
 repo = "vhrd_site"
 source = "wire_weaver's blinky_api example, saved at 0.1.0: a trailing #[default] argument bumped to 0.2.0, a required one left at 0.1.1 (tools/term/ww_evolution)"
-cols = 44
+wide = 220

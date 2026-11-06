@@ -7,7 +7,7 @@ emulator (pyte) keeps the screen with its colours, and the screen is written as 
 
 Usage: uv run tools/term_capture.py [ID ...] [--bin NAME=PATH ...] [--cast ID=FILE ...]
 
-The captures are listed in data/term/captures.toml: the command as typed, where it runs, the terminal's size, and for
+The captures are listed in data/term/captures.toml: the command as typed, where it runs, the terminal's width, and for
 a full-screen program (a TUI) how long to wait before the screen is taken and the keys that end it. `steps` instead of
 `cmd` runs several commands one after the other on one screen, each on its own prompt line. `show` names a file under
 `cwd` the run read (the source a compiler failed on): it is kept as it was in data/term/ID.src, with the line the
@@ -19,9 +19,14 @@ A capture with `cast = true` is not run here: it was recorded on a bench with it
 file given with `--cast`), and the same emulator replays it to the second `at`; its version and source are written in
 captures.toml, as the recording's notes give them.
 
-For each capture it writes data/term/ID.html, the screen as <span>s in classes (data/term/README.md), and
-data/term/ID.toml: the command, the program's version (its `--version` line), the commit of the checkout it ran in,
-the size and the date. The `vh.term` component shows them on a page; nothing runs when the site is built.
+Each command runs twice: at its natural width (`wide`, wide enough that the terminal wraps no line, else it stops
+and says so) for a desktop, and at NARROW columns for a phone, where the terminal wraps the long lines as a phone's
+would. A bench recording has the one width it was recorded at.
+
+For each capture it writes data/term/ID.html, the wide screen as <span>s in classes (data/term/README.md),
+data/term/ID.narrow.html, the narrow one, and data/term/ID.toml: the command, the program's version (its `--version`
+line), the commit of the checkout it ran in, the sizes and the date. The `vh.term` component shows them on a page and
+picks the one that fits with a container query; nothing runs when the site is built.
 
 Nothing private may reach a capture: it refuses to write one that holds a home path, this PC's host or user name, a
 machine name of ours or a tpm id, and says where.
@@ -52,6 +57,7 @@ import pyte
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "data/term"
+NARROW = 44  # a phone's terminal: what fits a 390px screen in the capture's face, like the code samples
 NAMED = {"black", "red", "green", "brown", "blue", "magenta", "cyan", "white"}
 PRIVATE = [
     (re.compile(r"/home/|/Users/|/root\b"), "a home path"),
@@ -198,7 +204,7 @@ def capture(c, bins, casts):
         raw, cols, rows = replay(casts[c["id"]], c["at"])
         return write(c, raw, cols, rows, c["version"], c["source"], tui=True)
     cwd = (ROOT / os.path.expanduser(c["cwd"])).resolve()
-    env = dict(os.environ, TERM="xterm-256color", COLORTERM="truecolor", CLICOLOR_FORCE="1", COLUMNS=str(c["cols"]),
+    env = dict(os.environ, TERM="xterm-256color", COLORTERM="truecolor", CLICOLOR_FORCE="1",
                LINES=str(c.get("rows", 400)), **c.get("env", {}))
     env.pop("NO_COLOR", None)
     if c.get("remap"):
@@ -211,54 +217,80 @@ def capture(c, bins, casts):
         env["CARGO_TARGET_DIR"] = str(ROOT / c["target"])
     steps = c.get("steps") or [c["cmd"]]
     rows = c.get("rows", 400)
-    raw = b""
-    for i, step in enumerate(steps):
-        exe = bins.get(step[0]) or shutil.which(step[0], path=env["PATH"] + ":" + os.path.expanduser("~/.local/bin"))
-        if not exe:
-            sys.exit(f"{c['id']}: {step[0]} not found (--bin {step[0]}=PATH)")
-        if len(steps) > 1:  # each step on its own prompt line, as typed, a blank line before the next
-            raw += (b"\r\n" if i else b"") + f"\x1b[32m$ \x1b[0m{' '.join(step)}\r\n".encode()
-        raw += run([exe] + step[1:], cwd, env, c["cols"], rows, c.get("wait", 0), c.get("keys", "q"))
+    raws = []
+    for cols in (c["wide"], NARROW):
+        env.update(COLUMNS=str(cols))
+        raw = b""
+        for i, step in enumerate(steps):
+            exe = bins.get(step[0]) or shutil.which(step[0], path=env["PATH"] + ":" + os.path.expanduser("~/.local/bin"))
+            if not exe:
+                sys.exit(f"{c['id']}: {step[0]} not found (--bin {step[0]}=PATH)")
+            if len(steps) > 1:  # each step on its own prompt line, as typed, a blank line before the next
+                raw += (b"\r\n" if i else b"") + f"\x1b[32m$ \x1b[0m{' '.join(step)}\r\n".encode()
+            raw += run([exe] + step[1:], cwd, env, cols, rows, c.get("wait", 0), c.get("keys", "q"))
+        raws.append(raw)
     exe = bins.get(steps[0][0]) or shutil.which(steps[0][0], path=env["PATH"] + ":" + os.path.expanduser("~/.local/bin"))
     version = first_line(c.get("version", [exe, "--version"]), cwd, env)
     commit = subprocess.run(["git", "-C", str(cwd), "describe", "--always", "--dirty", "--abbrev=8"],
                             capture_output=True, text=True).stdout.strip()
     source = c.get("source") or (f"{c['repo']} at {commit}" if commit else c["repo"])
     shown = (cwd / c["show"]).read_text() if c.get("show") else None
-    return write(c, raw, c["cols"], rows, version, source, tui=bool(c.get("wait")), shown=shown)
+    return write(c, raws[0], c["wide"], rows, version, source, tui=bool(c.get("wait")), shown=shown,
+                 narrow=raws[1])
 
 
-def write(c, raw, cols, rows, version, source, tui, shown=None):
-    """Feed the bytes to a terminal of cols x rows, check the screen for anything private and write it."""
+def screen_lines(raw, cols, rows):
     screen = Screen(cols, rows)
     pyte.ByteStream(screen).feed(raw)
-    lines = render(screen, rows)
+    return render(screen, rows)
+
+
+def plain_text(lines):
+    return html.unescape(re.sub(r"<[^>]+>", "", "\n".join(lines)))
+
+
+def write(c, raw, cols, rows, version, source, tui, shown=None, narrow=None):
+    """Feed the bytes to a terminal of cols x rows (and the narrow run's to one of NARROW columns), check the screen
+    for anything private and write it. The wide screen must hold every line whole: a line that fills it was
+    wrapped by the terminal."""
+    lines = screen_lines(raw, cols, rows)
+    plain = plain_text(lines)
+    longest = max(map(len, plain.splitlines()), default=0)
+    if narrow is not None and longest >= cols:
+        sys.exit(f"{c['id']}: a line fills all {cols} columns, so the terminal wrapped it: raise `wide`")
+    narrow_lines = screen_lines(narrow, NARROW, rows) if narrow is not None else None
     meta = {
         "id": c["id"],
         "cmd": "; ".join(" ".join(step) for step in c.get("steps") or [c["cmd"]]),
         "version": version,
         "source": source,
         "size": f"{cols}×{rows if tui else len(lines)}",
+        "cols": str(longest),
         "recorded": datetime.date.today().isoformat(),
     }
+    if narrow_lines is not None:
+        meta["narrow_size"] = f"{NARROW}×{len(narrow_lines)}"
     page = "\n".join(lines)
-    plain = html.unescape(re.sub(r"<[^>]+>", "", page))
     if shown is not None:
         at = re.search(r"-->\s+" + re.escape(c["show"]) + r":(\d+)", plain)
         if not at:
             sys.exit(f"{c['id']}: the output points at no line of {c['show']}")
         meta.update(file=c["show"], lang={".rs": "rust", ".toml": "toml"}.get(Path(c["show"]).suffix, "text"),
                     mark=at.group(1))
-    text = plain + "\n" + (shown or "") + "\n" + "\n".join(meta.values())
+    text = "\n".join([plain, plain_text(narrow_lines or []), shown or "", *meta.values()])
     if bad := private(text):
         sys.exit(f"{c['id']}: not written, it holds {', '.join(sorted(set(bad)))}")
     head = (f"<!-- tools/term_capture.py {c['id']}: `{meta['cmd']}`, {meta['version']}, {meta['source']}, "
             f"{meta['size']}, recorded {meta['recorded']}. Recorded, not edited: run it again to change it. -->\n")
     (OUT / f"{c['id']}.html").write_text(head + page + "\n")
+    if narrow_lines is not None:
+        (OUT / f"{c['id']}.narrow.html").write_text(head.replace(meta["size"], meta["narrow_size"])
+                                                    + "\n".join(narrow_lines) + "\n")
     if shown is not None:
         (OUT / f"{c['id']}.src").write_text(shown)
     (OUT / f"{c['id']}.toml").write_text("".join(f'{k} = "{v}"\n' for k, v in meta.items()))
-    print(f"{c['id']}: {len(lines)} lines, {meta['version']}")
+    print(f"{c['id']}: {len(lines)} lines, the longest {longest} of {cols} columns"
+          + (f", {len(narrow_lines)} lines at {NARROW}" if narrow_lines else "") + f", {meta['version']}")
 
 
 def main():

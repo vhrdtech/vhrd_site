@@ -72,9 +72,12 @@ Images go under `static/img/boards/` (board renders) and `static/img/lab/` (lab 
 
 /software shows real runs of the command-line tools (cnt, ww's API tree and evolution check, bedrock-lint, an exact_units compile error) as text with their colours, not as pictures and not mocked up. `just captures` (`tools/term_capture.py`, run with uv) records them:
 
-- `data/term/captures.toml` lists each one: the command as typed, the checkout it runs in, the terminal's width.
-- The command runs once in a pseudo-terminal, and a terminal emulator (pyte) keeps its screen. The screen is written to `data/term/ID.html` as spans; the command, the version (its `--version`), the commit it ran on and the date go to `data/term/ID.toml`.
+- `data/term/captures.toml` lists each one: the command as typed, the checkout it runs in, its natural width (`wide`).
+- Each command runs twice: at `wide`, where no line may wrap (the tool stops when a line fills it), into `ID.html`, and at 44 columns for a phone into `ID.narrow.html`. A bench recording keeps its one width.
+- Each run is in a pseudo-terminal, and a terminal emulator (pyte) keeps its screen, written as spans; the command, the version (its `--version`), the commit it ran on and the date go to `data/term/ID.toml`.
 - `vh.term` shows a capture as a figure: the command on a prompt line, the screen, and a caption with the version, the source and the date. Nothing runs when the site is built, and the page needs no script.
+- The figure takes the column's whole width, wider than the prose, which keeps its measure. A container query on the figure shows the wide screen from 40rem (or where it fits whole at the smallest face) and the narrow one below that.
+- The face shrinks from 0.75rem to fit the longest line, down to 0.6875rem wide and 0.625rem narrow. Past that the box scrolls sideways, with a glow at the edge that has more beyond it and a visible scrollbar. Nothing is ever clipped, and the box opens at the start of its lines. The browser check holds every figure to this at 390, 768, 1440, 1920 and 2560 px.
 - A full-screen program that needs hardware (`cnt tui` on a board through a probe) is recorded on the bench with asciinema; `--cast ID=FILE` replays the recording to the second given in captures.toml through the same emulator.
 - Nothing private: the tool refuses to write a capture with a home path, this PC's host or user name, a machine name or a tpm id. Paths from rustc go through its own `--remap-path-prefix` (`remap` in captures.toml), so they read as on any machine.
 - The 16 terminal colours come from the brand's status and category tokens (`.term` in `term.css`, inlined on /software only); a colour the program picks itself (256 or true colour) is kept inline as it wrote it. The panel is dark in both themes, like the terminal it came from.

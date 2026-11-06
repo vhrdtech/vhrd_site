@@ -1,11 +1,9 @@
-<!-- tools/term_capture.py exact-units-error: `cargo build -q`, rustc 1.99.1 (58cf8f9c3 2026-10-13), tools/term/units_demo against exact_units at 1819d9f, 200×38, recorded 2026-11-06. Recorded, not edited: run it again to change it. -->
-<span class="f-brightred t-b">error[E0080]</span><span class="t-b">: evaluation panicked: a Fixed converts only between units of the same dimension: Torque (N·m) is kg·m²·s⁻²·rad⁻¹, not Joule (J) which is kg·m²·s⁻²; they differ by rad⁻¹ — cross it with a</span>
-<span class="t-b">named step: Torque × Radian is Joule</span>
+<!-- tools/term_capture.py exact-units-error: `cargo build -q`, rustc 1.99.1 (58cf8f9c3 2026-10-13), tools/term/units_demo against exact_units at 90d25ff, 300×36, recorded 2026-11-06. Recorded, not edited: run it again to change it. -->
+<span class="f-brightred t-b">error[E0080]</span><span class="t-b">: evaluation panicked: a Fixed converts only between units of the same dimension: Torque (N·m) is kg·m²·s⁻²·rad⁻¹, not Joule (J) which is kg·m²·s⁻²; they differ by rad⁻¹ — cross it with a named step: Torque × Radian is Joule</span>
    <span class="f-brightblue t-b">--&gt; </span>~/.cargo/git/checkouts/exact_units-0e04409aaab251a0/90d25ff/src/fixed.rs:445:25
     <span class="f-brightblue t-b">|</span>
 <span class="f-brightblue t-b">445</span> <span class="f-brightblue t-b">|</span>         let c = const { Conversion::between::&lt;U, P, U2, P2, T, T2&gt;(false) };
-    <span class="f-brightblue t-b">|</span>                         <span class="f-brightred t-b">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</span> <span class="f-brightred t-b">evaluation of `exact_units::Fixed::&lt;exact_units::units::Torque, exact_units::prefix::One, i32&gt;::convert::&lt;exact_units::u</span>
-<span class="f-brightred t-b">nits::Joule, exact_units::prefix::One, i32&gt;::{constant#0}` failed inside this call</span>
+    <span class="f-brightblue t-b">|</span>                         <span class="f-brightred t-b">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</span> <span class="f-brightred t-b">evaluation of `exact_units::Fixed::&lt;exact_units::units::Torque, exact_units::prefix::One, i32&gt;::convert::&lt;exact_units::units::Joule, exact_units::prefix::One, i32&gt;::{constant#0}` failed inside this call</span>
     <span class="f-brightblue t-b">|</span>
 <span class="f-brightgreen t-b">note</span>: inside `exact_units::fixed::Conversion::between::&lt;Torque, One, Joule, One, i32, i32&gt;`
    <span class="f-brightblue t-b">--&gt; </span>~/.cargo/git/checkouts/exact_units-0e04409aaab251a0/90d25ff/src/fixed.rs:907:13

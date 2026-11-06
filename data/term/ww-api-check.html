@@ -1,37 +1,13 @@
-<!-- tools/term_capture.py ww-api-check: `ww api check compatible; ww api check breaking`, ww 0.5.0 (46d60964, committed 5 Nov 2026 14:11), wire_weaver's blinky_api example, saved at 0.1.0: a trailing #[default] argument bumped to 0.2.0, a required one left at 0.1.1 (tools/term/ww_evolution), 44×36, recorded 2026-11-06. Recorded, not edited: run it again to change it. -->
+<!-- tools/term_capture.py ww-api-check: `ww api check compatible; ww api check breaking`, ww 0.5.0 (46d60964, committed 5 Nov 2026 14:11), wire_weaver's blinky_api example, saved at 0.1.0: a trailing #[default] argument bumped to 0.2.0, a required one left at 0.1.1 (tools/term/ww_evolution), 220×12, recorded 2026-11-06. Recorded, not edited: run it again to change it. -->
 <span class="f-green">$ </span>ww api check compatible
-blinky_api 0.1.0 (compatible/api_snapshots/b
-linky_api_0_1_0.ron) -&gt; 0.2.0 (source): <span class="f-red">brea</span>
-<span class="f-red">king changes</span>
-  <span class="f-red">breaking (Rust only, the wire is compatibl</span>
-<span class="f-red">e):</span> BlinkyApi::led_on: takes 0 argument(s) o
-n the old version, 1 on the new version: the
- same bytes on the wire, but other parameter
-s for handlers and client calls
-      <span class="t-d">rule:</span> <span class="t-d">arguments added at the end with</span>
-<span class="t-d">a default, or promoted to a #[flatten] struc</span>
-<span class="t-d">t, keep the wire, but change the Rust signat</span>
-<span class="t-d">ures of handlers and client calls (docs/evol</span>
-<span class="t-d">ution/rules.md#arguments)</span>
+blinky_api 0.1.0 (compatible/api_snapshots/blinky_api_0_1_0.ron) -&gt; 0.2.0 (source): <span class="f-red">breaking changes</span>
+  <span class="f-red">breaking (Rust only, the wire is compatible):</span> BlinkyApi::led_on: takes 0 argument(s) on the old version, 1 on the new version: the same bytes on the wire, but other parameters for handlers and client calls
+      <span class="t-d">rule:</span> <span class="t-d">arguments added at the end with a default, or promoted to a #[flatten] struct, keep the wire, but change the Rust signatures of handlers and client calls (docs/evolution/rules.md#arguments)</span>
 <span class="f-green">version is bumped enough</span>
 <span></span>
 <span class="f-green">$ </span>ww api check breaking
-blinky_api 0.1.0 (breaking/api_snapshots/bli
-nky_api_0_1_0.ron) -&gt; 0.1.1 (source): <span class="f-red">breaki</span>
-<span class="f-red">ng changes</span>
-  <span class="f-red">breaking:</span> BlinkyApi::led_on: argument `bri
-ghtness` is not sent by the old version and
-has no #[default]
-      <span class="t-d">rule:</span> <span class="t-d">a resource works between the old</span>
-<span class="t-d"> and the new version, both ways (old client</span>
-<span class="t-d">with a new device, new client with an old de</span>
-<span class="t-d">vice) (docs/evolution/rules.md#api)</span>
-Error: blinky_api 0.1.0 -&gt; 0.1.1 has breakin
-g changes, which requires a bump of the brea
-king position (minor before 1.0, major after
-): 0.2.0 or later.
-Bump `version` in breaking/Cargo.toml to 0.2
-.0 or later (docs/evolution/rules.md#your-ap
-is-version); once that version is released,
-record it with `ww api save breaking` and co
-mmit api_snapshots/.
+blinky_api 0.1.0 (breaking/api_snapshots/blinky_api_0_1_0.ron) -&gt; 0.1.1 (source): <span class="f-red">breaking changes</span>
+  <span class="f-red">breaking:</span> BlinkyApi::led_on: argument `brightness` is not sent by the old version and has no #[default]
+      <span class="t-d">rule:</span> <span class="t-d">a resource works between the old and the new version, both ways (old client with a new device, new client with an old device) (docs/evolution/rules.md#api)</span>
+Error: blinky_api 0.1.0 -&gt; 0.1.1 has breaking changes, which requires a bump of the breaking position (minor before 1.0, major after): 0.2.0 or later.
+Bump `version` in breaking/Cargo.toml to 0.2.0 or later (docs/evolution/rules.md#your-apis-version); once that version is released, record it with `ww api save breaking` and commit api_snapshots/.

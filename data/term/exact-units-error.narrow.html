@@ -1,0 +1,70 @@
+<!-- tools/term_capture.py exact-units-error: `cargo build -q`, rustc 1.99.1 (58cf8f9c3 2026-10-13), tools/term/units_demo against exact_units at 90d25ff, 44×69, recorded 2026-11-06. Recorded, not edited: run it again to change it. -->
+<span class="f-brightred t-b">error[E0080]</span><span class="t-b">: evaluation panicked: a Fixed c</span>
+<span class="t-b">onverts only between units of the same dimen</span>
+<span class="t-b">sion: Torque (N·m) is kg·m²·s⁻²·rad⁻¹, not J</span>
+<span class="t-b">oule (J) which is kg·m²·s⁻²; they differ by</span>
+<span class="t-b">rad⁻¹ — cross it with a named step: Torque ×</span>
+<span class="t-b"> Radian is Joule</span>
+   <span class="f-brightblue t-b">--&gt; </span>~/.cargo/git/checkouts/exact_units-0e
+04409aaab251a0/90d25ff/src/fixed.rs:445:25
+    <span class="f-brightblue t-b">|</span>
+<span class="f-brightblue t-b">445</span> <span class="f-brightblue t-b">|</span> <span class="f-brightblue t-b">...</span> { Conversion::between::&lt;U, P, U2,
+P2, T, T2&gt;(false) };
+    <span class="f-brightblue t-b">|</span>       <span class="f-brightred t-b">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</span>
+<span class="f-brightred t-b">^^^^^^^^^^^^^^^^^</span> <span class="f-brightred t-b">evaluation of `exact_units</span>
+<span class="f-brightred t-b">::Fixed::&lt;exact_units::units::Torque, exact_</span>
+<span class="f-brightred t-b">units::prefix::One, i32&gt;::convert::&lt;exact_un</span>
+<span class="f-brightred t-b">its::units::Joule, exact_units::prefix::One,</span>
+<span class="f-brightred t-b"> i32&gt;::{constant#0}` failed inside this call</span>
+    <span class="f-brightblue t-b">|</span>
+<span class="f-brightgreen t-b">note</span>: inside `exact_units::fixed::Conversion
+::between::&lt;Torque, One, Joule, One, i32, i3
+2&gt;`
+   <span class="f-brightblue t-b">--&gt; </span>~/.cargo/git/checkouts/exact_units-0e
+04409aaab251a0/90d25ff/src/fixed.rs:907:13
+    <span class="f-brightblue t-b">|</span>
+<span class="f-brightblue t-b">907</span> <span class="f-brightblue t-b">|</span> <span class="f-brightblue t-b">...</span>   crate::conv_error::dim_mismatch:
+:&lt;U, U2&gt;("a Fixed");
+    <span class="f-brightblue t-b">|</span>       <span class="f-brightgreen t-b">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</span>
+<span class="f-brightgreen t-b">^^^^^^^^^^^^^^^^^^^</span>
+<span class="f-brightgreen t-b">note</span>: inside `exact_units::conv_error::dim_m
+ismatch::&lt;Torque, Joule&gt;`
+   <span class="f-brightblue t-b">--&gt; </span>/rustc/58cf8f9c35b355199727627d07ae34
+a4e2846d67/library/core/src/panic.rs:57:9
+    <span class="f-brightblue t-b">|</span>
+<span class="f-brightblue t-b"> 57</span> <span class="f-brightblue t-b">|</span> <span class="f-brightblue t-b">...</span>   $crate::panicking::panic_display
+(&amp;$arg);
+    <span class="f-brightblue t-b">|</span>       <span class="f-brightgreen t-b">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</span>
+<span class="f-brightgreen t-b">^^^^^^^</span> <span class="f-brightgreen t-b">the failure occurred here</span>
+    <span class="f-brightblue t-b">|</span>
+   <span class="f-brightblue t-b">::: </span>~/.cargo/git/checkouts/exact_units-0e
+04409aaab251a0/90d25ff/src/conv_error.rs:388
+:5
+    <span class="f-brightblue t-b">|</span>
+<span class="f-brightblue t-b">388</span> <span class="f-brightblue t-b">|</span>     panic!("{}", msg.as_str())
+    <span class="f-brightblue t-b">|</span>     <span class="f-brightblue t-b">--------------------------</span> <span class="f-brightblue t-b">in this</span>
+<span class="f-brightblue t-b"> macro invocation</span>
+<span></span>
+<span class="f-brightgreen t-b">note</span><span class="t-b">: erroneous constant encountered</span>
+   <span class="f-brightblue t-b">--&gt; </span>~/.cargo/git/checkouts/exact_units-0e
+04409aaab251a0/90d25ff/src/fixed.rs:445:17
+    <span class="f-brightblue t-b">|</span>
+<span class="f-brightblue t-b">445</span> <span class="f-brightblue t-b">|</span> <span class="f-brightblue t-b">...</span> = const { Conversion::between::&lt;U,
+ P, U2, P2, T, T2&gt;(false) };
+    <span class="f-brightblue t-b">|</span>       <span class="f-brightgreen t-b">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</span>
+<span class="f-brightgreen t-b">^^^^^^^^^^^^^^^^^^^^^^^^^^^</span>
+<span></span>
+<span class="f-brightgreen t-b">note</span><span class="t-b">: the above error was encountered while</span>
+<span class="t-b">instantiating `fn Fixed::&lt;Torque, One, i32&gt;:</span>
+<span class="t-b">:convert::&lt;Joule, One, i32&gt;`</span>
+ <span class="f-brightblue t-b">--&gt; </span>src/main.rs:5:13
+  <span class="f-brightblue t-b">|</span>
+<span class="f-brightblue t-b">5</span> <span class="f-brightblue t-b">|</span> <span class="f-brightblue t-b">...</span> = Fixed::&lt;Torque, One, i32&gt;::new(5).
+convert::&lt;Joule, One, i32&gt;();
+  <span class="f-brightblue t-b">|</span>       <span class="f-brightgreen t-b">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</span>
+<span class="f-brightgreen t-b">^^^^^^^^^^^^^^^^^^^^^^^^^^^^</span>
+<span></span>
+<span class="t-b">For more information about this error, try `</span>
+<span class="t-b">rustc --explain E0080`.</span>
+<span class="f-brightred t-b">error</span>: could not compile `units_demo` (bin "
+units_demo") due to 1 previous error
