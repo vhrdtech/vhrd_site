@@ -36,8 +36,9 @@ SAFE_W, SAFE_H = 580, 480
 BUDGET_KB = 400
 
 RED = (242, 76, 68, 255)  # vhrd_brand dark.red (#f24c44): reads on a white card and on a dark one alike
-GLOW = (255, 255, 255, 60)  # a soft halo behind the board, so a dark board's edge doesn't vanish on a dark card
-MARK_LEN, MARK_W = 28, 3  # the corner marks' leg length and thickness, like .fig-frame's but sized for this canvas
+GLOW = (255, 255, 255, 16)  # a faint halo behind the board, just enough that a dark board's edge doesn't vanish
+# on a dark card; weak and tight enough that it doesn't read as a grey cloud on a white one (Roman, 6 Nov 2026)
+MARK_LEN, MARK_W = 28, 5  # the corner marks' leg length and thickness, like .fig-frame's but sized for this canvas
 FRAME_PAD = 20  # the corner-marked frame sits this far inside the square crop's left/right edges (and top/bottom)
 
 # name (static/img/og/<name>.png), the board's render directory, its view, and the image's alt text.
@@ -99,21 +100,22 @@ def compose(board_dir, view):
 
     canvas = Image.new("RGBA", (W, H), (0, 0, 0, 0))
 
-    # A soft halo behind the board: on a white or light card it blends away, on a dark one it keeps a dark
-    # board's edge from vanishing into the background.
-    pad = 60
+    # A faint halo behind the board: on a white or light card it stays close to invisible, on a dark one it
+    # keeps a dark board's edge from vanishing into the background. Tight (a small pad, a short blur) so it
+    # hugs the board's edge rather than reading as a grey cloud around it.
+    pad = 18
     glow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     ImageDraw.Draw(glow).ellipse(
         [x - pad, y - pad, x + board.width + pad, y + board.height + pad], fill=GLOW
     )
-    glow = glow.filter(ImageFilter.GaussianBlur(40))
+    glow = glow.filter(ImageFilter.GaussianBlur(16))
     canvas.alpha_composite(glow)
 
     canvas.alpha_composite(board, (x, y))
     draw_corner_marks(canvas)
 
     fx0, fy0, fx1, fy1 = frame_box()
-    wm_h = 15
+    wm_h = 20
     wm = wordmark_png(round(wm_h * 13424 / 1434), wm_h)
     wm_x, wm_y = fx1 - MARK_LEN - 10 - wm.width, fy1 - MARK_LEN - 10 - wm.height
     canvas.alpha_composite(wm, (wm_x, wm_y))

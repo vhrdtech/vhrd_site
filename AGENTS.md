@@ -206,8 +206,8 @@ whatever render they pick out of the page themselves. There is no byline per pag
   - The board is scaled to fit well inside the middle 580×480 of the canvas, with margin either side of the
     627×627 square crop LinkedIn and messengers make from a 1.91:1 card, so the whole board stays in view there
     too; the script refuses to write a file where it wouldn't.
-  - A soft white halo (blurred, low opacity) sits behind the board: it blends away on a white or light card, and
-    keeps a dark board's edge from vanishing into a black one.
+  - A faint white halo (blurred, low opacity, tight to the board) sits behind it: close to invisible on a white
+    or light card, and just enough to keep a dark board's edge from vanishing into a black one.
   - Four red corner marks (brand red, like `.fig-frame`'s datasheet corners) and a small red VHRD.TECH wordmark
     (bottom right, from `static/img/wordmark.svg`, recoloured to the one red so it reads on white and on black
     alike) frame the board. The frame sits inside the square crop's edges too, so it survives a square-crop
