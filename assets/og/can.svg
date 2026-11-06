@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The CAN line · USB and Ethernet to isolated CAN FD share image. Edit freely in Inkscape or by hand: save as plain SVG, then `just og` renders it.
+     Classes (.bg .ink .red .muted .headline-shadow) are coloured by assets/og/light.css (the JPEG look, also
+     this file's own default below) and assets/og/dark.css (the transparent X look); see AGENTS.md, "Link
+     previews". Don't add fill="..." on those elements directly: it would fight the stylesheet. -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1200" height="627" viewBox="0 0 1200 627">
+  <title>The CAN line · USB and Ethernet to isolated CAN FD</title>
+  <style>
+    .bg { fill: #ffffff; }
+    .ink { fill: #1a1a1a; }
+    .red { fill: #c8141c; }
+    .muted { fill: #6e6e6e; }
+    .headline-shadow { filter: none; }
+    text { font-family: "Audiowide"; font-size: 56px; }
+  </style>
+  <defs>
+    <filter id="headline-shadow" x="-10%" y="-40%" width="120%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
+      <feOffset in="blur" dx="0" dy="3" result="offsetBlur"/>
+      <feFlood flood-color="#08080a" flood-opacity="0.65" result="shadowColor"/>
+      <feComposite in="shadowColor" in2="offsetBlur" operator="in" result="shadow"/>
+      <feMerge>
+        <feMergeNode in="shadow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="halo-blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1200" height="627"/>
+
+  <!-- corner marks: four flush Ls, 28px legs, 5px thick, inset 32px from the card's own edges -->
+  <g id="corners" class="red">
+    <rect x="32" y="32" width="28" height="5"/>
+    <rect x="32" y="32" width="5" height="28"/>
+    <rect x="1140" y="32" width="28" height="5"/>
+    <rect x="1163" y="32" width="5" height="28"/>
+    <rect x="32" y="590" width="28" height="5"/>
+    <rect x="32" y="567" width="5" height="28"/>
+    <rect x="1140" y="590" width="28" height="5"/>
+    <rect x="1163" y="567" width="5" height="28"/>
+  </g>
+
+  <!-- headline: Audiowide, flush left with the corners above, the product name (if any) in red -->
+  <g id="headline" class="headline-shadow">
+    <text x="32" y="100"><tspan class="red">The CAN line</tspan><tspan class="ink"> · USB and Ethernet to</tspan></text>
+    <text x="32" y="170"><tspan class="ink">isolated CAN FD</tspan></text>
+  </g>
+
+  <!-- the halo, then the board picture, by relative href to its render (never shipped itself) -->
+  <ellipse id="board-halo" cx="600" cy="385" rx="260" ry="210" fill="#ffffff" opacity="0.05"
+           filter="url(#halo-blur)"/>
+  <image id="board" x="390" y="210" width="420" height="350"
+         preserveAspectRatio="xMidYMid meet" xlink:href="../../static/img/boards/b125-eth-2fdcan/b125_hero.png"/>
+
+  <!-- wordmark: the outline paths from static/img/wordmark.svg (never the Audiowide font itself), scaled to
+       a 33px cap height, flush right with the corners above -->
+  <g id="wordmark" transform="translate(859.07,532) scale(0.023013)">
+    <path class="red" d="M1586 0 907 1383Q891 1415 859.5 1434.5Q828 1454 790 1454Q753 1454 721.5 1434.5Q690 1415 673 1383L-5 0H286L790 1033L1296 0ZM1995 586H2908V0H3168V1434H2908V848H1995V1434H1735V0H1995ZM4905 482Q4905 571 4883.0 641.0Q4861 711 4823.5 764.5Q4786 818 4737.0 856.0Q4688 894 4634.5 918.5Q4581 943 4526.5 954.0Q4472 965 4424 965L4967 1434H4565L4023 965H3836V705H4424Q4473 701 4513.5 684.5Q4554 668 4583.5 640.0Q4613 612 4629.0 572.5Q4645 533 4645 482V318Q4645 296 4639.5 284.5Q4634 273 4625.5 267.5Q4617 262 4607.5 261.0Q4598 260 4590 260H3732V1434H3472V131Q3472 104 3482.0 80.0Q3492 56 3509.5 38.0Q3527 20 3551.0 10.0Q3575 0 3603 0H4590Q4677 0 4737.0 31.5Q4797 63 4834.5 110.5Q4872 158 4888.5 213.0Q4905 268 4905 316ZM6597 834Q6597 965 6551.5 1075.0Q6506 1185 6426.0 1264.5Q6346 1344 6236.0 1389.0Q6126 1434 5997 1434H5295Q5267 1434 5243.0 1424.0Q5219 1414 5201.5 1396.5Q5184 1379 5174.0 1355.0Q5164 1331 5164 1303V131Q5164 104 5174.0 80.0Q5184 56 5201.5 38.0Q5219 20 5243.0 10.0Q5267 0 5295 0H5997Q6126 0 6236.0 45.0Q6346 90 6426.0 169.5Q6506 249 6551.5 359.5Q6597 470 6597 600ZM6337 600Q6337 524 6312.5 461.0Q6288 398 6243.0 353.5Q6198 309 6135.5 284.5Q6073 260 5997 260H5424V1174H5997Q6073 1174 6135.5 1149.5Q6198 1125 6243.0 1080.5Q6288 1036 6312.5 973.5Q6337 911 6337 834Z"/>
+    <path class="muted" d="M7040 1303Q7040 1330 7029.5 1353.5Q7019 1377 7001.5 1394.5Q6984 1412 6960.5 1422.0Q6937 1432 6911 1432Q6884 1432 6860.5 1422.0Q6837 1412 6819.5 1394.5Q6802 1377 6792.0 1353.5Q6782 1330 6782 1303Q6782 1277 6792.0 1253.5Q6802 1230 6819.5 1212.5Q6837 1195 6860.5 1184.5Q6884 1174 6911 1174Q6937 1174 6960.5 1184.5Q6984 1195 7001.5 1212.5Q7019 1230 7029.5 1253.5Q7040 1277 7040 1303Z"/>
+    <path class="red" d="M8568 260H7995V1434H7735V260H7161V0H8568ZM9938 848H9117V586H9938ZM10055 1434H9117Q9063 1434 8999.0 1415.0Q8935 1396 8880.5 1352.5Q8826 1309 8789.5 1239.5Q8753 1170 8753 1069V131Q8753 104 8763.0 80.0Q8773 56 8790.5 38.0Q8808 20 8832.0 10.0Q8856 0 8884 0H10055V260H9013V1069Q9013 1120 9040.0 1147.0Q9067 1174 9119 1174H10055ZM11590 1434H10652Q10616 1434 10574.5 1425.5Q10533 1417 10492.5 1399.0Q10452 1381 10415.0 1352.5Q10378 1324 10349.5 1283.5Q10321 1243 10304.0 1189.5Q10287 1136 10287 1069V365Q10287 329 10295.5 287.5Q10304 246 10322.0 205.5Q10340 165 10369.0 128.0Q10398 91 10438.5 62.5Q10479 34 10532.0 17.0Q10585 0 10652 0H11590V260H10652Q10601 260 10574.0 287.0Q10547 314 10547 367V1069Q10547 1119 10574.5 1146.5Q10602 1174 10652 1174H11590ZM12098 586H13011V0H13271V1434H13011V848H12098V1434H11838V0H12098Z"/>
+  </g>
+</svg>

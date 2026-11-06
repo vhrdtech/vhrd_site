@@ -3,6 +3,10 @@
 # for a share link.
 
 zola_version := "0.23.6"
+# resvg rasterises the share-image SVGs under assets/og/ (AGENTS.md "Link previews"); its release tarball has
+# no further directory, just the one binary.
+resvg_version := "0.49.0"
+resvg_sha256 := "216637e75e909e53e3098b0875cd5f7da2fdc8b4359771b4a29b539afff9d3f5"
 brand := env("VHRD_BRAND", home_directory() / "git/vhrd_brand")
 preview_host := "https://shadow.vhrd.tech"
 # The web server's login, and the notify service's own user and folder there (AGENTS.md "Notify service")
@@ -67,6 +71,11 @@ install:
     mkdir -p ~/.local/bin
     curl -fsSL "https://github.com/getzola/zola/releases/download/v{{ zola_version }}/zola-v{{ zola_version }}-$(uname -m)-unknown-linux-gnu.tar.gz" | tar xz -C ~/.local/bin zola
     zola --version
+    curl -fsSL "https://github.com/linebender/resvg/releases/download/v{{ resvg_version }}/resvg-linux-x86_64.tar.gz" -o /tmp/resvg.tar.gz
+    echo "{{ resvg_sha256 }}  /tmp/resvg.tar.gz" | sha256sum -c -
+    tar xzf /tmp/resvg.tar.gz -C ~/.local/bin
+    rm /tmp/resvg.tar.gz
+    resvg --version
     uv run --with "playwright>=1.47" playwright install firefox
 
 # The front page's first screen on a slow phone (slow 4G, CPU / 4): requests, bytes, FCP, LCP, layout shift

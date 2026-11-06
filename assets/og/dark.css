@@ -1,0 +1,8 @@
+/* The twitter:image look: transparent, for X's own light or dark theme. Applied with
+   `resvg --stylesheet dark.css` (AGENTS.md "Link previews"). The headline gets a soft dark shadow instead of
+   an outline, so solid white text still reads once X composites the transparency onto its light theme. */
+.bg { display: none !important; }
+.ink { fill: #ffffff !important; }
+.red { fill: #f24c44 !important; }
+.muted { fill: #9a9a9a !important; }
+.headline-shadow { filter: url(#headline-shadow) !important; }

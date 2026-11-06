@@ -1,0 +1,7 @@
+/* The og:image look: a JPEG on white. Applied with `resvg --stylesheet light.css` (AGENTS.md "Link previews");
+   also the SVG files' own inline default (so opening one in Inkscape shows this look without resvg). */
+.bg { display: inline !important; }
+.ink { fill: #1a1a1a !important; }
+.red { fill: #c8141c !important; }
+.muted { fill: #6e6e6e !important; }
+.headline-shadow { filter: none !important; }
