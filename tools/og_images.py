@@ -60,10 +60,12 @@ BUDGET_KB = 1024
 JPEG_QUALITY = 90  # no subsampling (4:4:4) and not progressive, so a scraper that reads only the first bytes of
 # a progressive JPEG (or one that chokes on 4:2:0 chroma) still gets the whole, sharp image
 
-RED = (242, 76, 68, 255)  # vhrd_brand dark.red (#f24c44): the corner marks and the wordmark only, never text
-TEXT_RED = (0xc8, 0x14, 0x1c, 255)  # vhrd_brand --vhrd-red / light.accent (#c8141c): the headline's product
-# name, on every image alike (Roman, round 5, "one more round" pass, 6 Nov 2026) — a different red from the
-# corners' and wordmark's #f24c44, which stays theirs only.
+# One red per image, not two side by side: on the JPEG (white) everything red — corners, wordmark, the
+# headline's product name — is vhrd_brand's light-theme --vhrd-red/--accent; on the PNG (dark backgrounds)
+# everything red is the dark-theme --accent, already lightened for contrast there (Roman, round 5, "two reds"
+# pass, 6 Nov 2026).
+LIGHT_RED = (0xc8, 0x14, 0x1c, 255)  # --vhrd-red / light.accent (#c8141c)
+DARK_RED = (242, 76, 68, 255)  # dark.accent (#f24c44)
 INK = (26, 26, 26, 255)  # vhrd_brand light.text (#1a1a1a): the JPEG headline's body colour, solid, on white
 WHITE = (255, 255, 255, 255)  # the PNG headline's body colour, solid, with a soft dark shadow (SHADOW_* below)
 GLOW = (255, 255, 255, 16)  # a faint halo behind the board, just enough that a dark board's edge doesn't vanish
@@ -75,32 +77,34 @@ MARK_LEN, MARK_W = 28, 5  # the corner marks' leg length and thickness, like .fi
 # round 5, 6 Nov 2026).
 FRAME_MARGIN = 32
 # Everything — headline, board, wordmark — stays inside the corner-marked frame with its own margin, clear of
-# the corner marks' own legs too. The bottom margin is a little tighter than the top's: there is no headline
-# text to clear down there, only the wordmark's own row.
+# the corner marks' own legs too: both trimmed to the minimum that still clears those legs, to leave the board
+# as much of the frame's interior as possible (Roman, round 5, "board bigger" pass, 6 Nov 2026).
 CONTENT_PAD_X = 16
-CONTENT_PAD_Y_TOP = MARK_LEN + 10
-CONTENT_PAD_Y_BOTTOM = MARK_LEN + 4
+CONTENT_PAD_Y_TOP = MARK_LEN + 2
+CONTENT_PAD_Y_BOTTOM = MARK_LEN
 
 # The headline: Audiowide (the wordmark's face), its capital letters' ink flush with the left corners' own
 # outer edge (not an extra inset — "the D of Donguru" sits on the imaginary line the corner marks' vertical
-# strokes draw), wrapped to at most two lines at HEAD_TARGET_CAP ("no small print"; every headline below fits
-# two lines there, so there is no further shrink floor this round). The words up to " · " (the product
-# headlines below) are set in TEXT_RED; the rest is the body colour (AGENTS.md "Conventions", Roman, round 5,
-# 6 Nov 2026).
-HEAD_TARGET_CAP = 42
-HEAD_MIN_CAP = 40  # a floor, not reached by any headline below at the current width; kept for a future one
+# strokes draw), wrapped to at most two lines at HEAD_TARGET_CAP, the floor from "no small print" (every
+# headline below fits two lines there). The words up to " · " (the product headlines below) are set in that
+# image's one red (LIGHT_RED or DARK_RED above); the rest is the body colour (AGENTS.md "Conventions", Roman,
+# round 5, 6 Nov 2026).
+HEAD_TARGET_CAP = 40
+HEAD_MIN_CAP = 40
 HEAD_MAX_LINES = 2
 HEAD_LINE_PITCH_FACTOR = 1.25
-HEAD_BLOCK_H = 140  # reserved above the board, fixed across pages so the board sits at the same height on each
-HEAD_BOARD_GAP = 32  # a clearly visible gap: the headline sat right on top of the board before this (Roman,
-# round 5, "one more round" pass, 6 Nov 2026)
+HEAD_BLOCK_BUFFER = 4  # added to each headline's own measured ink height (fit_headline) rather than
+# reserving one worst-case height on every page: a one-line headline (/software) leaves the board that much
+# more room below it, instead of a dead gap (Roman, round 5, "board bigger" pass, 6 Nov 2026).
+HEAD_BOARD_GAP = 22  # a clearly visible gap (the headline sat right on top of the board two passes ago, at
+# 16): less than the 32 the previous pass used, traded for a bigger board, but still twice that original gap.
 
 # The board's own bounding box (the render's margin is transparent) is scaled to fit this box, centred
 # horizontally on the canvas and vertically in the band below the headline and above the wordmark, well inside
 # the HxH square a square crop keeps.
 SAFE_W = 580
-WORDMARK_H = 26  # 1.3x the wordmark's previous 20px (Roman, round 5, "one more round" pass, 6 Nov 2026)
-BOARD_WORDMARK_GAP = 6
+WORDMARK_H = 26  # 1.3x the wordmark's original 20px (Roman, round 5, 6 Nov 2026)
+BOARD_WORDMARK_GAP = 4
 # A soft dark shadow behind the white PNG headline (not an outline, which read as hollow), so it still reads on
 # a light background once a platform composites the transparency away.
 SHADOW_COLOR = (8, 8, 10, 170)
@@ -170,18 +174,18 @@ def board_render(board_dir, view):
     return im.crop(box)
 
 
-def wordmark_png(width, height):
-    """The VHRD.TECH wordmark (static/img/wordmark.svg), recoloured to a single red that reads on white and on
-    black alike, rasterised to the given pixel size with a transparent background, then cropped to its own ink
-    (not the raster canvas, which may carry a little padding) so the caller can align its right edge exactly."""
+def wordmark_png(width, height, red):
+    """The VHRD.TECH wordmark (static/img/wordmark.svg), recoloured to this image's one red, rasterised to the
+    given pixel size with a transparent background, then cropped to its own ink (not the raster canvas, which
+    may carry a little padding) so the caller can align its right edge exactly."""
     svg = (ROOT / "static/img/wordmark.svg").read_text()
-    svg = re.sub(r'fill="#[0-9a-fA-F]{6}"', f'fill="rgb{RED[:3]}"', svg)
+    svg = re.sub(r'fill="#[0-9a-fA-F]{6}"', f'fill="rgb{red[:3]}"', svg)
     png_bytes = cairosvg.svg2png(bytestring=svg.encode(), output_width=width, output_height=height)
     im = Image.open(io.BytesIO(png_bytes)).convert("RGBA")
     return im.crop(im.getbbox())
 
 
-def draw_corner_marks(canvas):
+def draw_corner_marks(canvas, red):
     """Each corner as one flush L: a horizontal and a vertical bar sharing a MARK_W x MARK_W square at the
     pivot, like .fig-frame's CSS corners (two overlapping bars, not two separately-capped lines, which left a
     notch at the outer corner instead of a clean square point; Roman, 6 Nov 2026)."""
@@ -190,10 +194,10 @@ def draw_corner_marks(canvas):
     for cx, cy, sx, sy in ((x0, y0, 1, 1), (x1, y0, -1, 1), (x0, y1, 1, -1), (x1, y1, -1, -1)):
         hx0, hx1 = sorted((cx, cx + sx * MARK_LEN))
         hy0, hy1 = sorted((cy, cy + sy * MARK_W))
-        d.rectangle([hx0, hy0, hx1, hy1], fill=RED)
+        d.rectangle([hx0, hy0, hx1, hy1], fill=red)
         vx0, vx1 = sorted((cx, cx + sx * MARK_W))
         vy0, vy1 = sorted((cy, cy + sy * MARK_LEN))
-        d.rectangle([vx0, vy0, vx1, vy1], fill=RED)
+        d.rectangle([vx0, vy0, vx1, vy1], fill=red)
 
 
 def font_for_cap_height(font_path, target_cap):
@@ -232,15 +236,15 @@ def wrap_headline(headline, font, max_width, max_lines):
     return lines[:max_lines] if len(lines) > max_lines else lines, len(lines) <= max_lines
 
 
-def draw_headline(canvas, font_path, headline, fill, accent, shadow=False):
-    """The headline in Audiowide: up to two lines at HEAD_TARGET_CAP (shrinking towards HEAD_MIN_CAP if one
-    somehow does not fit), the words up to " · " in accent (TEXT_RED), the rest in fill. The first line's
-    leading glyph's own ink — not its left side bearing — sits flush on the frame's left edge (the same line
-    the left corner marks' outer vertical edge draws), so it reads as "inside the frame" exactly, not inset
-    from it (Roman, round 5, "one more round" pass, 6 Nov 2026). shadow draws a soft dark halo behind the text
-    first (the PNG variant, for a light background), rather than an outline."""
+def fit_headline(font_path, headline):
+    """The Audiowide font, wrapped lines and left x (the first glyph's own ink, not its left side bearing,
+    flush with the frame's left edge — "the D of Donguru" on the left corners' outer vertical stroke, every
+    image) for this headline at HEAD_TARGET_CAP, shrinking towards HEAD_MIN_CAP if it somehow does not fit two
+    lines. Also the line pitch and the actual ink height of the wrapped block: a one-line headline (/software)
+    measures far less than a two-line one, so the caller can give the board that difference back rather than
+    reserving a worst-case height on every page (Roman, round 5, "board bigger" pass, 6 Nov 2026)."""
     fx0, _, fx1, _ = frame_box()
-    cy0 = content_box()[1]
+    scratch = ImageDraw.Draw(Image.new("RGBA", (4, 4)))
     cap = HEAD_TARGET_CAP
     while True:
         font = font_for_cap_height(font_path, cap)
@@ -255,12 +259,28 @@ def draw_headline(canvas, font_path, headline, fill, accent, shadow=False):
     # The first glyph's own left bearing (the gap PIL's draw origin leaves before the ink starts): subtract it
     # so the glyph's ink, not the nominal draw position, lands exactly on fx0.
     first_word = lines[0][0][1]
-    bearing = ImageDraw.Draw(canvas).textbbox((0, 0), first_word, font=font)[0]
+    bearing = scratch.textbbox((0, 0), first_word, font=font)[0]
     x_start = fx0 - bearing
+    line_pitch = round(font.size * HEAD_LINE_PITCH_FACTOR)
 
+    tops, bottoms = [], []
+    for i, line in enumerate(lines):
+        text = " ".join(w for _, w in line)
+        bbox = scratch.textbbox((x_start, i * line_pitch), text, font=font)
+        tops.append(bbox[1])
+        bottoms.append(bbox[3])
+    block_height = max(bottoms) - min(tops)
+
+    return font, lines, x_start, line_pitch, block_height
+
+
+def draw_headline(canvas, font, lines, x_start, line_pitch, headline, fill, accent, shadow=False):
+    """The headline already fit by fit_headline, painted at the top of the frame's interior: the words up to
+    " · " in accent (this image's one red), the rest in fill. shadow draws a soft dark halo behind the text
+    first (the PNG variant, for a light background), rather than an outline."""
+    cy0 = content_box()[1]
     dot_at = next((i for i, w in enumerate(headline.split(" ")) if w == "·"), None)
     space = font.getlength(" ")
-    line_pitch = round(font.size * HEAD_LINE_PITCH_FACTOR)
 
     def paint(draw_fn):
         y = cy0
@@ -284,9 +304,10 @@ def draw_headline(canvas, font_path, headline, fill, accent, shadow=False):
     paint(lambda x, y, word, colour: draw.text((x, y), word, font=font, fill=colour))
 
 
-def compose(board_dir, view, headline, font_path, headline_fill, accent, headline_shadow=False):
+def compose(board_dir, view, headline, font_path, headline_fill, red, headline_shadow=False):
     cx0, cy0, cx1, cy1 = content_box()
-    board_top = cy0 + HEAD_BLOCK_H + HEAD_BOARD_GAP
+    font, lines, x_start, line_pitch, head_h = fit_headline(font_path, headline)
+    board_top = cy0 + head_h + HEAD_BLOCK_BUFFER + HEAD_BOARD_GAP
     board_bottom_max = cy1 - WORDMARK_H - BOARD_WORDMARK_GAP
     safe_h = board_bottom_max - board_top
 
@@ -310,17 +331,17 @@ def compose(board_dir, view, headline, font_path, headline_fill, accent, headlin
     canvas.alpha_composite(glow)
 
     canvas.alpha_composite(board, (x, y))
-    draw_corner_marks(canvas)
+    draw_corner_marks(canvas, red)
 
     # The wordmark sits in its own row at the bottom of the frame's interior, its own ink flush with the right
     # corners' outer vertical edge (the same treatment as the headline's left edge, above), with a fixed gap
     # above the frame's bottom edge and below the board, so the two never touch (Roman, round 5, 6 Nov 2026).
     fx1 = frame_box()[2]
-    wm = wordmark_png(round(WORDMARK_H * 13424 / 1434), WORDMARK_H)
+    wm = wordmark_png(round(WORDMARK_H * 13424 / 1434), WORDMARK_H, red)
     wm_x, wm_y = fx1 - wm.width, cy1 - wm.height
     canvas.alpha_composite(wm, (wm_x, wm_y))
 
-    draw_headline(canvas, font_path, headline, headline_fill, accent, headline_shadow)
+    draw_headline(canvas, font, lines, x_start, line_pitch, headline, headline_fill, red, headline_shadow)
 
     return canvas, (x, y, x + board.width, y + board.height)
 
@@ -367,14 +388,14 @@ def main():
         sys.exit(f"{W}x{H} is {W / H:.3f}:1, under the {MIN_CARD_RATIO}:1 LinkedIn needs for its large card")
     OUT.mkdir(parents=True, exist_ok=True)
     for name, board_dir, view, _, headline in IMAGES:
-        img, bbox = compose(board_dir, view, headline, font_path, INK, TEXT_RED)
+        img, bbox = compose(board_dir, view, headline, font_path, INK, LIGHT_RED)
         # the square crop LinkedIn and messengers make from a 1.91:1 card: the middle H x H of the canvas
         square_left, square_right = (W - H) // 2, (W - H) // 2 + H
         if bbox[0] < square_left or bbox[2] > square_right:
             sys.exit(f"{name}: the board reaches x {bbox[0]}-{bbox[2]}, outside the {H}px square crop ({square_left}-{square_right})")
         # The transparent PNG, headline solid white with a soft dark shadow so it reads on X's light theme too.
         # Kept for twitter:image.
-        png_img, _ = compose(board_dir, view, headline, font_path, WHITE, TEXT_RED, headline_shadow=True)
+        png_img, _ = compose(board_dir, view, headline, font_path, WHITE, DARK_RED, headline_shadow=True)
         write_image(OUT / f"{name}.png", png_img, "PNG", optimize=True)
         # The same frame flattened onto white, headline solid near-black, for og:image: quality ~90, 4:4:4
         # chroma (subsampling=0) and not progressive, so LinkedIn and Facebook show it sharp on the white card
