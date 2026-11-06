@@ -202,26 +202,42 @@ per page (no blog, no articles), so `author` is the same for every page and ther
   Facebook composite a transparent image onto their card themselves and, where they don't honour the alpha
   channel, fill it with a dull grey rather than the card's white, which reads as a worse block than a plain
   white background would (Roman, round 4). X reads `twitter:image` first and shows it on its own light or dark
-  theme, so it keeps the transparent PNG. `og:image` is `img/og/default-3.jpg` by default; `/pinsmith`, `/can`,
-  `/software` and `/work` each show their own board, as both files.
-- `just og` (`tools/og_images.py`, uv, Pillow and cairosvg) composes a board's hero render, cropped to its own
-  content, inside a 1200×627 canvas (1.91:1, what LinkedIn, Facebook and X use for a large card), then writes it
-  twice:
-  - `static/img/og/<name>-2.png`, on a **transparent** background, a truecolour RGBA PNG, lossless, no palette
+  theme, so it keeps the transparent PNG. `og:image` is `img/og/default-4.jpg` by default; `/donguru`,
+  `/pinsmith`, `/can`, `/software` and `/work` each show their own board and headline, as both files.
+- **The canvas stays exactly 1200×627 (1.91:1), never 1200×630.** 1.91:1 is the minimum ratio LinkedIn needs to
+  show an organic post's large card at all; a 1200×630 canvas is 1.905:1, just under that line, and drops to
+  LinkedIn's small ~160px thumbnail instead (opengraphplus.com/consumers/linkedin/issues/small-thumbnail).
+  1200×627 is 1.914:1, safely over it. `tools/check_pages.py` asserts both the exact pixel size and the ratio
+  itself (Roman, round 5, 6 Nov 2026).
+- **LinkedIn's small thumbnail matters more than the large card.** Since 2024, LinkedIn shows an *organic*
+  share (not a paid one) with that small, centre-cropped ~160px thumbnail; only paid posts get the large card.
+  So the board stays big, centred and high-contrast, well inside the 627×627 square crop that thumbnail comes
+  from, and the headline (below) is secondary: it is for the platforms that do show the large card (X,
+  Facebook, Slack, messengers), and may be cropped away in LinkedIn's small thumbnail without harm, since the
+  board alone carries that one (Roman, round 5).
+- `just og` (`tools/og_images.py`, uv, Pillow and cairosvg) takes vhrd_brand's Audiowide ttf (the same one `just
+  wordmark` uses; the font itself is baked into these raster images, never shipped) and composes, per page, a
+  large headline in it above a board's hero render, inside the 1200×627 canvas, then writes each as two files:
+  - `static/img/og/<name>.png`, on a **transparent** background, a truecolour RGBA PNG, lossless, no palette
     quantization (a 256-colour palette version came out blurry and posterised on LinkedIn's Post Inspector,
-    Roman, 6 Nov 2026) — `extra.twitter_image`.
-  - `static/img/og/<name>-3.jpg`, the same frame flattened onto **white**, a baseline (not progressive) JPEG,
-    quality 90, 4:4:4 chroma (no subsampling) — `extra.og_image`.
+    Roman, 6 Nov 2026) — `extra.twitter_image`. The headline is white with a dark outline, so it still reads on
+    X's light theme once X composites the transparency away.
+  - `static/img/og/<name>.jpg`, the same frame flattened onto **white**, a baseline (not progressive) JPEG,
+    quality 90, 4:4:4 chroma (no subsampling) — `extra.og_image`. The headline is near-black (vhrd_brand's
+    light-theme text colour).
   `tools/check_live.py built` (`just test` and `just live`) ships a `.png` or `.jpg` only under `img/og/`: every
   other PNG or JPEG (a board render's source, "Board renders" above) still stops the build.
-  - **Each file name carries a version** (`default-2.png`, `default-3.jpg`, not `default.png`): LinkedIn,
-    Facebook and Telegram cache a link's preview by its image URL, so a change to an image itself needs a new
-    name too, or they go on showing the old file. A change to `IMAGES` in `tools/og_images.py` is followed by
-    the same names in `config.toml`'s `extra.og_image` / `extra.twitter_image` and each page's own, in its front
-    matter.
-  - The board is scaled to fit well inside the middle 580×480 of the canvas, with margin either side of the
-    627×627 square crop LinkedIn and messengers make from a 1.91:1 card, so the whole board stays in view there
-    too; the script refuses to write a file where it wouldn't.
+  - **Each file name carries a version** (`default-4.png`/`.jpg`, not `default.png`): LinkedIn, Facebook and
+    Telegram cache a link's preview by its image URL, so a change to an image itself needs a new name too, or
+    they go on showing the old file. A change to `IMAGES` in `tools/og_images.py` is followed by the same names
+    in `config.toml`'s `extra.og_image` / `extra.twitter_image` and each page's own, in its front matter.
+  - **The headline** sits left-aligned above the board, up to two lines, Audiowide sized so its capital letters
+    are at least ~40px tall at this 1200px width (no small print): the words up to a " · " separator are set in
+    the brand red, like the one accented word in a real page's hero headline, the rest in the body colour. It
+    may run past the square crop's edges — that is the trade described above, not a bug.
+  - The board is scaled to fit well inside a 580×391 box below the headline, centred horizontally on the
+    canvas, with margin either side of the 627×627 square crop LinkedIn and messengers make from a 1.91:1 card,
+    so the whole board stays in view there too; the script refuses to write a file where it wouldn't.
   - A faint white halo (blurred, low opacity, tight to the board) sits behind it: close to invisible on a white
     or light card, and just enough to keep a dark board's edge from vanishing into a black one.
   - Four red corner marks (brand red, like `.fig-frame`'s datasheet corners) and a small red VHRD.TECH wordmark
@@ -230,23 +246,25 @@ per page (no blog, no articles), so `author` is the same for every page and ther
     platform as well as the full card.
   - Each image stays a few hundred KB, under the script's 1 MB budget: LinkedIn and Facebook accept files up to
     5-8 MB, but a smaller one loads faster.
-  - Run it again after a change to a board's hero render, the wordmark or the script itself; `just test` does
-    not rebuild it.
+  - Run it again after a change to a board's hero render, a headline, the wordmark or the script itself; `just
+    test` does not rebuild it.
 - `tools/check_pages.py` (`just test`) checks every page: `og:image` is an absolute URL to a real 1200×627
-  truecolour JPEG that matches its own `og:image:width`/`height` and `og:image:secure_url`, `og:image:alt` is
-  not empty and does not name a background colour (the boards are shown on their own now, not "on a dark
-  background"); `twitter:card` is `summary_large_image` with its own `twitter:image`, a different, absolute URL
-  to a real 1200×627 truecolour PNG with an alpha channel. It also checks every page's meta `description` and
-  `og:description` match and are 100-160 characters (long enough that LinkedIn, Facebook and search results
-  don't truncate them to "...", short enough they don't get cut there either), and that no `og:*`, `twitter:*`
-  or `description` meta tag appears twice on a page.
-- Every page's `description` is 100-160 characters, written as a short complete sentence or two, not wrapped to
+  truecolour JPEG at or above the 1.91:1 ratio, matching its own `og:image:width`/`height` and
+  `og:image:secure_url`, `og:image:alt` is not empty and does not name a background colour (the boards are
+  shown on their own now, not "on a dark background"); `twitter:card` is `summary_large_image` with its own
+  `twitter:image`, a different, absolute URL to a real 1200×627 truecolour PNG with an alpha channel. It also
+  checks every page's meta `description` and `og:description` match and are 100-125 characters (LinkedIn warns
+  below 100 characters and its and others' previews cut near 125, Post Inspector round 5), and that no `og:*`,
+  `twitter:*` or `description` meta tag appears twice on a page.
+- Every page's `description` is 100-125 characters, written as a short complete sentence or two, not wrapped to
   a width. The home page's names no product (`~/git/tpm/area/marketing/brand.md`: product names stay out of
   that long-lived text); a product's own page may name itself.
-- `just og --check` also writes the default PNG composited onto the backgrounds a platform that doesn't honour
-  transparency might fill it with — X's two dark themes and Facebook's grey — at both the 1.91:1 card and the
-  1:1 square crop, into `target/shots/og2-*.png`, for a by-eye look before trusting a transparent image on a
-  platform this repo can't open an account on to test directly.
+- `just og --check` also writes the default and `/donguru` images composited onto the backgrounds a platform
+  that doesn't honour transparency might fill it with — X's two dark themes and Facebook's grey — at both the
+  1.91:1 card and the 1:1 square crop, plus both at LinkedIn's small ~160px organic-post thumbnail size (on
+  white, since `og:image` is already flattened there), into `target/shots/og5-*.png`, for a by-eye look before
+  trusting a transparent image or a small headline on a platform this repo can't open an account on to test
+  directly.
 - **LinkedIn caches a link's preview.** After a deploy, open the new URL in its [Post
   Inspector](https://www.linkedin.com/post-inspector/) to refresh it there; other platforms refetch on their own
   schedule.

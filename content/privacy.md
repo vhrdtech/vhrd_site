@@ -1,6 +1,6 @@
 +++
 title = "Privacy"
-description = "What this site keeps about you: access logs, visitor counts and the Donguru signup list, why we keep each one, and for how long."
+description = "What this site keeps about you: access logs, visitor counts and the Donguru signup list, and for how long."
 
 [extra]
 label = "Privacy"

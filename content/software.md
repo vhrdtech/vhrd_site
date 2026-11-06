@@ -1,14 +1,14 @@
 +++
 title = "Software"
-description = "IOWeaver, the protocol analyzer and grapher; RockFace, the firmware debugger; mx3, parts, BOMs and assembly for an electronics lab."
+description = "IOWeaver, the protocol analyzer and grapher; RockFace, the firmware debugger; mx3 for parts and assembly."
 
 [extra]
 label = "Software"
 sig = "usb"
 styles = ["term"]
-og_image = "img/og/software-3.jpg"
-twitter_image = "img/og/software-2.png"
-og_image_alt = "CANnify Micro (B129), a breadboard CAN FD node PCB, framed by red corner marks and the VHRD.TECH wordmark"
+og_image = "img/og/software-4.jpg"
+twitter_image = "img/og/software-4.png"
+og_image_alt = "CANnify Micro (B129), a breadboard CAN FD node PCB, framed by red corner marks and the VHRD.TECH wordmark, with the headline “The software for our instruments”"
 +++
 
 Three tools for the bench: one plots what a device says, one debugs the firmware that says it, one keeps the parts and the boards in order. <span class="v-badge">draft</span>

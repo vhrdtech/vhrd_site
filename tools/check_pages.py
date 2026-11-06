@@ -935,6 +935,11 @@ def check_og_image(browser, base):
             size = image_size(data)
             if size != (1200, 627):
                 failures.append(f"{where}: og:image {image} is {size}, expected 1200x627")
+            # LinkedIn drops a share to its small ~160px thumbnail below a 1.91:1 ratio (1200x630 is 1.905,
+            # just under it; AGENTS.md "Link previews"), so this stays an explicit check on the ratio itself,
+            # not only the exact pixels above.
+            elif size[0] / size[1] < 1.91:
+                failures.append(f"{where}: og:image {image} is {size[0]}x{size[1]}, a {size[0] / size[1]:.3f}:1 ratio, under the 1.91:1 LinkedIn needs for its large card")
             if (mw, mh) != (str(size[0]), str(size[1])):
                 failures.append(f"{where}: og:image:width/height is {mw}/{mh}, the file is {size[0]}x{size[1]}")
 
@@ -952,9 +957,10 @@ def check_og_image(browser, base):
 
 def check_descriptions(browser, base):
     """Every page: meta description and og:description are the same text (AGENTS.md sets both from the page's
-    own description, or the site default), and between 100 and 160 characters, long enough for LinkedIn,
-    Facebook and search results to show without truncation to "..." but short enough not to be cut there
-    either (Post Inspector round 4, Roman)."""
+    own description, or the site default), and between 100 and 125 characters: long enough for LinkedIn,
+    Facebook and search results to show without truncation to "...", short enough that LinkedIn's own warning
+    threshold (under 100) and its and others' truncation (near 125) don't cut it either (Post Inspector round
+    5, Roman, 6 Nov 2026)."""
     failures = []
     ctx = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
     page = ctx.new_page()
@@ -967,8 +973,8 @@ def check_descriptions(browser, base):
             continue
         if og_desc != desc:
             failures.append(f"{where}: og:description {og_desc!r} does not match meta description {desc!r}")
-        if not (100 <= len(desc) <= 160):
-            failures.append(f"{where}: description is {len(desc)} characters, expected 100-160: {desc!r}")
+        if not (100 <= len(desc) <= 125):
+            failures.append(f"{where}: description is {len(desc)} characters, expected 100-125: {desc!r}")
     ctx.close()
     return failures
 

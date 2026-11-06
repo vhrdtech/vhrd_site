@@ -1,6 +1,6 @@
 +++
 title = "About"
-description = "Who makes VHRD: Roman Isaikin, the founder, in Asker, Norway, designing the boards, writing the firmware and building the software around them."
+description = "Who makes VHRD: Roman Isaikin, the founder, in Asker, Norway, designing boards, firmware and the software around them."
 
 [extra]
 label = "About"

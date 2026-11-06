@@ -1,6 +1,6 @@
 +++
 title = "FAQ"
-description = "Answers about buying Donguru and Pinsmith, open source, working with VHRD, and how this site handles cookies, tracking and e-mail."
+description = "Answers about buying Donguru and Pinsmith, open source, working with VHRD, and how this site handles tracking."
 
 [extra]
 label = "FAQ"

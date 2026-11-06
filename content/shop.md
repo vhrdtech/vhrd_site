@@ -1,6 +1,6 @@
 +++
 title = "Shop"
-description = "FlexyRJ45 and the other boards: the shop is moving. Until the new one opens, write to order a board and get the price and shipping by mail."
+description = "FlexyRJ45 and the other boards: the shop is moving. Write to order a board and get the price and shipping by mail."
 
 [extra]
 label = "Shop"

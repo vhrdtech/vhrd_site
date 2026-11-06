@@ -1,6 +1,6 @@
 +++
 title = "Remove your address"
-description = "Press the button on this page to remove your address from the Donguru launch list; it is deleted as soon as you confirm it here."
+description = "Press the button on this page to remove your address from the Donguru launch list; it is deleted at once."
 path = "notify/remove/"
 template = "notify-link.html"
 
