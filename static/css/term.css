@@ -70,6 +70,27 @@
 .term-src pre.giallo { scrollbar-width: thin; scrollbar-color: var(--vhrd-grey-600) transparent; margin: 0; border: 0; border-radius: 0; padding: 0.6rem 0.9rem; background-color: transparent !important; font-size: 0.75rem; line-height: 1.45; overflow-x: auto; }
 .term-src .giallo-ln { display: inline-block; min-width: 2ch; margin-right: 1.25ch; text-align: right; }
 .term-src .giallo-l[style*="background-color"] { background: color-mix(in oklch, var(--t-red) 16%, transparent) !important; box-shadow: inset 2px 0 var(--t-red); }
+/* A `live` capture (BLOCK-7 term-live): the asciinema-player it is lazily swapped in for, themed with the same
+   tokens as the static screen above (theme: "vhrd" in the component's script, matching no built-in player theme,
+   so only these variables apply). It fills the same box the static wide screen does. */
+.term-live {
+  --term-color-background: var(--t-bg);
+  --term-color-foreground: var(--t-fg);
+  --term-color-0: var(--t-black); --term-color-1: var(--t-red); --term-color-2: var(--t-green);
+  --term-color-3: var(--t-yellow); --term-color-4: var(--t-blue); --term-color-5: var(--t-magenta);
+  --term-color-6: var(--t-cyan); --term-color-7: var(--t-white);
+  --term-color-8: var(--vhrd-grey-500);
+  --term-color-9: color-mix(in oklch, var(--t-red) 75%, var(--vhrd-grey-0));
+  --term-color-10: color-mix(in oklch, var(--t-green) 75%, var(--vhrd-grey-0));
+  --term-color-11: color-mix(in oklch, var(--t-yellow) 75%, var(--vhrd-grey-0));
+  --term-color-12: color-mix(in oklch, var(--t-blue) 75%, var(--vhrd-grey-0));
+  --term-color-13: color-mix(in oklch, var(--t-magenta) 75%, var(--vhrd-grey-0));
+  --term-color-14: color-mix(in oklch, var(--t-cyan) 75%, var(--vhrd-grey-0));
+  --term-color-15: var(--vhrd-grey-0);
+  --term-font-family: var(--font-mono);
+  border-radius: 0 0 var(--radius) var(--radius);
+  overflow: hidden;
+}
 /* The figures take the column's whole width, wider than the prose around them, which keeps its measure. Each run is
    there at its natural width and at a phone's 44 columns: the wide one shows where the figure is 40rem or more (or
    where it fits whole at the smallest face, term-wN), the narrow one below that. The face shrinks from 0.75rem to fit

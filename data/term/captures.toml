@@ -10,16 +10,20 @@
 # - `show`: a file the run read, shown above the output with the line the output points at marked.
 # - `remap`: [from, to] pairs for rustc's --remap-path-prefix, so paths read as on any machine; `target`: the cargo
 #   target dir under this repo.
-# - `cast = true`: recorded on a bench with its hardware (asciicast v2, `--cast ID=FILE`), replayed to second `at`;
-#   `version` and `source` are then the recording's notes, and it has the one width it was recorded at.
+# - `cast = true`: recorded on a bench with its hardware (asciicast v2, `--cast ID=FILE`), trimmed to start where the
+#   program takes over the full screen; replayed to second `at` (from that point, not from the recording's own
+#   start) for the static fallback. `version` and `source` are then the recording's notes, and it has the one width
+#   it was recorded at. `live = true` also ships the trimmed recording itself (static/term/ID.cast) for the
+#   browser's own asciinema-player.
 
 [[capture]]
 id = "cnt-tui"
 cast = true
+live = true
 at = 13.0
-cmd = ["cnt", "tui", "--chip", "STM32H725IGKx", "b135_fw"]
-version = "cnt_cli 0.5.0 (2b623e0)"
-source = "a B135 USB to CAN FD bridge running b135_fw 0.2.12, through a J-Link"
+cmd = ["cnt", "tui", "--chip", "STM32H725IGKx", "--no-defmt"]
+version = "cnt_cli 0.5.1 (8b1e1db)"
+source = "a B135 USB to CAN FD bridge running b135_fw 0.2.10, through a J-Link"
 
 [[capture]]
 id = "ww-api-tree"

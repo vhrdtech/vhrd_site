@@ -153,13 +153,17 @@
     (`show` in captures.toml) has that source above the output, with the line the output points at marked. Each run is
     there twice, at its natural width and at a phone's 44 columns (ID.narrow.html); a container query on the figure
     shows the one that fits (term.css). `--cols` is the wide screen's longest line, which its face is fitted to, and
-    `term-wN` says from what width it fits at the smallest face. Nothing runs at build
+    `term-wN` says from what width it fits at the smallest face. A capture recorded with `live = true` (captures.toml)
+    also has static/term/ID.cast: BLOCK-7 term-live lazily loads a self-hosted asciinema-player to replay it once the
+    figure scrolls into view, on a wide enough screen, with JavaScript and without reduced motion; otherwise (a
+    phone, no JS, reduced motion, a crawler) this same static screen is what shows, unchanged. Nothing runs at build
     time: {{ <vh.term id="ww-api-tree" n="6" caption="ww api tree: the API of a device" /> }} -#}
 {% component vh.term(id: string, n: string = "", caption: string = "", prompt: bool = true) %}
 {%- set m = load_data(path="data/term/" ~ id ~ ".toml") -%}
 {%- set screen = load_data(path="data/term/" ~ id ~ ".html", format="plain") | split(pat=" -->\n") -%}
 {%- set cols = m.cols | default(value=m.size | split(pat="×") | first) | int -%}
 {%- set narrow = m.narrow_size | default(value="") -%}
+{%- set live = m.live | default(value="") -%}
 {%- if cols <= 50 %}{% set fit = " term-w50" %}{% elif cols <= 60 %}{% set fit = " term-w60" %}{% elif cols <= 70 %}{% set fit = " term-w70" %}{% elif cols <= 80 %}{% set fit = " term-w80" %}{% else %}{% set fit = "" %}{% endif -%}
 {%- set head %}{% if prompt %}<span class="term-prompt">$ </span>{{ m.cmd }}
 {% endif %}{% endset -%}
@@ -173,6 +177,10 @@
 <pre class="term-screen term-wide" tabindex="0" role="region" aria-label="Terminal: {{ m.cmd }}">{{ head | safe }}{{ screen[1] | trim_end | safe }}</pre>
 {%- if narrow %}{% set small = load_data(path="data/term/" ~ id ~ ".narrow.html", format="plain") | split(pat=" -->\n") %}
 <pre class="term-screen term-narrow" tabindex="0" role="region" aria-label="Terminal: {{ m.cmd }}">{{ head | safe }}{{ small[1] | trim_end | safe }}</pre>
+{%- endif -%}
+{%- if live %}
+<div class="term-live" data-cast="{{ get_url(path='term/' ~ id ~ '.cast') }}" hidden></div>
+<script>(()=>{if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;const fig=document.getElementById("term-{{ id }}"),poster=fig.querySelector("pre.term-wide"),mount=fig.querySelector(".term-live");new IntersectionObserver((es,ob)=>{for(const e of es)if(e.isIntersecting){ob.disconnect();if(!matchMedia("(min-width: 40rem)").matches)return;const l=document.createElement("link");l.rel="stylesheet";l.href="{{ get_url(path='css/asciinema-player.css', cachebust=true) }}";document.head.appendChild(l);const s=document.createElement("script");s.src="{{ get_url(path='js/asciinema-player.min.js', cachebust=true) }}";s.onload=()=>{poster.hidden=true;mount.hidden=false;AsciinemaPlayer.create(mount.dataset.cast,mount,{theme:"vhrd",fit:"width",autoPlay:true,loop:true,idleTimeLimit:2})};document.body.appendChild(s)}},{rootMargin:"200px"}).observe(fig)})()</script>
 {%- endif %}</div>
 </div><figcaption>{% if n %}<span class="fig-no">FIG. {{ n }}</span>{% endif %}<span>{{ caption }} <span class="term-meta">· {{ m.version }} · {{ m.source }} · recorded {{ m.recorded | date(format="%-d %b %Y") }}</span></span></figcaption></figure>
 {%- endcomponent vh.term %}

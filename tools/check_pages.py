@@ -474,6 +474,65 @@ def check_terms(browser, base, shots):
     return failures
 
 
+def check_term_live(browser, base):
+    """BLOCK-7 term-live: the self-hosted asciinema-player loads only on /software, and only once the cnt-tui figure
+    scrolls into view on a screen wide enough for a live screen (40rem); a phone keeps the static capture, with no
+    player request at all."""
+    failures = []
+    vendor = ("asciinema-player.min.js", "asciinema-player.css")
+    is_vendor = lambda url: any(v in url for v in vendor)  # noqa: E731
+
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900})
+    page = ctx.new_page()
+    hits = []
+    page.on("request", lambda r: is_vendor(r.url) and hits.append(r.url))
+    for path in ("", "open-source/", "donguru/"):
+        page.goto(base + path)
+        page.wait_for_load_state("networkidle")
+    if hits:
+        failures.append(f"asciinema-player requested outside /software: {hits}")
+    ctx.close()
+
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900})
+    page = ctx.new_page()
+    errors = []
+    page.on("console", lambda m: m.type == "error" and errors.append(m.text))
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    hits = []
+    page.on("request", lambda r: is_vendor(r.url) and hits.append(r.url))
+    page.goto(base + "software/")
+    page.wait_for_load_state("load")
+    page.locator("#term-cnt-tui").scroll_into_view_if_needed()
+    try:
+        page.wait_for_function("document.querySelector('#term-cnt-tui canvas')", timeout=5000)
+    except Exception:
+        failures.append("software/ 1440px: the live player never mounted (no canvas) after scrolling into view")
+    if not hits:
+        failures.append("software/ 1440px: no asciinema-player request after the figure scrolled into view")
+    if page.evaluate("document.querySelector('#term-cnt-tui pre.term-wide').hidden") is not True:
+        failures.append("software/ 1440px: the static capture is not hidden once the live player mounts")
+    for e in errors:
+        failures.append(f"software/ 1440px live player: console: {e}")
+    ctx.close()
+
+    ctx = browser.new_context(viewport={"width": 390, "height": 844})
+    page = ctx.new_page()
+    hits = []
+    page.on("request", lambda r: is_vendor(r.url) and hits.append(r.url))
+    page.goto(base + "software/")
+    page.wait_for_load_state("load")
+    page.locator("#term-cnt-tui").scroll_into_view_if_needed()
+    page.wait_for_timeout(500)
+    if page.evaluate("!!document.querySelector('#term-cnt-tui canvas')"):
+        failures.append("software/ 390px: the live player mounted on a phone, too narrow for its 110 columns")
+    if hits:
+        failures.append(f"software/ 390px: asciinema-player requested on a phone: {hits}")
+    if page.evaluate("document.querySelector('#term-cnt-tui pre.term-wide').hidden"):
+        failures.append("software/ 390px: the static capture is hidden though the live player did not mount")
+    ctx.close()
+    return failures
+
+
 def check_repos(browser, base):
     """/open-source: a Highlights group (the crates marked `front` in data/stack.toml, in that order), then one group
     per area of data/repos.toml, every repository once, the highlights again in their areas (`stack = true`). A public card links to its source and shows its code sample
@@ -1226,6 +1285,7 @@ def main():
 
         failures += check_code_fits(browser, base)
         failures += check_terms(browser, base, a.shots)
+        failures += check_term_live(browser, base)
         failures += check_repos(browser, base)
         failures += check_intro(browser, base)
         failures += check_placeholders(browser, base)

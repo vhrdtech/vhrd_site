@@ -16,8 +16,11 @@ paths under the home and the toolchain's sources into what any machine shows (ru
 is the cargo target dir under this repo. Without IDs every
 capture is recorded again. `--bin` runs another binary for a command's name, e.g. one just built in a target dir.
 A capture with `cast = true` is not run here: it was recorded on a bench with its hardware (asciinema, an asciicast v2
-file given with `--cast`), and the same emulator replays it to the second `at`; its version and source are written in
-captures.toml, as the recording's notes give them.
+file given with `--cast`), trimmed to start where the recorded program first takes over the full screen (its own
+startup banner, a bench prompt or path before that, never shipped), and the same emulator replays the trimmed
+events to the second `at` for the static fallback; its version and source are written in captures.toml, as the
+recording's notes give them. `live = true` also writes the trimmed recording itself to static/term/ID.cast, for
+`vh.term`'s asciinema-player to replay in the browser (BLOCK-7 term-live).
 
 Each command runs twice: at its natural width (`wide`, wide enough that the terminal wraps no line, else it stops
 and says so) for a desktop, and at NARROW columns for a phone, where the terminal wraps the long lines as a phone's
@@ -29,7 +32,8 @@ line), the commit of the checkout it ran in, the sizes and the date. The `vh.ter
 picks the one that fits with a container query; nothing runs when the site is built.
 
 Nothing private may reach a capture: it refuses to write one that holds a home path, this PC's host or user name, a
-machine name of ours or a tpm id, and says where.
+machine name of ours or a tpm id, and says where. For a `cast = true` capture this checks the whole trimmed
+recording, not just the static fallback's screen: static/term/ID.cast plays those same bytes in the browser.
 """
 
 import argparse
@@ -54,10 +58,14 @@ import tomllib
 from pathlib import Path
 
 import pyte
+from collections import defaultdict
+from pyte.screens import StaticDefaultDict
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "data/term"
 NARROW = 44  # a phone's terminal: what fits a 390px screen in the capture's face, like the code samples
+ALTBUF = {47, 1047, 1049}  # DECSET codes for the alternate screen buffer, which plain pyte leaves unhandled
+ALTBUF_RE = re.compile(r"\x1b\[\?(?:47|1047|1049)h")  # the same, as it appears in a recording's raw bytes
 NAMED = {"black", "red", "green", "brown", "blue", "magenta", "cyan", "white"}
 PRIVATE = [
     (re.compile(r"/home/|/Users/|/root\b"), "a home path"),
@@ -68,7 +76,30 @@ PRIVATE = [
 
 class Screen(pyte.Screen):
     """pyte keeps no faint (SGR 2); the tools use it for tree lines and docs. It is kept in the blink flag, which
-    none of them uses, and shown as faint."""
+    none of them uses, and shown as faint.
+
+    It also leaves the alternate screen buffer (DECSET 47/1047/1049) unhandled, drawing a full-screen program
+    straight into whatever was on screen before it started: a real terminal starts that program on a blank
+    buffer, so a cell it never writes (here, the margin before a right-aligned header) stays blank there, not
+    leaking the line before it switched. ALTBUF makes the swap real."""
+
+    def __init__(self, *a, **kw):
+        super().__init__(*a, **kw)
+        self._alt_buffer = None
+
+    def set_mode(self, *modes, **kw):
+        if kw.get("private") and ALTBUF & set(modes) and self._alt_buffer is None:
+            self._alt_buffer = self.buffer
+            self.buffer = defaultdict(lambda: StaticDefaultDict(self.default_char))
+            self.dirty.update(range(self.lines))
+            self.cursor_position()
+        super().set_mode(*modes, **kw)
+
+    def reset_mode(self, *modes, **kw):
+        if kw.get("private") and ALTBUF & set(modes) and self._alt_buffer is not None:
+            self.buffer, self._alt_buffer = self._alt_buffer, None
+            self.dirty.update(range(self.lines))
+        super().reset_mode(*modes, **kw)
 
     def select_graphic_rendition(self, *attrs, **kw):
         mapped, i = [], 0
@@ -184,12 +215,35 @@ def private(text):
     return found
 
 
-def replay(file, at):
-    """The bytes an asciicast v2 recording wrote up to second `at`, and its width and height."""
+def load_cast(file):
+    """An asciicast v2 recording's output events, trimmed to start where the program first switches to the
+    alternate screen buffer (DECSET 47/1047/1049): what a viewer actually sees once it takes over, not a bench
+    recording's own prompt or startup banner flashing before it (once a leaked path to the bench machine's home
+    directory). Timestamps are rebased to that point. Answers the trimmed (seconds, text) events and the
+    recording's width and height."""
     lines = Path(file).read_text().splitlines()
     head = json.loads(lines[0])
-    out = "".join(e[2] for e in map(json.loads, lines[1:]) if e[1] == "o" and e[0] <= at)
-    return out.encode(), head["width"], head["height"]
+    events = [(e[0], e[2]) for e in map(json.loads, lines[1:]) if e[1] == "o"]
+    for i, (ts, data) in enumerate(events):
+        if m := ALTBUF_RE.search(data):
+            events = [(ts, data[m.start():])] + events[i + 1:]
+            events = [(t - ts, d) for t, d in events]
+            break
+    return events, head["width"], head["height"]
+
+
+def replay(events, at):
+    """The bytes a trimmed recording's events wrote up to second `at`."""
+    return "".join(data for ts, data in events if ts <= at).encode()
+
+
+def write_cast(path, width, height, events):
+    """A trimmed recording as asciicast v2, for the browser's own player: a fresh minimal header, no `env`
+    (the bench shell and user that made it play no part in it)."""
+    lines = [json.dumps({"version": 2, "width": width, "height": height})]
+    lines += [json.dumps([round(ts, 6), "o", data]) for ts, data in events]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines) + "\n")
 
 
 def first_line(argv, cwd, env):
@@ -201,8 +255,13 @@ def capture(c, bins, casts):
     if c.get("cast"):
         if c["id"] not in casts:
             sys.exit(f"{c['id']}: recorded on a bench, give the recording: --cast {c['id']}=FILE")
-        raw, cols, rows = replay(casts[c["id"]], c["at"])
-        return write(c, raw, cols, rows, c["version"], c["source"], tui=True)
+        events, cols, rows = load_cast(casts[c["id"]])
+        if bad := private("".join(data for _, data in events)):
+            sys.exit(f"{c['id']}: the recording holds {', '.join(sorted(set(bad)))}, not written")
+        if c.get("live"):
+            write_cast(ROOT / "static/term" / f"{c['id']}.cast", cols, rows, events)
+        raw = replay(events, c["at"])
+        return write(c, raw, cols, rows, c["version"], c["source"], tui=True, live=bool(c.get("live")))
     cwd = (ROOT / os.path.expanduser(c["cwd"])).resolve()
     env = dict(os.environ, TERM="xterm-256color", COLORTERM="truecolor", CLICOLOR_FORCE="1",
                LINES=str(c.get("rows", 400)), **c.get("env", {}))
@@ -249,7 +308,7 @@ def plain_text(lines):
     return html.unescape(re.sub(r"<[^>]+>", "", "\n".join(lines)))
 
 
-def write(c, raw, cols, rows, version, source, tui, shown=None, narrow=None):
+def write(c, raw, cols, rows, version, source, tui, shown=None, narrow=None, live=False):
     """Feed the bytes to a terminal of cols x rows (and the narrow run's to one of NARROW columns), check the screen
     for anything private and write it. The wide screen must hold every line whole: a line that fills it was
     wrapped by the terminal."""
@@ -270,6 +329,8 @@ def write(c, raw, cols, rows, version, source, tui, shown=None, narrow=None):
     }
     if narrow_lines is not None:
         meta["narrow_size"] = f"{NARROW}×{len(narrow_lines)}"
+    if live:
+        meta["live"] = "1"
     page = "\n".join(lines)
     if shown is not None:
         at = re.search(r"-->\s+" + re.escape(c["show"]) + r":(\d+)", plain)
