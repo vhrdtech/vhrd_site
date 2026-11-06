@@ -830,6 +830,13 @@ def check_placeholders(browser, base):
     return failures
 
 
+def png_is_paletted(data):
+    """True when a PNG's IHDR says it is a palette (indexed-colour) image, not truecolour: colour type 3, the
+    byte right after width/height/bit-depth. A palette image posterises on LinkedIn's Post Inspector instead of
+    showing the render's real colours (Roman, 6 Nov 2026)."""
+    return data[:8] == b"\x89PNG\r\n\x1a\n" and data[25] == 3
+
+
 def image_size(data):
     """Pixel width and height from a PNG or JPEG's own header, without a dependency."""
     if data[:8] == b"\x89PNG\r\n\x1a\n":
@@ -845,9 +852,11 @@ def image_size(data):
 
 
 def check_og_image(browser, base):
-    """Every page: og:image is an absolute URL to a real 1200x627 file, matched by og:image:width/height and a
-    non-empty og:image:alt, and twitter:card is summary_large_image with twitter:image the same URL (AGENTS.md
-    "Link previews"): so LinkedIn, Facebook, X and messengers show it instead of cropping a render themselves."""
+    """Every page: og:image is an absolute URL to a real 1200x627 truecolour (not palette) PNG or JPEG, matched
+    by og:image:width/height, with a non-empty og:image:alt that does not name a background colour (the images
+    are transparent now, not "on a dark background"), and twitter:card is summary_large_image with twitter:image
+    the same URL (AGENTS.md "Link previews"): so LinkedIn, Facebook, X and messengers show it instead of cropping
+    a render themselves."""
     failures = []
     ctx = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
     page = ctx.new_page()
@@ -863,6 +872,8 @@ def check_og_image(browser, base):
             failures.append(f"{where}: twitter:card/image is {card!r}/{timg!r}, expected summary_large_image/{image!r}")
         if not alt:
             failures.append(f"{where}: og:image:alt is empty")
+        elif "background" in alt.lower():
+            failures.append(f"{where}: og:image:alt names a background colour: {alt!r}")
         if image not in cache:
             try:
                 with urllib.request.urlopen(image, timeout=10) as r:
@@ -877,6 +888,8 @@ def check_og_image(browser, base):
         if size is None:
             failures.append(f"{where}: og:image {image} is not a PNG or JPEG")
             continue
+        if png_is_paletted(data):
+            failures.append(f"{where}: og:image {image} is a palette PNG, not truecolour")
         if (mw, mh) != (str(size[0]), str(size[1])):
             failures.append(f"{where}: og:image:width/height is {mw}/{mh}, the file is {size[0]}x{size[1]}")
         if size != (1200, 627):

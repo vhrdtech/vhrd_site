@@ -50,5 +50,5 @@ notify_consent = "2026-11-06"
 # The link-preview image (og:image / twitter:image): the Donguru hero render on a transparent background, framed
 # with the brand's red corner marks and wordmark, 1200x627 (tools/og_images.py, `just og`). /pinsmith, /can,
 # /software and /work show their own board instead (extra.og_image, extra.og_image_alt, in the page's front matter).
-og_image = "img/og/default.png"
-og_image_alt = "Donguru (B153), a USB-C dongle PCB, on a dark background"
+og_image = "img/og/default-2.png"
+og_image_alt = "Donguru (B153), a USB-C dongle PCB, framed by red corner marks and the VHRD.TECH wordmark"
