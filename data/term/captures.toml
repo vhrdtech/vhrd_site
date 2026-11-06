@@ -20,10 +20,10 @@
 id = "cnt-tui"
 cast = true
 live = true
-at = 13.0
-cmd = ["cnt", "tui", "--chip", "STM32H725IGKx", "--no-defmt"]
+at = 21.0
+cmd = ["cnt", "tui", "--chip", "STM32H725IGKx"]
 version = "cnt_cli 0.5.1 (8b1e1db)"
-source = "a B135 USB to CAN FD bridge running b135_fw 0.2.10, through a J-Link"
+source = "a B135 board through a J-Link, running cnt's demo firmware (examples/b135_demo): a made-up instrument with a USB transfer, a CAN bus-off and a USB bus reset that clears its counters"
 
 [[capture]]
 id = "ww-api-tree"

@@ -54,7 +54,7 @@ mx3 runs in VHRD's own lab today. It may be opened up or offered as a product la
 
 Real runs of the command-line tools — {{ <vh.ref name="cnt" /> }}, {{ <vh.ref name="WireWeaver" /> }}'s `ww`, {{ <vh.ref name="embedded_bedrock" /> }}'s `bedrock-lint` and {{ <vh.ref name="ExactUnits" /> }} — recorded once and kept as text, colours and all. Under each one: the version, what it ran on and the day it was recorded.
 
-{{ <vh.term id="cnt-tui" n="6" prompt={false} caption="cnt tui: a board's event counters and its firmware's defmt logs through a debug probe — here, a B135 USB to CAN FD bridge while a host talks to it" /> }}
+{{ <vh.term id="cnt-tui" n="6" prompt={false} caption="cnt tui: a board's event counters and its firmware's defmt logs through a debug probe — here, cnt's demo firmware on a B135: a USB transfer, a CAN bus-off and a USB bus reset that clears its group" /> }}
 
 {{ <vh.term id="ww-api-tree" n="7" caption="WireWeaver's ww api tree: every method, stream and property of a device API with its number on the wire — here, the GPIO example's ports of pins" /> }}
 
