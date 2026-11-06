@@ -8,12 +8,6 @@ tools = []
 # Photos received 4 Nov 2026, named as on the portfolio's page 13 list; a model only where it is printed on the
 # machine. caption is the figure's line on /lab.
 [[images]]
-file = "pnp-d600plus"
-widths = [640]
-caption = "The D600Plus pick-and-place machine"
-alt = "Desktop pick-and-place machine with tape feeders on both sides and its placement head on the gantry"
-
-[[images]]
 file = "stencil-printer"
 widths = [640, 1280]
 caption = "The vacuum stencil printer"

@@ -155,6 +155,7 @@
 ### Removed
 
 - B154 SimBus, the early USB IO prototype, is gone from /work and from `scripts/render_boards.py`'s board list (Roman, 5 Nov 2026): it is not his own project, and the site shows no employer or client work. Its render folder, `static/img/boards/b154-usb-io-simbus/`, is removed; the remaining board renders on /work keep their figure numbers 1 to 9 without a gap.
+- FIG. 5, the D600Plus pick-and-place machine photo, is gone from /lab (Roman, 6 Nov 2026): redundant next to the equipment list and the lab's own cards on /work. `content/lab.md` now names the machine, D600Plus, since that fact was only on the figure; the photo files and their manifest entry are removed, and the remaining equipment figures renumber 5 to 9 without a gap.
 
 ### Fixed
 

@@ -12,7 +12,7 @@ The lab has what a board needs from idea to test:
 
 - Measurement, soldering and rework equipment.
 - A CNC router.
-- A pick and place machine.
+- A D600Plus pick and place machine.
 - A vapour reflow oven.
 - A stencil printer.
 - A spot welder.
