@@ -4,5 +4,4 @@
 .bg { display: none !important; }
 .ink { fill: #ffffff !important; }
 .red { fill: #f24c44 !important; }
-.muted { fill: #9a9a9a !important; }
 .headline-shadow { filter: url(#headline-shadow) !important; }
