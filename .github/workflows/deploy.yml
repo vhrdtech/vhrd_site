@@ -106,40 +106,14 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      # Skip the build and the upload only when all of this holds; anything else ships, safety over speed:
-      # - the run was not asked to ship the service (input `notify`);
-      # - https://vhrd.tech/api/notify answers the probe with 400 and a short sha in x-vhrd-release;
-      # - that sha is one commit here and an ancestor of the commit being deployed;
-      # - nothing changed between the two outside the paths that only the site uses. It is a list of what does not
-      #   feed the service, so a new file anywhere else (and any change to this workflow) ships it.
-      # The header is checked against its shape before git sees it, and printed only after that.
+      # Ship the service unless it is unchanged since the release that answers on https://vhrd.tech/api/notify:
+      # tools/notify_plan.py says when that is (an ancestor, no change outside its site-only paths) and why.
+      # Anything unclear ships it, and the input `notify` forces it.
       - name: Does the notify service need shipping
         id: plan
         env:
           FORCE: ${{ inputs.notify }}
-          URL: https://vhrd.tech/api/notify
-        run: |
-          ship() {
-            echo "ship=true" >> "$GITHUB_OUTPUT"
-            echo "### vhrd_notify: built and shipped, $1" | tee -a "$GITHUB_STEP_SUMMARY"
-            exit 0
-          }
-          [ "$FORCE" != true ] || ship "as the run was asked to"
-          got="$(curl -s -o /dev/null --max-time 10 -w '%{http_code} %header{x-vhrd-release}' -X POST \
-            -H 'Accept: application/json' -H 'Content-Type: application/x-www-form-urlencoded' --data probe=1 "$URL" || true)"
-          [[ "$got" =~ ^400\ ([0-9a-f]{7,12})$ ]] || ship "as the live release is not known"
-          live="${BASH_REMATCH[1]}"
-          commit="$(git rev-parse --verify --quiet "$live^{commit}")" || ship "as the live release $live is not one commit here"
-          git merge-base --is-ancestor "$commit" HEAD || ship "as the live release $live is not an ancestor of this commit"
-          git diff --quiet "$commit" HEAD -- . ':!content' ':!templates' ':!static' ':!data' ':!tools' ':!scripts' \
-            ':!config.toml' ':!CHANGELOG.md' ':!FEATURES.md' ':!AGENTS.md' ':!README.md' ':!CLAUDE.md' ':!LICENSE-*' \
-            ':!justfile' ':!ship.toml' ':!.gitignore' ':!.github/deploy' ':!deploy/redirects.map' ':!deploy/old-urls.txt' \
-            ':!deploy/golden-links.txt' ':!deploy/nginx-notify.conf' || ship "as it changed since the live release $live"
-          {
-            echo "ship=false"
-            echo "git=$live"
-          } >> "$GITHUB_OUTPUT"
-          echo "### vhrd_notify: unchanged since the live release $live, not built or shipped" | tee -a "$GITHUB_STEP_SUMMARY"
+        run: python3 tools/notify_plan.py --force="$FORCE"
 
       # rustup checks each component's sha256 from the channel manifest
       - name: Install Rust (pinned) with the musl target
