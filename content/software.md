@@ -52,24 +52,14 @@ mx3 runs in VHRD's own lab today. It may be opened up or offered as a product la
 
 ## From the terminal
 
-Real runs of the command-line tools, recorded once and kept as text, colours and all. Under each one: the version, what it ran on and the day it was recorded.
+Real runs of the command-line tools — {{ <vh.ref name="cnt" /> }}, {{ <vh.ref name="WireWeaver" /> }}'s `ww`, {{ <vh.ref name="embedded_bedrock" /> }}'s `bedrock-lint` and {{ <vh.ref name="ExactUnits" /> }} — recorded once and kept as text, colours and all. Under each one: the version, what it ran on and the day it was recorded.
 
-{{ <vh.term id="cnt-tui" n="6" prompt={false} caption="cnt tui: event counters and defmt logs of a running board" /> }}
+{{ <vh.term id="cnt-tui" n="6" prompt={false} caption="cnt tui: a board's event counters and its firmware's defmt logs through a debug probe — here, a B135 USB to CAN FD bridge while a host talks to it" /> }}
 
-{{ <vh.ref name="cnt" /> }} reads the event counters of a running board through a debug probe and shows the firmware's defmt logs under them. Here it watches a {{ <vh.ref name="B135" /> }} USB to CAN FD bridge while a host talks to it.
+{{ <vh.term id="ww-api-tree" n="7" caption="WireWeaver's ww api tree: every method, stream and property of a device API with its number on the wire — here, the GPIO example's ports of pins" /> }}
 
-{{ <vh.term id="ww-api-tree" n="7" caption="ww api tree: a device API, resource by resource" /> }}
+{{ <vh.term id="ww-api-check" n="8" prompt={false} caption="ww api check: checks an API against the snapshot from its last release and judges whether the version bump is enough — a trailing argument on led_on with a default stays wire-compatible even though the Rust signature changed, so the check still asks for a bump but says the wire itself is fine; one without a default breaks an old client's bytes outright, and the check names the bump it needs" /> }}
 
-{{ <vh.ref name="WireWeaver" /> }}'s `ww` prints the tree of an API: every method, stream and property, with the number it has on the wire. This one is the GPIO example, ports of pins.
+{{ <vh.term id="bedrock-lint" n="9" caption="embedded_bedrock's bedrock-lint reads a firmware crate and its build files and reports what could hang, crash or brick the board in the field, each with a fix — here, checking a small test firmware" /> }}
 
-{{ <vh.term id="ww-api-check" n="8" prompt={false} caption="ww api check: a safe trailing argument next to one that breaks old clients" /> }}
-
-`ww api check` compares an API with the snapshot saved at its last release, and says whether the new version number is enough. A trailing argument on `led_on` with a `#[default]` stays wire-compatible: an old client and a new device still talk, and the other way round. Its Rust signature still changed, so the check still asks for a bump, and says plainly that the wire itself is fine. One without a default breaks an old client's bytes outright, so the check fails and names the bump it needs.
-
-{{ <vh.term id="bedrock-lint" n="9" caption="bedrock-lint: what could hang or brick a board in the field" /> }}
-
-{{ <vh.ref name="embedded_bedrock" /> }}'s `bedrock-lint` reads a firmware crate and its build files, and reports what could hang, crash or brick the board in the field, each with a fix. Here it checks a small test firmware.
-
-{{ <vh.term id="exact-units-error" n="10" caption="ExactUnits: a torque is not an energy" /> }}
-
-With {{ <vh.ref name="ExactUnits" /> }}, converting a torque in N·m to an energy in joules does not compile: the angle is a dimension, and the message says so.
+{{ <vh.term id="exact-units-error" n="10" caption="ExactUnits: converting a torque in N·m to an energy in joules does not compile — the angle is a dimension, and the message says so" /> }}
