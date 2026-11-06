@@ -85,11 +85,18 @@ def wordmark_png(width, height):
 
 
 def draw_corner_marks(canvas):
+    """Each corner as one flush L: a horizontal and a vertical bar sharing a MARK_W x MARK_W square at the
+    pivot, like .fig-frame's CSS corners (two overlapping bars, not two separately-capped lines, which left a
+    notch at the outer corner instead of a clean square point; Roman, 6 Nov 2026)."""
     x0, y0, x1, y1 = frame_box()
     d = ImageDraw.Draw(canvas)
     for cx, cy, sx, sy in ((x0, y0, 1, 1), (x1, y0, -1, 1), (x0, y1, 1, -1), (x1, y1, -1, -1)):
-        d.line([(cx, cy), (cx + sx * MARK_LEN, cy)], fill=RED, width=MARK_W)
-        d.line([(cx, cy), (cx, cy + sy * MARK_LEN)], fill=RED, width=MARK_W)
+        hx0, hx1 = sorted((cx, cx + sx * MARK_LEN))
+        hy0, hy1 = sorted((cy, cy + sy * MARK_W))
+        d.rectangle([hx0, hy0, hx1, hy1], fill=RED)
+        vx0, vx1 = sorted((cx, cx + sx * MARK_W))
+        vy0, vy1 = sorted((cy, cy + sy * MARK_LEN))
+        d.rectangle([vx0, vy0, vx1, vy1], fill=RED)
 
 
 def compose(board_dir, view):
