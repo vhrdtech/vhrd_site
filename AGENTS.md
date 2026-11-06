@@ -234,11 +234,14 @@ per page (no blog, no articles), so `author` is the same for every page and ther
     they go on showing the old file. A change to `IMAGES` in `tools/og_images.py` is followed by the same names
     in `config.toml`'s `extra.og_image` / `extra.twitter_image` and each page's own, in its front matter.
   - **Four red corner marks sit near the card's own edges** (brand red, like `.fig-frame`'s datasheet corners;
-    an even inset from the 1200×627 canvas, not from the square crop), enclosing the headline, the board and
-    the wordmark with a margin, clear of the marks' own legs too (`content_box()` in the script): after an
-    earlier pass framed a narrower square in the middle, letting the headline bleed past it and the wordmark
-    overlap the board. LinkedIn's narrower 1:1 centre crop cuts the corners and the headline — intended, since
-    only the board needs to stay inside that one (above; Roman, round 5, 6 Nov 2026).
+    an even inset from the 1200×627 canvas, not from the square crop), enclosing the headline with a margin
+    clear of the marks' own legs (`head_top()` in the script): after an earlier pass framed a narrower square
+    in the middle, letting the headline bleed past it. LinkedIn's narrower 1:1 centre crop cuts the corners and
+    the headline — intended, since only the board needs to stay inside that one (above; Roman, round 5, 6 Nov
+    2026). The board itself may come within `BOARD_CORNER_GAP` (12-16px) of the bottom corner marks' own legs,
+    never touching them: its width never reaches the legs' own x-range (the outer ~60px either side, the board
+    nowhere near that once centred), so this is safe even that close (Roman, round 5, "board bigger, again"
+    pass, 6 Nov 2026).
   - **One red per image, not two.** The corners, the wordmark and the headline's product name are all the
     same colour: vhrd_brand's light-theme `--vhrd-red`/`--accent` (`#c8141c`) on the JPEG, its dark-theme value
     (`#f24c44`) on the PNG — not a fixed red on every image regardless of which card it sits on (Roman, round
@@ -249,21 +252,25 @@ per page (no blog, no articles), so `author` is the same for every page and ther
     Audiowide at a 40px cap height, the floor from "no small print" (every headline below fits two lines
     there). The words up to a " · " separator are in that image's one red (above); the rest is in the body
     colour.
-  - **The board is scaled to fill the band between the headline and the wordmark's row, not a fixed height
-    reserved for the worst case on every page.** `fit_headline()` measures each headline's own wrapped ink
+  - **The board fills the space between the headline's gap and the bottom margin**, not a fixed height
+    reserved for the worst case on every page: `fit_headline()` measures each headline's own wrapped ink
     height — a two-line one leaves it less room than a one-line one (/software) — so the board is bigger
-    wherever the headline takes less space, with a clearly visible gap kept between them either way (a first
-    pass sat the board right under the text; reserving one fixed band for every page, after that fix, then
-    left the board a visibly empty strip below a short headline instead of growing into it). It is centred
-    horizontally on the canvas, with margin either side of the 627×627 square crop LinkedIn and messengers make
-    from a 1.91:1 card, so the whole board stays in view there too, and above the wordmark's own row; the
-    script refuses to write a file where it wouldn't.
+    wherever the headline takes less space, with a clearly visible gap kept below the headline either way (a
+    first pass sat the board right under the text; a fixed band for every page, after that fix, then left the
+    board a visibly empty strip below a short headline instead of growing into it). It is centred horizontally
+    on the canvas, with margin either side of the 627×627 square crop LinkedIn and messengers make from a
+    1.91:1 card, so the whole board stays in view there too; the script refuses to write a file where it
+    wouldn't. The wordmark (below) now sits over the board's own area near the bottom-right corner rather than
+    in a separate row the board had to stop short of.
   - A faint white halo (blurred, low opacity, tight to the board) sits behind it: close to invisible on a white
     or light card, and just enough to keep a dark board's edge from vanishing into a black one.
-  - A VHRD.TECH wordmark (from `static/img/wordmark.svg`, in that image's one red; about 1.3× its first-round
-    size), its own ink — not the raster canvas's edge — flush with the right corners' outer vertical edge, same
-    treatment as the headline's left edge, sits in its own row at the bottom of the frame's interior, with a
-    fixed gap above the frame's bottom edge and below the board, so the two never touch.
+  - **A VHRD.TECH wordmark** (from `static/img/wordmark.svg`, in that image's one red; about 1.3× its
+    first-round size, 1.25× again this round after an earlier pass left it sitting right on the corner mark
+    with no margin at all) sits in the bottom-right, its own ink — not the raster canvas's edge — flush with
+    the right corners' outer vertical edge, the same treatment as the headline's left edge. Its baseline sits
+    `CONTENT_PAD_Y_TOP` above the frame's bottom edge: the exact same distance the headline's cap top sits
+    below the frame's top edge, a deliberate mirror (`head_top()` and the wordmark placement in `compose()`),
+    not two independent numbers (Roman, round 5, "mirror" pass, 6 Nov 2026).
   - Each image stays a few hundred KB, under the script's 1 MB budget: LinkedIn and Facebook accept files up to
     5-8 MB, but a smaller one loads faster.
   - Run it again after a change to a board's hero render, a headline, the wordmark or the script itself; `just

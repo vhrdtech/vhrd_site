@@ -76,12 +76,13 @@ MARK_LEN, MARK_W = 28, 5  # the corner marks' leg length and thickness, like .fi
 # LinkedIn's 1:1 centre crop — fine, the board alone is kept centred and big enough for that crop (Roman,
 # round 5, 6 Nov 2026).
 FRAME_MARGIN = 32
-# Everything — headline, board, wordmark — stays inside the corner-marked frame with its own margin, clear of
-# the corner marks' own legs too: both trimmed to the minimum that still clears those legs, to leave the board
-# as much of the frame's interior as possible (Roman, round 5, "board bigger" pass, 6 Nov 2026).
+# The headline's top, clear of the top corner marks' own legs (MARK_LEN tall) with a small margin: "the
+# headline's cap top" sits this far below the frame's own top edge. The wordmark's bottom (its baseline)
+# mirrors this same gap up from the frame's bottom edge (BOARD_CORNER_GAP and the wordmark placement in
+# compose(), below) — the same distance on both ends, by design, not two independent numbers (Roman, round 5,
+# "mirror" pass, 6 Nov 2026).
 CONTENT_PAD_X = 16
 CONTENT_PAD_Y_TOP = MARK_LEN + 2
-CONTENT_PAD_Y_BOTTOM = MARK_LEN
 
 # The headline: Audiowide (the wordmark's face), its capital letters' ink flush with the left corners' own
 # outer edge (not an extra inset — "the D of Donguru" sits on the imaginary line the corner marks' vertical
@@ -100,11 +101,15 @@ HEAD_BOARD_GAP = 22  # a clearly visible gap (the headline sat right on top of t
 # 16): less than the 32 the previous pass used, traded for a bigger board, but still twice that original gap.
 
 # The board's own bounding box (the render's margin is transparent) is scaled to fit this box, centred
-# horizontally on the canvas and vertically in the band below the headline and above the wordmark, well inside
-# the HxH square a square crop keeps.
+# horizontally on the canvas and vertically in the band below the headline and its gap. Its bottom edge may
+# now come within BOARD_CORNER_GAP of the bottom corner marks' own legs — closer than the margin the headline
+# and the wordmark keep, since the board's width never reaches the legs' x-range (they sit only in the outer
+# ~60px either side, the board nowhere near that once centred within SAFE_W) — never touching them, but no
+# longer held back by the wordmark either: the wordmark now sits over the board's own area near the corner,
+# not in a separate row below it (Roman, round 5, "board bigger, again" pass, 6 Nov 2026).
 SAFE_W = 580
-WORDMARK_H = 26  # 1.3x the wordmark's original 20px (Roman, round 5, 6 Nov 2026)
-BOARD_WORDMARK_GAP = 4
+BOARD_CORNER_GAP = 14  # within Roman's given 12-16px
+WORDMARK_H = 33  # 1.25x the previous round's 26px (Roman, round 5, "mirror" pass, 6 Nov 2026)
 # A soft dark shadow behind the white PNG headline (not an outline, which read as hollow), so it still reads on
 # a light background once a platform composites the transparency away.
 SHADOW_COLOR = (8, 8, 10, 170)
@@ -157,11 +162,10 @@ def frame_box():
     return FRAME_MARGIN, FRAME_MARGIN, W - FRAME_MARGIN, H - FRAME_MARGIN
 
 
-def content_box():
-    """The frame's interior, clear of the corner marks' own legs: everything drawn (headline, board, wordmark)
-    stays inside this box."""
-    fx0, fy0, fx1, fy1 = frame_box()
-    return fx0 + CONTENT_PAD_X, fy0 + CONTENT_PAD_Y_TOP, fx1 - CONTENT_PAD_X, fy1 - CONTENT_PAD_Y_BOTTOM
+def head_top():
+    """The headline's cap top: this far below the frame's own top edge, clear of the top corner marks' own
+    legs. The wordmark's bottom mirrors this same distance up from the frame's bottom edge (compose())."""
+    return frame_box()[1] + CONTENT_PAD_Y_TOP
 
 
 def board_render(board_dir, view):
@@ -278,7 +282,7 @@ def draw_headline(canvas, font, lines, x_start, line_pitch, headline, fill, acce
     """The headline already fit by fit_headline, painted at the top of the frame's interior: the words up to
     " · " in accent (this image's one red), the rest in fill. shadow draws a soft dark halo behind the text
     first (the PNG variant, for a light background), rather than an outline."""
-    cy0 = content_box()[1]
+    cy0 = head_top()
     dot_at = next((i for i, w in enumerate(headline.split(" ")) if w == "·"), None)
     space = font.getlength(" ")
 
@@ -305,10 +309,11 @@ def draw_headline(canvas, font, lines, x_start, line_pitch, headline, fill, acce
 
 
 def compose(board_dir, view, headline, font_path, headline_fill, red, headline_shadow=False):
-    cx0, cy0, cx1, cy1 = content_box()
+    fy1 = frame_box()[3]
+    cy0 = head_top()
     font, lines, x_start, line_pitch, head_h = fit_headline(font_path, headline)
     board_top = cy0 + head_h + HEAD_BLOCK_BUFFER + HEAD_BOARD_GAP
-    board_bottom_max = cy1 - WORDMARK_H - BOARD_WORDMARK_GAP
+    board_bottom_max = fy1 - BOARD_CORNER_GAP
     safe_h = board_bottom_max - board_top
 
     board = board_render(board_dir, view)
@@ -333,12 +338,16 @@ def compose(board_dir, view, headline, font_path, headline_fill, red, headline_s
     canvas.alpha_composite(board, (x, y))
     draw_corner_marks(canvas, red)
 
-    # The wordmark sits in its own row at the bottom of the frame's interior, its own ink flush with the right
-    # corners' outer vertical edge (the same treatment as the headline's left edge, above), with a fixed gap
-    # above the frame's bottom edge and below the board, so the two never touch (Roman, round 5, 6 Nov 2026).
+    # The wordmark's baseline sits CONTENT_PAD_Y_TOP above the frame's bottom edge — the same distance up as
+    # the headline's cap top sits down from the frame's top edge, a deliberate mirror, not two independent
+    # numbers — its own ink flush with the right corners' outer vertical edge (the same treatment as the
+    # headline's left edge, above). It now sits over the board's own area near that corner, not in a separate
+    # row below it: the board's bottom edge is free to run past where the wordmark used to hold it back
+    # (Roman, round 5, "mirror" pass, 6 Nov 2026).
     fx1 = frame_box()[2]
     wm = wordmark_png(round(WORDMARK_H * 13424 / 1434), WORDMARK_H, red)
-    wm_x, wm_y = fx1 - wm.width, cy1 - wm.height
+    wm_bottom = fy1 - CONTENT_PAD_Y_TOP
+    wm_x, wm_y = fx1 - wm.width, wm_bottom - wm.height
     canvas.alpha_composite(wm, (wm_x, wm_y))
 
     draw_headline(canvas, font, lines, x_start, line_pitch, headline, headline_fill, red, headline_shadow)
