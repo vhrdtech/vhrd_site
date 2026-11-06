@@ -22,7 +22,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 - `static/css/brand/`: `tokens.css` and `vhrd.css` from vhrd_brand (`just brand`). Never edit these here; change vhrd_brand and pull.
 - `static/css/site.css`: the site's own layer. `base.html` inlines all the CSS (fonts.css, the brand files and site.css) into each page with `load_data`, so there is no render-blocking request. A part only some pages have keeps its styles in its own file, inlined only where `extra.styles` names it (`intro.css`, `stack.css`, `term.css`; "Performance" below). A light flash between pages in desktop Firefox is Firefox's own tab background, not the site's: "The light blink between pages in Firefox" below before chasing it again. `static/js/site.js`: theme toggle, tabs, the image placeholders' marking and the signup form's fetch, nothing else.
 - `static/fonts/`: IBM Plex woff2 subsets and `fonts.css` ("Brand and fonts" below). `static/img/boards/` holds board renders (`just renders`, "Board renders" below) and `static/img/lab/` lab photos.
-- `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check, `tools/perf.py` measures the first screen on a slow phone, `tools/fonts.py` cuts the Core font subsets and the small Greek faces (Ω, μ) from vhrd_brand's full fonts, `tools/og_images.py` writes the link-preview images under `static/img/og/` ("Link previews" below).
+- `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check, `tools/perf.py` measures the first screen on a slow phone, `tools/fonts.py` cuts the Core font subsets and the small Greek faces (Ω, μ) from vhrd_brand's full fonts, `tools/og_images.py` renders `assets/og/*.svg` (the share images' layout) into `static/img/og/` with resvg ("Link previews" below).
 - `server/`: the Cargo workspace (`Cargo.toml` at the root) of the notify service: `vhrd_notify` (library: `email.rs` the address check, `store.rs` the intake and the records, `list.rs` what happens to a record, `token.rs` the links' tokens, `mail.rs` composing and sending a mail, `outbox.rs` the worker, `limit.rs` the rate limit, `server.rs` the signup endpoint, `links.rs` the confirm, remove and unsubscribe endpoints, `config.rs` the settings; `mail/confirm.txt` the confirmation text), `vhrd_notify_cli` (the `vhrd_notify` binary: serve, list, count, export, send, mail-test, delete) and `vhrd_notify_activate` (the activator that takes a release the Deploy workflow uploaded, root's on the server, a crate of its own so an upload never checks itself; its end-to-end tests in `tests/activate.rs` are also the fake systemctl and service, and run one at a time, `.config/nextest.toml`). `deploy/notify.toml` is its settings on the server, `deploy/vhrd-notify.service` its user unit (user vhrd-notify), `deploy/vhrd-notify-activate.path` and `.service` the activator's units, `deploy/nginx-notify.conf` the nginx block, `ship.toml` what `tpm ship` ships when GitHub can't (fallback only). Dependencies without default features and with no C library (no SQLite: the store is a plain file at this size).
 - `content/privacy.md`: the privacy note the forms link to. Any change to what the site or the service keeps changes it in the same commit.
 - `.github/workflows/deploy.yml`: the only way the site and the notify service reach vhrd.tech ("Deploy" below); `.github/deploy/known_hosts` pins the server's host key. `tools/check_live.py` checks a live build before upload and the site after it. `tools/notify_plan.py` decides whether a run ships the notify service.
@@ -202,7 +202,7 @@ per page (no blog, no articles), so `author` is the same for every page and ther
   Facebook composite a transparent image onto their card themselves and, where they don't honour the alpha
   channel, fill it with a dull grey rather than the card's white, which reads as a worse block than a plain
   white background would (Roman, round 4). X reads `twitter:image` first and shows it on its own light or dark
-  theme, so it keeps the transparent PNG. `og:image` is `img/og/default-4.jpg` by default; `/donguru`,
+  theme, so it keeps the transparent PNG. `og:image` is `img/og/default-5.jpg` by default; `/donguru`,
   `/pinsmith`, `/can`, `/software` and `/work` each show their own board and headline, as both files.
 - **The canvas stays exactly 1200×627 (1.91:1), never 1200×630.** 1.91:1 is the minimum ratio LinkedIn needs to
   show an organic post's large card at all; a 1200×630 canvas is 1.905:1, just under that line, and drops to
@@ -216,64 +216,44 @@ per page (no blog, no articles), so `author` is the same for every page and ther
   Facebook, Slack, messengers). The corner marks sit near the card's own edges (below), wider than that square
   crop, so LinkedIn's crop cuts them and the headline along with it — that is fine, since only the board needs
   to survive it, and it does (Roman, round 5).
-- `just og` (`tools/og_images.py`, uv, Pillow and cairosvg) takes vhrd_brand's Audiowide ttf (the same one `just
-  wordmark` uses; the font itself is baked into these raster images, never shipped) and composes, per page, a
-  large headline in it above a board's hero render, inside the 1200×627 canvas, then writes each as two files:
-  - `static/img/og/<name>.png`, on a **transparent** background, a truecolour RGBA PNG, lossless, no palette
-    quantization (a 256-colour palette version came out blurry and posterised on LinkedIn's Post Inspector,
-    Roman, 6 Nov 2026) — `extra.twitter_image`. The headline is solid white with a soft dark shadow behind it
-    (not an outline, which read as hollow once X composited the transparency away), so it still shows some
-    contrast on X's light theme and reads clearly on its two dark ones.
-  - `static/img/og/<name>.jpg`, the same frame flattened onto **white**, a baseline (not progressive) JPEG,
-    quality 90, 4:4:4 chroma (no subsampling) — `extra.og_image`. The headline is solid near-black (vhrd_brand's
-    light-theme text colour), no shadow needed on its own white card.
-  `tools/check_live.py built` (`just test` and `just live`) ships a `.png` or `.jpg` only under `img/og/`: every
-  other PNG or JPEG (a board render's source, "Board renders" above) still stops the build.
-  - **Each file name carries a version** (`default-4.png`/`.jpg`, not `default.png`): LinkedIn, Facebook and
+- **The layout lives in SVG, not Python.** Each share image is a plain SVG under `assets/og/`
+  (`default.svg`, `donguru.svg`, `pinsmith.svg`, `can.svg`, `software.svg`, `work.svg`), 1200×627, holding the
+  whole frame: the four red corner marks, the headline as real `<text>`/`<tspan>` in Audiowide (not paths,
+  so it edits like any other text), the board picture as an `<image>` with a relative `href` to its existing
+  hero render under `static/img/boards/` (no separate cropped asset: the hero PNG's own transparent margin is
+  thin enough to reference directly), and the VHRD.TECH wordmark as the same outline `<path>`s copied from
+  `static/img/wordmark.svg`. **To change one:** open its SVG in Inkscape or a text editor, edit the text,
+  save as plain SVG, then run `just og` to re-render every image. Every coloured element carries a class
+  (`.ink`, `.red`, `.muted`, `.headline-shadow`) instead of its own `fill`, so a stylesheet can recolour it
+  (below); each SVG's own inline `<style>` gives it the light look by default, so opening the raw file looks
+  right without resvg.
+- **Two looks from the same file, by stylesheet.** [resvg](https://github.com/linebender/resvg) (Rust,
+  installed by `just install`, pinned in `justfile`'s `resvg_version`/`resvg_sha256` the way `zola_version`
+  is) renders each SVG twice, with `--stylesheet`:
+  - `assets/og/light.css`: the `og:image` look — a white card (`.bg` shown), near-black headline (`.ink`),
+    the light-theme red (`.red` `#c8141c`), no headline shadow.
+  - `assets/og/dark.css`: the `twitter:image` look — a transparent card (`.bg` hidden), white headline with a
+    soft dark shadow (`.headline-shadow` turns on the SVG's own `<filter>`, so it still reads once a platform
+    composites the transparency onto its own background), the dark-theme red (`#f24c44`).
+  Both stylesheets mark every rule `!important`, since they need to beat the SVG's own inline default.
+- `just og` (`tools/og_images.py`, uv and Pillow; the font path from vhrd_brand, the same one `just wordmark`
+  uses, never shipped itself) is now a thin wrapper with no layout logic: for each of the six names it shells
+  out to resvg twice (light and dark) and writes two files:
+  - `static/img/og/<name>.png`: resvg's own dark-look render, a truecolour RGBA PNG with alpha, unchanged —
+    `extra.twitter_image`.
+  - `static/img/og/<name>.jpg`: resvg's light-look render flattened onto white and saved as a baseline (not
+    progressive) JPEG, quality 90, 4:4:4 chroma (no subsampling) — `extra.og_image`.
+  Both are asserted exactly 1200×627. `tools/check_live.py built` (`just test` and `just live`) ships a `.png`
+  or `.jpg` only under `img/og/`: every other PNG or JPEG (a board render's source, "Board renders" above)
+  still stops the build.
+  - **Each file name carries a version** (`default-5.png`/`.jpg`, not `default.png`): LinkedIn, Facebook and
     Telegram cache a link's preview by its image URL, so a change to an image itself needs a new name too, or
-    they go on showing the old file. A change to `IMAGES` in `tools/og_images.py` is followed by the same names
-    in `config.toml`'s `extra.og_image` / `extra.twitter_image` and each page's own, in its front matter.
-  - **Four red corner marks sit near the card's own edges** (brand red, like `.fig-frame`'s datasheet corners;
-    an even inset from the 1200×627 canvas, not from the square crop), enclosing the headline with a margin
-    clear of the marks' own legs (`head_top()` in the script): after an earlier pass framed a narrower square
-    in the middle, letting the headline bleed past it. LinkedIn's narrower 1:1 centre crop cuts the corners and
-    the headline — intended, since only the board needs to stay inside that one (above; Roman, round 5, 6 Nov
-    2026). The board itself may come within `BOARD_CORNER_GAP` (12-16px) of the bottom corner marks' own legs,
-    never touching them: its width never reaches the legs' own x-range (the outer ~60px either side, the board
-    nowhere near that once centred), so this is safe even that close (Roman, round 5, "board bigger, again"
-    pass, 6 Nov 2026).
-  - **One red per image, not two.** The corners, the wordmark and the headline's product name are all the
-    same colour: vhrd_brand's light-theme `--vhrd-red`/`--accent` (`#c8141c`) on the JPEG, its dark-theme value
-    (`#f24c44`) on the PNG — not a fixed red on every image regardless of which card it sits on (Roman, round
-    5, "one red" pass, 6 Nov 2026).
-  - **The headline** sits at the top of the frame's interior, its first line's leading glyph's own ink — not
-    the font's left side bearing — flush with the left corners' outer vertical edge, the same line their
-    strokes draw ("the D of Donguru" exactly on it, every image; Roman, round 5, 6 Nov 2026). Up to two lines,
-    Audiowide at a 40px cap height, the floor from "no small print" (every headline below fits two lines
-    there). The words up to a " · " separator are in that image's one red (above); the rest is in the body
-    colour.
-  - **The board fills the space between the headline's gap and the bottom margin**, not a fixed height
-    reserved for the worst case on every page: `fit_headline()` measures each headline's own wrapped ink
-    height — a two-line one leaves it less room than a one-line one (/software) — so the board is bigger
-    wherever the headline takes less space, with a clearly visible gap kept below the headline either way (a
-    first pass sat the board right under the text; a fixed band for every page, after that fix, then left the
-    board a visibly empty strip below a short headline instead of growing into it). It is centred horizontally
-    on the canvas, with margin either side of the 627×627 square crop LinkedIn and messengers make from a
-    1.91:1 card, so the whole board stays in view there too; the script refuses to write a file where it
-    wouldn't. The wordmark (below) now sits over the board's own area near the bottom-right corner rather than
-    in a separate row the board had to stop short of.
-  - A faint white halo (blurred, low opacity, tight to the board) sits behind it: close to invisible on a white
-    or light card, and just enough to keep a dark board's edge from vanishing into a black one.
-  - **A VHRD.TECH wordmark** (from `static/img/wordmark.svg`, in that image's one red; about 1.3× its
-    first-round size, 1.25× again this round after an earlier pass left it sitting right on the corner mark
-    with no margin at all) sits in the bottom-right, its own ink — not the raster canvas's edge — flush with
-    the right corners' outer vertical edge, the same treatment as the headline's left edge. Its baseline sits
-    `CONTENT_PAD_Y_TOP` above the frame's bottom edge: the exact same distance the headline's cap top sits
-    below the frame's top edge, a deliberate mirror (`head_top()` and the wordmark placement in `compose()`),
-    not two independent numbers (Roman, round 5, "mirror" pass, 6 Nov 2026).
-  - Each image stays a few hundred KB, under the script's 1 MB budget: LinkedIn and Facebook accept files up to
-    5-8 MB, but a smaller one loads faster.
-  - Run it again after a change to a board's hero render, a headline, the wordmark or the script itself; `just
+    they go on showing the old file. A change to `NAMES` in `tools/og_images.py` is followed by the same
+    names in `config.toml`'s `extra.og_image` / `extra.twitter_image` and each page's own, in its front
+    matter.
+  - Each image stays a few hundred KB, under the script's 1 MB budget: LinkedIn and Facebook accept files up
+    to 5-8 MB, but a smaller one loads faster.
+  - Run it again after a change to a board's hero render, a headline, the wordmark or an SVG itself; `just
     test` does not rebuild it.
 - `tools/check_pages.py` (`just test`) checks every page: `og:image` is an absolute URL to a real 1200×627
   truecolour JPEG at or above the 1.91:1 ratio, matching its own `og:image:width`/`height` and
