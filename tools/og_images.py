@@ -2,22 +2,29 @@
 # requires-python = ">=3.11"
 # dependencies = ["pillow>=10", "cairosvg>=2.7"]
 # ///
-"""Write the link-preview images (og:image, twitter:image) under static/img/og/: a board render on a transparent
-background, framed with the brand's red corner marks and a small red wordmark, inside a 1200x627 canvas (1.91:1,
-what LinkedIn, Facebook and X use for a large card), as truecolour RGBA PNGs (no palette quantization: a
-quantized version once came out blurry and posterised on LinkedIn's Post Inspector, Roman, 6 Nov 2026).
+"""Write the link-preview images under static/img/og/: a board render framed with the brand's red corner marks
+and a small red wordmark, inside a 1200x627 canvas (1.91:1, what LinkedIn, Facebook and X use for a large card),
+in two formats:
+
+- A truecolour RGBA PNG (no palette quantization: a quantized version once came out blurry and posterised on
+  LinkedIn's Post Inspector, Roman, 6 Nov 2026), on a transparent background, for twitter:image: X reads
+  twitter:image first and shows it on its own light or dark theme.
+- A truecolour JPEG (quality ~90, 4:4:4 chroma, no subsampling, progressive off), the same frame flattened onto
+  white, for og:image: LinkedIn and Facebook show a card on white and fill a transparent image with a dull grey
+  instead, which read as a worse block than a plain white background (Roman, round 4 of link previews).
 
 Usage: uv run tools/og_images.py   (just og)
 
-Each page's og:image is either the site default (config.toml extra.og_image) or its own extra.og_image
-(templates/base.html); /donguru, /pinsmith, /can, /software and /work each show their own board. The board sits
-inside SAFE_W x SAFE_H, centred, well inside the square crop (image height x image height) that LinkedIn,
-messengers and some crawlers make from a wide card, so the whole board and the frame stay in view there too.
-tools/check_pages.py checks every page's og:image exists at 1200x627 and is truecolour, not a palette image.
-`--check` also writes the default image's two crops, and composited onto the backgrounds the platforms that
-don't honour transparency fill it with (white, X's dark themes, Facebook's grey), into target/shots. A change to
-IMAGES's file names here must be followed by the same names in config.toml, every page's extra.og_image and
-AGENTS.md, so a platform that caches a preview by its image URL fetches the new file instead of the old.
+Each page's og:image and twitter:image are either the site defaults (config.toml extra.og_image,
+extra.twitter_image) or its own (templates/base.html); /donguru, /pinsmith, /can, /software and /work each show
+their own board. The board sits inside SAFE_W x SAFE_H, centred, well inside the square crop (image height x
+image height) that LinkedIn, messengers and some crawlers make from a wide card, so the whole board and the
+frame stay in view there too. tools/check_pages.py checks every page's og:image is a 1200x627 truecolour JPEG
+and its twitter:image a 1200x627 truecolour PNG with alpha. `--check` also writes the default PNG's two crops,
+composited onto the backgrounds the platforms that don't honour transparency fill it with (X's dark themes,
+Facebook's grey), into target/shots. A change to IMAGES's file names here must be followed by the same names in
+config.toml, every page's extra.og_image / extra.twitter_image and AGENTS.md, so a platform that caches a
+preview by its image URL fetches the new file instead of the old.
 """
 
 import io
@@ -36,10 +43,12 @@ W, H = 1200, 627
 # The board's own bounding box (the render's margin is transparent) is scaled to fit this box, centred on the
 # canvas: well inside the HxH square a square crop keeps, with margin either side (vertically, the full height).
 SAFE_W, SAFE_H = 580, 480
-# Truecolour RGBA, lossless: a few hundred KB each (LinkedIn and Facebook accept up to 5-8 MB; this stays well
-# under that while loading fast). Quantizing to a 256-colour palette once made these blurry and posterised on
-# LinkedIn's Post Inspector (Roman, 6 Nov 2026), so there is no quantize step any more.
+# Truecolour, a few hundred KB each at most (LinkedIn and Facebook accept up to 5-8 MB; this stays well under
+# that while loading fast). Quantizing the PNG to a 256-colour palette once made it blurry and posterised on
+# LinkedIn's Post Inspector (Roman, 6 Nov 2026), so there is no quantize step there.
 BUDGET_KB = 1024
+JPEG_QUALITY = 90  # no subsampling (4:4:4) and not progressive, so a scraper that reads only the first bytes of
+# a progressive JPEG (or one that chokes on 4:2:0 chroma) still gets the whole, sharp image
 
 RED = (242, 76, 68, 255)  # vhrd_brand dark.red (#f24c44): reads on a white card and on a dark one alike
 GLOW = (255, 255, 255, 16)  # a faint halo behind the board, just enough that a dark board's edge doesn't vanish
@@ -47,19 +56,24 @@ GLOW = (255, 255, 255, 16)  # a faint halo behind the board, just enough that a 
 MARK_LEN, MARK_W = 28, 5  # the corner marks' leg length and thickness, like .fig-frame's but sized for this canvas
 FRAME_PAD = 20  # the corner-marked frame sits this far inside the square crop's left/right edges (and top/bottom)
 
-# name (static/img/og/<name>.png), the board's render directory, its view, and the image's alt text. The name
-# carries a "-2" so LinkedIn, Facebook and Telegram, which cache a preview by its image URL, fetch the new
-# truecolour file instead of the first, paletted one they already have (Roman, 6 Nov 2026).
+# the PNG's name (static/img/og/<png_name>.png, transparent, for twitter:image), the JPEG's name (<jpg_name>.jpg,
+# flattened onto white, for og:image), the board's render directory, its view, and the image's alt text. Each
+# name carries a version so LinkedIn, Facebook and Telegram, which cache a preview by its image URL, fetch the
+# new file instead of one they already have: "-2" for the truecolour PNG (Roman, 6 Nov 2026), "-3" for the JPEG
+# split off it (Roman, round 4 of link previews).
 IMAGES = [
-    ("default-2", "b153-donguru", "hero", "Donguru (B153), a USB-C dongle PCB, framed by red corner marks and the VHRD.TECH wordmark"),
-    ("pinsmith-2", "b200-re-port", "hero", "Pinsmith (B200), a USB I/O PCB, framed by red corner marks and the VHRD.TECH wordmark"),
-    ("can-2", "b125-eth-2fdcan", "hero", "An Ethernet to dual isolated CAN FD bridge PCB (B125), framed by red corner marks and the VHRD.TECH wordmark"),
-    ("software-2", "b129-cannify-micro", "hero", "CANnify Micro (B129), a breadboard CAN FD node PCB, framed by red corner marks and the VHRD.TECH wordmark"),
-    ("work-2", "b135-usb-fdcan", "hero", "A USB to isolated CAN FD bridge PCB (B135), framed by red corner marks and the VHRD.TECH wordmark"),
+    ("default-2", "default-3", "b153-donguru", "hero", "Donguru (B153), a USB-C dongle PCB, framed by red corner marks and the VHRD.TECH wordmark"),
+    ("pinsmith-2", "pinsmith-3", "b200-re-port", "hero", "Pinsmith (B200), a USB I/O PCB, framed by red corner marks and the VHRD.TECH wordmark"),
+    ("can-2", "can-3", "b125-eth-2fdcan", "hero", "An Ethernet to dual isolated CAN FD bridge PCB (B125), framed by red corner marks and the VHRD.TECH wordmark"),
+    ("software-2", "software-3", "b129-cannify-micro", "hero", "CANnify Micro (B129), a breadboard CAN FD node PCB, framed by red corner marks and the VHRD.TECH wordmark"),
+    ("work-2", "work-3", "b135-usb-fdcan", "hero", "A USB to isolated CAN FD bridge PCB (B135), framed by red corner marks and the VHRD.TECH wordmark"),
 ]
 
-# Backgrounds the platforms fill transparency with instead of honouring it (LinkedIn and X show the image as it
-# is): Facebook/Messenger's card grey, and X's own light and dark themes.
+# Backgrounds the transparent PNG (twitter:image) might be filled with instead of its own alpha: X's three
+# themes (light, dim and lights-out) and Facebook/Messenger's card grey. LinkedIn no longer gets this file at
+# all: og:image is the JPEG on white, since LinkedIn's Post Inspector showed the PNG blurry even once it was
+# truecolour, and filled a transparent image's alpha with a dull grey rather than its own white card (Roman,
+# round 4 of link previews, 6 Nov 2026).
 PLATFORM_BACKGROUNDS = [
     ("white", (255, 255, 255)),
     ("xblack", (0, 0, 0)),
@@ -152,24 +166,32 @@ def write_shots(img):
     print(f"{shots}/og2-*.png written ({len(PLATFORM_BACKGROUNDS)} backgrounds x 2 crops)")
 
 
+def write_image(path, img, fmt, **kwargs):
+    img.save(path, fmt, **kwargs)
+    kb = path.stat().st_size / 1024
+    print(f"{path.relative_to(ROOT)}: {img.width}x{img.height}, {kb:.0f} KB")
+    if kb > BUDGET_KB:
+        sys.exit(f"{path}: {kb:.0f} KB, over the {BUDGET_KB} KB budget")
+
+
 def main():
     check = "--check" in sys.argv
     OUT.mkdir(parents=True, exist_ok=True)
-    for name, board_dir, view, _ in IMAGES:
+    for png_name, jpg_name, board_dir, view, _ in IMAGES:
         img, bbox = compose(board_dir, view)
         # the square crop LinkedIn and messengers make from a 1.91:1 card: the middle H x H of the canvas
         square_left, square_right = (W - H) // 2, (W - H) // 2 + H
         if bbox[0] < square_left or bbox[2] > square_right:
-            sys.exit(f"{name}: the board reaches x {bbox[0]}-{bbox[2]}, outside the {H}px square crop ({square_left}-{square_right})")
-        path = OUT / f"{name}.png"
+            sys.exit(f"{png_name}: the board reaches x {bbox[0]}-{bbox[2]}, outside the {H}px square crop ({square_left}-{square_right})")
         # Truecolour RGBA, lossless: no palette quantization, so the image stays sharp on LinkedIn's Post
-        # Inspector and anywhere else that renders it at less than full fidelity.
-        img.save(path, "PNG", optimize=True)
-        kb = path.stat().st_size / 1024
-        print(f"{path.relative_to(ROOT)}: {img.width}x{img.height}, {kb:.0f} KB")
-        if kb > BUDGET_KB:
-            sys.exit(f"{path}: {kb:.0f} KB, over the {BUDGET_KB} KB budget")
-        if name == "default-2" and check:
+        # Inspector and anywhere else that renders it at less than full fidelity. Kept for twitter:image.
+        write_image(OUT / f"{png_name}.png", img, "PNG", optimize=True)
+        # The same frame flattened onto white, for og:image: quality ~90, 4:4:4 chroma (subsampling=0) and not
+        # progressive, so LinkedIn and Facebook show it sharp on the white card they composite it onto.
+        flat = Image.new("RGB", (W, H), (255, 255, 255))
+        flat.paste(img, (0, 0), img)
+        write_image(OUT / f"{jpg_name}.jpg", flat, "JPEG", quality=JPEG_QUALITY, subsampling=0, progressive=False, optimize=True)
+        if png_name == "default-2" and check:
             write_shots(img)
 
 

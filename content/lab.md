@@ -1,6 +1,6 @@
 +++
 title = "Lab"
-description = "The electronics lab where VHRD's boards are designed, built and tested."
+description = "The electronics lab where VHRD's boards are designed, built and tested: soldering and rework gear, a CNC router, a pick-and-place machine and a reflow oven."
 template = "lab.html"
 
 [extra]

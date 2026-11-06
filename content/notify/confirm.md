@@ -1,6 +1,6 @@
 +++
 title = "Confirm your address"
-description = "Press the button to put your address on the Donguru launch list."
+description = "Press the button on this page to confirm your address and join the Donguru launch list; nothing is added to the list until you confirm it here."
 path = "notify/confirm/"
 template = "notify-link.html"
 

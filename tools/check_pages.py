@@ -130,7 +130,15 @@ IMAGES_WITHOUT = """() => [...document.images]
   .map((i) => i.currentSrc || i.src)"""
 OG_META = """() => { const m = (s) => document.querySelector(s)?.content || null;
   return [m('meta[property="og:image"]'), m('meta[property="og:image:width"]'), m('meta[property="og:image:height"]'),
-          m('meta[property="og:image:alt"]'), m('meta[name="twitter:card"]'), m('meta[name="twitter:image"]')]; }"""
+          m('meta[property="og:image:alt"]'), m('meta[property="og:image:type"]'), m('meta[property="og:image:secure_url"]'),
+          m('meta[name="twitter:card"]'), m('meta[name="twitter:image"]')]; }"""
+# Every meta[property="og:*"] or meta[name="description"/"twitter:*"] tag, by its key: duplicates (two tags for
+# the same property, which some validators flag) show up as a key with more than one value.
+META_KEYS = """() => [...document.querySelectorAll(
+    'meta[property^="og:"], meta[name="description"], meta[name^="twitter:"]')]
+  .map((m) => m.getAttribute('property') || m.getAttribute('name'))"""
+DESCRIPTION = """() => [document.querySelector('meta[name="description"]')?.content || null,
+  document.querySelector('meta[property="og:description"]')?.content || null]"""
 
 # Photos (img/lab/) and the B135 render are never cropped: shown at their own ratio or letterboxed (contain).
 CROPPED = """() => [...document.images]
@@ -841,11 +849,24 @@ def check_placeholders(browser, base):
     return failures
 
 
-def png_is_paletted(data):
-    """True when a PNG's IHDR says it is a palette (indexed-colour) image, not truecolour: colour type 3, the
-    byte right after width/height/bit-depth. A palette image posterises on LinkedIn's Post Inspector instead of
-    showing the render's real colours (Roman, 6 Nov 2026)."""
-    return data[:8] == b"\x89PNG\r\n\x1a\n" and data[25] == 3
+def png_color_type(data):
+    """A PNG's IHDR colour type byte (the one right after width/height/bit-depth): 0 grey, 2 truecolour,
+    3 palette, 4 grey+alpha, 6 truecolour+alpha. A palette image posterises on LinkedIn's Post Inspector instead
+    of showing the render's real colours (Roman, 6 Nov 2026)."""
+    return data[25] if data[:8] == b"\x89PNG\r\n\x1a\n" else None
+
+
+def jpeg_components(data):
+    """The component count a JPEG's SOF marker names: 1 for greyscale, 3 for truecolour (YCbCr)."""
+    if data[:2] != b"\xff\xd8":
+        return None
+    i = 2
+    while i + 9 < len(data) and data[i] == 0xFF:
+        marker = data[i + 1]
+        if marker in (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF):
+            return data[i + 9]
+        i += 2 + int.from_bytes(data[i + 2:i + 4], "big")
+    return None
 
 
 def image_size(data):
@@ -862,49 +883,111 @@ def image_size(data):
     return None
 
 
+def fetch_cached(cache, url):
+    if url not in cache:
+        try:
+            with urllib.request.urlopen(url, timeout=10) as r:
+                cache[url] = (r.status, r.read())
+        except urllib.error.HTTPError as e:
+            cache[url] = (e.code, b"")
+    return cache[url]
+
+
 def check_og_image(browser, base):
-    """Every page: og:image is an absolute URL to a real 1200x627 truecolour (not palette) PNG or JPEG, matched
-    by og:image:width/height, with a non-empty og:image:alt that does not name a background colour (the images
-    are transparent now, not "on a dark background"), and twitter:card is summary_large_image with twitter:image
-    the same URL (AGENTS.md "Link previews"): so LinkedIn, Facebook, X and messengers show it instead of cropping
-    a render themselves."""
+    """Every page: og:image is an absolute URL to a real 1200x627 truecolour JPEG (LinkedIn and Facebook flatten
+    it onto a white card), matched by og:image:width/height and by its own og:image:secure_url, with a
+    non-empty og:image:alt that does not name a background colour (the boards are shown on their own now, not
+    "on a dark background"). twitter:card is summary_large_image with its own twitter:image, a different,
+    absolute URL to a real 1200x627 truecolour PNG with an alpha channel (X reads twitter:image first and shows
+    it on its own light or dark theme; AGENTS.md "Link previews", Roman, round 4)."""
     failures = []
     ctx = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
     page = ctx.new_page()
     cache = {}
     for path in PAGES[:-1]:
         page.goto(base + path)
-        image, mw, mh, alt, card, timg = page.evaluate(OG_META)
+        image, mw, mh, alt, itype, secure, card, timg = page.evaluate(OG_META)
         where = path or "/"
         if not image or not image.startswith("http"):
             failures.append(f"{where}: og:image is {image!r}, expected an absolute URL")
             continue
-        if card != "summary_large_image" or timg != image:
-            failures.append(f"{where}: twitter:card/image is {card!r}/{timg!r}, expected summary_large_image/{image!r}")
+        if secure != image:
+            failures.append(f"{where}: og:image:secure_url is {secure!r}, expected {image!r}")
+        if itype != "image/jpeg":
+            failures.append(f"{where}: og:image:type is {itype!r}, expected image/jpeg")
+        if card != "summary_large_image":
+            failures.append(f"{where}: twitter:card is {card!r}, expected summary_large_image")
+        if not timg or not timg.startswith("http"):
+            failures.append(f"{where}: twitter:image is {timg!r}, expected an absolute URL")
         if not alt:
             failures.append(f"{where}: og:image:alt is empty")
         elif "background" in alt.lower():
             failures.append(f"{where}: og:image:alt names a background colour: {alt!r}")
-        if image not in cache:
-            try:
-                with urllib.request.urlopen(image, timeout=10) as r:
-                    cache[image] = (r.status, r.read())
-            except urllib.error.HTTPError as e:
-                cache[image] = (e.code, b"")
-        status, data = cache[image]
+
+        status, data = fetch_cached(cache, image)
         if status != 200:
             failures.append(f"{where}: og:image {image} answers {status}")
+        elif data[:2] != b"\xff\xd8":
+            failures.append(f"{where}: og:image {image} is not a JPEG")
+        elif jpeg_components(data) != 3:
+            failures.append(f"{where}: og:image {image} is not truecolour (JPEG with {jpeg_components(data)} components)")
+        else:
+            size = image_size(data)
+            if size != (1200, 627):
+                failures.append(f"{where}: og:image {image} is {size}, expected 1200x627")
+            if (mw, mh) != (str(size[0]), str(size[1])):
+                failures.append(f"{where}: og:image:width/height is {mw}/{mh}, the file is {size[0]}x{size[1]}")
+
+        if timg and timg.startswith("http"):
+            status, data = fetch_cached(cache, timg)
+            if status != 200:
+                failures.append(f"{where}: twitter:image {timg} answers {status}")
+            elif png_color_type(data) != 6:
+                failures.append(f"{where}: twitter:image {timg} is not a truecolour PNG with alpha (colour type {png_color_type(data)})")
+            elif image_size(data) != (1200, 627):
+                failures.append(f"{where}: twitter:image {timg} is {image_size(data)}, expected 1200x627")
+    ctx.close()
+    return failures
+
+
+def check_descriptions(browser, base):
+    """Every page: meta description and og:description are the same text (AGENTS.md sets both from the page's
+    own description, or the site default), and between 100 and 160 characters, long enough for LinkedIn,
+    Facebook and search results to show without truncation to "..." but short enough not to be cut there
+    either (Post Inspector round 4, Roman)."""
+    failures = []
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
+    page = ctx.new_page()
+    for path in PAGES[:-1]:
+        page.goto(base + path)
+        desc, og_desc = page.evaluate(DESCRIPTION)
+        where = path or "/"
+        if not desc:
+            failures.append(f"{where}: meta description is missing")
             continue
-        size = image_size(data)
-        if size is None:
-            failures.append(f"{where}: og:image {image} is not a PNG or JPEG")
-            continue
-        if png_is_paletted(data):
-            failures.append(f"{where}: og:image {image} is a palette PNG, not truecolour")
-        if (mw, mh) != (str(size[0]), str(size[1])):
-            failures.append(f"{where}: og:image:width/height is {mw}/{mh}, the file is {size[0]}x{size[1]}")
-        if size != (1200, 627):
-            failures.append(f"{where}: og:image {image} is {size[0]}x{size[1]}, expected 1200x627")
+        if og_desc != desc:
+            failures.append(f"{where}: og:description {og_desc!r} does not match meta description {desc!r}")
+        if not (100 <= len(desc) <= 160):
+            failures.append(f"{where}: description is {len(desc)} characters, expected 100-160: {desc!r}")
+    ctx.close()
+    return failures
+
+
+def check_duplicate_meta(browser, base):
+    """Every page: no og:*, twitter:* or description meta tag appears twice (some link-preview validators flag
+    a duplicate as a sign the page builds its head wrong)."""
+    failures = []
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
+    page = ctx.new_page()
+    for path in PAGES[:-1]:
+        page.goto(base + path)
+        keys = page.evaluate(META_KEYS)
+        where = path or "/"
+        seen = set()
+        for k in keys:
+            if k in seen:
+                failures.append(f"{where}: duplicate meta tag {k!r}")
+            seen.add(k)
     ctx.close()
     return failures
 
@@ -1315,6 +1398,8 @@ def main():
         failures += check_placeholders(browser, base)
         failures += check_table_contrast(browser, base)
         failures += check_og_image(browser, base)
+        failures += check_descriptions(browser, base)
+        failures += check_duplicate_meta(browser, base)
         failures += check_mail(browser, base, out)
         if out is not None:
             failures += check_notify(browser, base)

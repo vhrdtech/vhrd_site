@@ -1,6 +1,6 @@
 +++
 title = "About"
-description = "Instruments for embedded development, and the open-source software behind them."
+description = "Who makes VHRD: Roman Isaikin, the founder, in Asker, Norway, designing the boards, writing the firmware and building the software around them."
 
 [extra]
 label = "About"

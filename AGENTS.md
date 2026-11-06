@@ -195,22 +195,30 @@ Every page has `author`, `og:title`, `og:description`, `og:type`, `og:url`, `og:
 made-for-it card instead of cropping whatever render they pick out of the page themselves. There is no byline
 per page (no blog, no articles), so `author` is the same for every page and there is no `article:author`.
 
-- The image is `config.toml`'s `extra.og_image` (the Donguru hero render, `static/img/og/default-2.png`) unless
-  the page's own front matter sets `extra.og_image` (and `extra.og_image_alt`): `/pinsmith`, `/can`, `/software`
-  and `/work` each show their own board.
-- `just og` (`tools/og_images.py`, uv, Pillow and cairosvg) writes `static/img/og/<name>.png`: a board's hero
-  render, cropped to its own content, on a **transparent** background inside a 1200×627 canvas (1.91:1, what
-  LinkedIn, Facebook and X use for a large card), as a truecolour RGBA PNG, lossless, no palette quantization (a
-  256-colour palette version came out blurry and posterised on LinkedIn's Post Inspector, Roman, 6 Nov 2026). A
-  solid dark background read as a heavy black block on LinkedIn's white card; transparency lets each platform
-  show it on its own background instead (LinkedIn and X honour it; Facebook, Messenger and some others fill it
-  with their own card colour, usually white or a light grey). `tools/check_live.py built` (`just test` and `just
-  live`) ships a `.png` only under `img/og/`: every other PNG (a board render's source, "Board renders" above)
-  still stops the build.
-  - **The file name carries a version** (`default-2.png`, not `default.png`): LinkedIn, Facebook and Telegram
-    cache a link's preview by its image URL, so a change to the image itself needs a new name too, or they go
-    on showing the old file. A change to `IMAGES` in `tools/og_images.py` is followed by the same name in
-    `config.toml`'s `extra.og_image` and each page's own `extra.og_image` in its front matter.
+- **`og:image` and `twitter:image` are two different files of the same frame** (`config.toml`'s
+  `extra.og_image` / `extra.twitter_image`, or a page's own, in its front matter): a JPEG on white for
+  `og:image`, a transparent PNG for `twitter:image`. LinkedIn's Post Inspector still showed the first version's
+  transparent PNG blurry even once it was truecolour, and opengraph.xyz failed outright on it; LinkedIn and
+  Facebook composite a transparent image onto their card themselves and, where they don't honour the alpha
+  channel, fill it with a dull grey rather than the card's white, which reads as a worse block than a plain
+  white background would (Roman, round 4). X reads `twitter:image` first and shows it on its own light or dark
+  theme, so it keeps the transparent PNG. `og:image` is `img/og/default-3.jpg` by default; `/pinsmith`, `/can`,
+  `/software` and `/work` each show their own board, as both files.
+- `just og` (`tools/og_images.py`, uv, Pillow and cairosvg) composes a board's hero render, cropped to its own
+  content, inside a 1200×627 canvas (1.91:1, what LinkedIn, Facebook and X use for a large card), then writes it
+  twice:
+  - `static/img/og/<name>-2.png`, on a **transparent** background, a truecolour RGBA PNG, lossless, no palette
+    quantization (a 256-colour palette version came out blurry and posterised on LinkedIn's Post Inspector,
+    Roman, 6 Nov 2026) — `extra.twitter_image`.
+  - `static/img/og/<name>-3.jpg`, the same frame flattened onto **white**, a baseline (not progressive) JPEG,
+    quality 90, 4:4:4 chroma (no subsampling) — `extra.og_image`.
+  `tools/check_live.py built` (`just test` and `just live`) ships a `.png` or `.jpg` only under `img/og/`: every
+  other PNG or JPEG (a board render's source, "Board renders" above) still stops the build.
+  - **Each file name carries a version** (`default-2.png`, `default-3.jpg`, not `default.png`): LinkedIn,
+    Facebook and Telegram cache a link's preview by its image URL, so a change to an image itself needs a new
+    name too, or they go on showing the old file. A change to `IMAGES` in `tools/og_images.py` is followed by
+    the same names in `config.toml`'s `extra.og_image` / `extra.twitter_image` and each page's own, in its front
+    matter.
   - The board is scaled to fit well inside the middle 580×480 of the canvas, with margin either side of the
     627×627 square crop LinkedIn and messengers make from a 1.91:1 card, so the whole board stays in view there
     too; the script refuses to write a file where it wouldn't.
@@ -225,13 +233,20 @@ per page (no blog, no articles), so `author` is the same for every page and ther
   - Run it again after a change to a board's hero render, the wordmark or the script itself; `just test` does
     not rebuild it.
 - `tools/check_pages.py` (`just test`) checks every page: `og:image` is an absolute URL to a real 1200×627
-  truecolour (not palette) PNG or JPEG that matches its own `og:image:width`/`height`, `og:image:alt` is not
-  empty and does not name a background colour (the images are transparent, not "on a dark background"), and
-  `twitter:image` is the same URL.
-- `just og --check` also writes the default image composited onto the backgrounds a platform that doesn't
-  honour transparency might fill it with — white (LinkedIn), X's two dark themes and Facebook's grey — at both
-  the 1.91:1 card and the 1:1 square crop, into `target/shots/og2-*.png`, for a by-eye look before trusting a
-  transparent image on a platform this repo can't open an account on to test directly.
+  truecolour JPEG that matches its own `og:image:width`/`height` and `og:image:secure_url`, `og:image:alt` is
+  not empty and does not name a background colour (the boards are shown on their own now, not "on a dark
+  background"); `twitter:card` is `summary_large_image` with its own `twitter:image`, a different, absolute URL
+  to a real 1200×627 truecolour PNG with an alpha channel. It also checks every page's meta `description` and
+  `og:description` match and are 100-160 characters (long enough that LinkedIn, Facebook and search results
+  don't truncate them to "...", short enough they don't get cut there either), and that no `og:*`, `twitter:*`
+  or `description` meta tag appears twice on a page.
+- Every page's `description` is 100-160 characters, written as a short complete sentence or two, not wrapped to
+  a width. The home page's names no product (`~/git/tpm/area/marketing/brand.md`: product names stay out of
+  that long-lived text); a product's own page may name itself.
+- `just og --check` also writes the default PNG composited onto the backgrounds a platform that doesn't honour
+  transparency might fill it with — X's two dark themes and Facebook's grey — at both the 1.91:1 card and the
+  1:1 square crop, into `target/shots/og2-*.png`, for a by-eye look before trusting a transparent image on a
+  platform this repo can't open an account on to test directly.
 - **LinkedIn caches a link's preview.** After a deploy, open the new URL in its [Post
   Inspector](https://www.linkedin.com/post-inspector/) to refresh it there; other platforms refetch on their own
   schedule.
