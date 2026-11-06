@@ -57,7 +57,7 @@ lint:
     git diff --check HEAD
     cargo fmt --check
     cargo clippy --workspace --all-targets --quiet -- -D warnings
-    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py tools/samples.py tools/perf.py tools/fonts.py tools/check_live.py tools/mentions.py tools/term_capture.py tools/serve.py scripts/render_boards.py
+    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py tools/samples.py tools/perf.py tools/fonts.py tools/check_live.py tools/mentions.py tools/term_capture.py tools/serve.py tools/og_images.py scripts/render_boards.py
     uvx --from actionlint-py actionlint .github/workflows/deploy.yml
     uvx zizmor --offline .github/workflows/deploy.yml
 
@@ -85,6 +85,12 @@ brand:
 # Redraw the wordmark outlines from vhrd_brand's Audiowide (the font itself is never published)
 wordmark:
     uv run tools/wordmark.py "{{ brand }}/typst/vhrd/fonts/Audiowide-Regular.ttf"
+
+# Rebuild the link-preview images (og:image, twitter:image) under static/img/og/ from the board renders (after a
+# change to tools/og_images.py or to a board render it uses). --check also writes the default image's two crops
+# (1:1 and 1.91:1) into target/shots, for a by-eye look
+og *args:
+    uv run tools/og_images.py {{ args }}
 
 # Build the live site for https://vhrd.tech/ into target/live: indexable (robots.txt allows it and names the sitemap,
 # every page has its canonical URL). WordPress is gone from vhrd.tech: its old paths (posts, /feed/, /product/,

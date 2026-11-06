@@ -47,3 +47,8 @@ notify = { name = "Get notified", path = "/donguru/#notify" }
 # The version of the signup form's consent line (vh.notify); the notify service accepts only the versions in its
 # settings (deploy/notify.toml consent_versions), so a new text gets a new version there first.
 notify_consent = "2026-11-06"
+# The link-preview image (og:image / twitter:image): the Donguru hero render on the dark background, 1200x627
+# (tools/og_images.py, `just og`). /pinsmith, /can, /software and /work show their own board instead
+# (extra.og_image, extra.og_image_alt, in the page's front matter).
+og_image = "img/og/default.jpg"
+og_image_alt = "Donguru (B153), a USB-C dongle PCB, on a dark background"

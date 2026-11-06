@@ -108,6 +108,9 @@ FIG_NUMBERS = """() => [...document.querySelectorAll('.fig-no, .code-tabs-bar > 
 IMAGES_WITHOUT = """() => [...document.images]
   .filter((i) => !i.hasAttribute("alt") || !i.getAttribute("width") || !i.getAttribute("height"))
   .map((i) => i.currentSrc || i.src)"""
+OG_META = """() => { const m = (s) => document.querySelector(s)?.content || null;
+  return [m('meta[property="og:image"]'), m('meta[property="og:image:width"]'), m('meta[property="og:image:height"]'),
+          m('meta[property="og:image:alt"]'), m('meta[name="twitter:card"]'), m('meta[name="twitter:image"]')]; }"""
 
 # Photos (img/lab/) and the B135 render are never cropped: shown at their own ratio or letterboxed (contain).
 CROPPED = """() => [...document.images]
@@ -698,6 +701,61 @@ def check_placeholders(browser, base):
     return failures
 
 
+def image_size(data):
+    """Pixel width and height from a PNG or JPEG's own header, without a dependency."""
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return int.from_bytes(data[16:20], "big"), int.from_bytes(data[20:24], "big")
+    if data[:2] == b"\xff\xd8":
+        i = 2
+        while i + 9 < len(data) and data[i] == 0xFF:
+            marker = data[i + 1]
+            if marker in (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF):
+                return int.from_bytes(data[i + 7:i + 9], "big"), int.from_bytes(data[i + 5:i + 7], "big")
+            i += 2 + int.from_bytes(data[i + 2:i + 4], "big")
+    return None
+
+
+def check_og_image(browser, base):
+    """Every page: og:image is an absolute URL to a real 1200x627 file, matched by og:image:width/height and a
+    non-empty og:image:alt, and twitter:card is summary_large_image with twitter:image the same URL (AGENTS.md
+    "Link previews"): so LinkedIn, Facebook, X and messengers show it instead of cropping a render themselves."""
+    failures = []
+    ctx = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
+    page = ctx.new_page()
+    cache = {}
+    for path in PAGES[:-1]:
+        page.goto(base + path)
+        image, mw, mh, alt, card, timg = page.evaluate(OG_META)
+        where = path or "/"
+        if not image or not image.startswith("http"):
+            failures.append(f"{where}: og:image is {image!r}, expected an absolute URL")
+            continue
+        if card != "summary_large_image" or timg != image:
+            failures.append(f"{where}: twitter:card/image is {card!r}/{timg!r}, expected summary_large_image/{image!r}")
+        if not alt:
+            failures.append(f"{where}: og:image:alt is empty")
+        if image not in cache:
+            try:
+                with urllib.request.urlopen(image, timeout=10) as r:
+                    cache[image] = (r.status, r.read())
+            except urllib.error.HTTPError as e:
+                cache[image] = (e.code, b"")
+        status, data = cache[image]
+        if status != 200:
+            failures.append(f"{where}: og:image {image} answers {status}")
+            continue
+        size = image_size(data)
+        if size is None:
+            failures.append(f"{where}: og:image {image} is not a PNG or JPEG")
+            continue
+        if (mw, mh) != (str(size[0]), str(size[1])):
+            failures.append(f"{where}: og:image:width/height is {mw}/{mh}, the file is {size[0]}x{size[1]}")
+        if size != (1200, 627):
+            failures.append(f"{where}: og:image {image} is {size[0]}x{size[1]}, expected 1200x627")
+    ctx.close()
+    return failures
+
+
 def check_table_contrast(browser, base):
     """Every table cell's text is 4.5:1 on its cell, on every page, in dark and in light (the stored choice)."""
     failures = []
@@ -1101,6 +1159,7 @@ def main():
         failures += check_intro(browser, base)
         failures += check_placeholders(browser, base)
         failures += check_table_contrast(browser, base)
+        failures += check_og_image(browser, base)
         failures += check_mail(browser, base, out)
         if out is not None:
             failures += check_notify(browser, base)

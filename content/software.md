@@ -6,6 +6,8 @@ description = "IOWeaver, the protocol analyzer and grapher; RockFace, the firmwa
 label = "Software"
 sig = "usb"
 styles = ["term"]
+og_image = "img/og/software.jpg"
+og_image_alt = "CANnify Micro (B129), a breadboard CAN FD node PCB, on a dark background"
 +++
 
 Three tools for the bench: one plots what a device says, one debugs the firmware that says it, one keeps the parts and the boards in order. <span class="v-badge">draft</span>

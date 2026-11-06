@@ -6,6 +6,8 @@ template = "work.html"
 [extra]
 label = "Work"
 sig = "analog"
+og_image = "img/og/work.jpg"
+og_image_alt = "A USB to isolated CAN FD bridge PCB (B135), on a dark background"
 # The board renders (static/img/boards/<dir>/manifest.toml), linked to their product page; pitch is the card's line,
 # photo a photo of the real board shown next to its render (static/img/lab/<photo>/manifest.toml).
 boards = [

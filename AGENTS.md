@@ -22,7 +22,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 - `static/css/brand/`: `tokens.css` and `vhrd.css` from vhrd_brand (`just brand`). Never edit these here; change vhrd_brand and pull.
 - `static/css/site.css`: the site's own layer. `base.html` inlines all the CSS (fonts.css, the brand files and site.css) into each page with `load_data`, so there is no render-blocking request. A part only some pages have keeps its styles in its own file, inlined only where `extra.styles` names it (`intro.css`, `stack.css`, `term.css`; "Performance" below). A light flash between pages in desktop Firefox is Firefox's own tab background, not the site's: "The light blink between pages in Firefox" below before chasing it again. `static/js/site.js`: theme toggle, tabs, the image placeholders' marking and the signup form's fetch, nothing else.
 - `static/fonts/`: IBM Plex woff2 subsets and `fonts.css` ("Brand and fonts" below). `static/img/boards/` holds board renders (`just renders`, "Board renders" below) and `static/img/lab/` lab photos.
-- `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check, `tools/perf.py` measures the first screen on a slow phone, `tools/fonts.py` cuts the Core font subsets and the small Greek faces (Ω, μ) from vhrd_brand's full fonts.
+- `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check, `tools/perf.py` measures the first screen on a slow phone, `tools/fonts.py` cuts the Core font subsets and the small Greek faces (Ω, μ) from vhrd_brand's full fonts, `tools/og_images.py` writes the link-preview images under `static/img/og/` ("Link previews" below).
 - `server/`: the Cargo workspace (`Cargo.toml` at the root) of the notify service: `vhrd_notify` (library: `email.rs` the address check, `store.rs` the intake and the records, `list.rs` what happens to a record, `token.rs` the links' tokens, `mail.rs` composing and sending a mail, `outbox.rs` the worker, `limit.rs` the rate limit, `server.rs` the signup endpoint, `links.rs` the confirm, remove and unsubscribe endpoints, `config.rs` the settings; `mail/confirm.txt` the confirmation text), `vhrd_notify_cli` (the `vhrd_notify` binary: serve, list, count, export, send, mail-test, delete) and `vhrd_notify_activate` (the activator that takes a release the Deploy workflow uploaded, root's on the server, a crate of its own so an upload never checks itself; its end-to-end tests in `tests/activate.rs` are also the fake systemctl and service, and run one at a time, `.config/nextest.toml`). `deploy/notify.toml` is its settings on the server, `deploy/vhrd-notify.service` its user unit (user vhrd-notify), `deploy/vhrd-notify-activate.path` and `.service` the activator's units, `deploy/nginx-notify.conf` the nginx block, `ship.toml` what `tpm ship` ships when GitHub can't (fallback only). Dependencies without default features and with no C library (no SQLite: the store is a plain file at this size).
 - `content/privacy.md`: the privacy note the forms link to. Any change to what the site or the service keeps changes it in the same commit.
 - `.github/workflows/deploy.yml`: the only way the site and the notify service reach vhrd.tech ("Deploy" below); `.github/deploy/known_hosts` pins the server's host key. `tools/check_live.py` checks a live build before upload and the site after it.
@@ -181,6 +181,28 @@ A picture still on its way shows as a small oscilloscope screen in its own box, 
 - The screen is two pseudo-elements on `.fig-frame`: the glass and graticule as gradients, the trace as a mask over the token colour. No request, one keyframe.
 - The box has the image's width and height from the start, so nothing shifts.
 - Under reduced motion the screen stays, without the sweep, and the picture appears without a fade.
+
+## Link previews
+
+Every page has `og:image`, `og:image:width`, `og:image:height`, `og:image:alt` and `twitter:card` /
+`twitter:image` in `templates/base.html`, so LinkedIn, Facebook, X and messengers show a made-for-it image
+instead of cropping whatever render they pick out of the page themselves.
+
+- The image is `config.toml`'s `extra.og_image` (the Donguru hero render, `static/img/og/default.jpg`) unless
+  the page's own front matter sets `extra.og_image` (and `extra.og_image_alt`): `/pinsmith`, `/can`, `/software`
+  and `/work` each show their own board.
+- `just og` (`tools/og_images.py`, uv, Pillow) writes `static/img/og/<name>.jpg`: a board's hero render, cropped
+  to its own content, centred on the site's dark background (`--bg`) inside a 1200×627 canvas (1.91:1, what
+  LinkedIn, Facebook and X use for a large card). The board is scaled to fit well inside the middle 600×500 of
+  that canvas, with margin either side of the 627×627 square crop LinkedIn and messengers make from a 1.91:1
+  card, so the whole board stays in view there too; the script refuses to write a file where it wouldn't. Run it
+  again after a change to a board's hero render or to the script itself; `just test` does not rebuild it.
+- `tools/check_pages.py` (`just test`) checks every page: `og:image` is an absolute URL to a real 1200×627 PNG
+  or JPEG that matches its own `og:image:width`/`height`, `og:image:alt` is not empty, and `twitter:image` is
+  the same URL.
+- **LinkedIn caches a link's preview.** After a deploy, open the new URL in its [Post
+  Inspector](https://www.linkedin.com/post-inspector/) to refresh it there; other platforms refetch on their own
+  schedule.
 
 ## Commands
 

@@ -20,6 +20,16 @@
 <meta property="og:description" content="{{ doc_desc }}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{ current_url | safe }}">
+{%- if this and this.extra.og_image %}{% set og_image = this.extra.og_image %}{% set og_alt = this.extra.og_image_alt %}
+{%- else %}{% set og_image = config.extra.og_image %}{% set og_alt = config.extra.og_image_alt %}{% endif -%}
+{#- 1200x627 (1.91:1), the site default or a page's own (tools/og_images.py, `just og`): LinkedIn, Facebook, X
+    and messengers show this instead of cropping a render out of the page themselves. #}
+<meta property="og:image" content="{{ get_url(path=og_image) | safe }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+<meta property="og:image:alt" content="{{ og_alt }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{{ get_url(path=og_image) | safe }}">
 <link rel="icon" href="{{ get_url(path='favicon.svg') }}" type="image/svg+xml">
 {#- Dark is the default whatever the system prefers, set on <html> above, so there is no light
     flash and no-JS visitors get it too. Light only when the visitor picked it with the toggle: applied here, before

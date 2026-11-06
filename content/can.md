@@ -6,6 +6,8 @@ description = "USB and Ethernet bridges to isolated CAN FD, CANnify boards, and 
 label = "CAN"
 sig = "can"
 stub = true
+og_image = "img/og/can.jpg"
+og_image_alt = "An Ethernet to dual isolated CAN FD bridge PCB (B125), on a dark background"
 +++
 
 To come: the bridges (isolated CAN FD, PoE, SD logging), CANnify boards and the released adapters.
