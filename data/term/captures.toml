@@ -23,7 +23,7 @@ live = true
 at = 21.0
 cmd = ["cnt", "tui", "--chip", "STM32H725IGKx"]
 version = "cnt_cli 0.5.1 (8b1e1db)"
-source = "a B135 board through a J-Link, running cnt's demo firmware (examples/b135_demo): a made-up instrument with a USB transfer, a CAN bus-off and a USB bus reset that clears its counters"
+source = "a B135 board through a J-Link, running cnt's demo firmware (examples/b135_demo)"
 
 [[capture]]
 id = "ww-api-tree"

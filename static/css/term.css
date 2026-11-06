@@ -49,7 +49,10 @@
   overflow: auto;
   border: 0;
   color: inherit;
-  font: var(--t-size, 0.75rem)/1.35 var(--font-mono);
+  /* cnt tui's 📍 (U+1F4CD, before "RAM/BKP counters") is a real emoji, not a glyph IBM Plex or a generic
+     monospace carries: without a named emoji family after them, the browser stops at the generic font's own
+     missing-glyph box instead of reaching a system emoji font, where one is installed, as a real terminal would. */
+  font: var(--t-size, 0.75rem)/1.35 var(--font-mono), "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Noto Emoji";
   tab-size: 8;
   /* A line longer than the box scrolls, never clips: a glow at the edge with more beyond it (covered where the
      text ends), and a scrollbar that shows. */
@@ -96,7 +99,8 @@
   --term-color-13: color-mix(in oklch, var(--t-magenta) 75%, var(--vhrd-grey-0));
   --term-color-14: color-mix(in oklch, var(--t-cyan) 75%, var(--vhrd-grey-0));
   --term-color-15: var(--vhrd-grey-0);
-  --term-font-family: var(--font-mono);
+  /* Same emoji fallback as .term-screen above, for the live replay's own 📍. */
+  --term-font-family: var(--font-mono), "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Noto Emoji";
 }
 /* The figures take the column's whole width, wider than the prose around them, which keeps its measure. Each run is
    there at its natural width and at a phone's 44 columns: the wide one shows where the figure is 40rem or more (or
