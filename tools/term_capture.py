@@ -107,7 +107,15 @@ class Screen(pyte.Screen):
             a = attrs[i]
             if a in (38, 48):  # a colour: 38;5;n or 38;2;r;g;b, whose 2 and 5 are not faint and blink
                 n = 3 if attrs[i + 1:i + 2] == (5,) else 5
-                mapped += attrs[i:i + n]
+                if n == 3 and 0 <= attrs[i + 2] < 16:
+                    # one of the 16 basic colours, sent in 256-colour form (38;5;n, as ratatui and other TUI
+                    # crates write even a basic colour): the same SGR code as if it had been sent directly
+                    # (30-37/90-97, 40-47/100-107), so pyte gives it a named colour (FG_ANSI/FG_AIXTERM) that
+                    # style() below maps to our tokens, not the fixed hex of pyte's 256-colour table.
+                    idx, base, aix = attrs[i + 2], (30 if a == 38 else 40), (90 if a == 38 else 100)
+                    mapped += [aix + idx - 8] if idx >= 8 else [base + idx]
+                else:
+                    mapped += attrs[i:i + n]
                 i += n
                 continue
             mapped += [5] if a == 2 else [22, 25] if a == 22 else [a]

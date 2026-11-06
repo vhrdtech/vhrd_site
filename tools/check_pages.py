@@ -503,10 +503,21 @@ def check_term_live(browser, base):
     page.goto(base + "software/")
     page.wait_for_load_state("load")
     page.locator("#term-cnt-tui").scroll_into_view_if_needed()
+    mounted = True
     try:
         page.wait_for_function("document.querySelector('#term-cnt-tui canvas')", timeout=5000)
     except Exception:
+        mounted = False
         failures.append("software/ 1440px: the live player never mounted (no canvas) after scrolling into view")
+    if mounted:
+        # theme: "vhrd" (term.css) must actually colour the replay, not just its background: a player themed by a
+        # custom property declared on an element it does not match (BLOCK-7's own bug) renders every colour index
+        # as the player's own black-on-white fallback, one flat text colour throughout.
+        page.wait_for_timeout(2000)
+        colors = page.evaluate(
+            "[...document.querySelectorAll('#term-cnt-tui .ap-player *')].map((el) => getComputedStyle(el).color)")
+        if len(set(colors)) <= 1:
+            failures.append("software/ 1440px: the live player renders a single text colour, its theme is not applied")
     if not hits:
         failures.append("software/ 1440px: no asciinema-player request after the figure scrolled into view")
     if page.evaluate("document.querySelector('#term-cnt-tui pre.term-wide').hidden") is not True:

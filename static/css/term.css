@@ -72,8 +72,17 @@
 .term-src .giallo-l[style*="background-color"] { background: color-mix(in oklch, var(--t-red) 16%, transparent) !important; box-shadow: inset 2px 0 var(--t-red); }
 /* A `live` capture (BLOCK-7 term-live): the asciinema-player it is lazily swapped in for, themed with the same
    tokens as the static screen above (theme: "vhrd" in the component's script, matching no built-in player theme,
-   so only these variables apply). It fills the same box the static wide screen does. */
+   so only these variables apply). It fills the same box the static wide screen does.
+   The player's own stylesheet sets --term-color-* directly on .ap-player (its fallback theme: everything white on
+   black) and --term-font-family on .ap-default-term-ff, both the same element as the theme class. A custom
+   property declared directly on an element always wins over one merely inherited from an ancestor like
+   .term-live, whatever the source order, so the vars below are set on .term-live .ap-player (one class more
+   specific than .ap-player alone) rather than on .term-live itself, or they would be silently discarded. */
 .term-live {
+  border-radius: 0 0 var(--radius) var(--radius);
+  overflow: hidden;
+}
+.term-live .ap-player {
   --term-color-background: var(--t-bg);
   --term-color-foreground: var(--t-fg);
   --term-color-0: var(--t-black); --term-color-1: var(--t-red); --term-color-2: var(--t-green);
@@ -88,8 +97,6 @@
   --term-color-14: color-mix(in oklch, var(--t-cyan) 75%, var(--vhrd-grey-0));
   --term-color-15: var(--vhrd-grey-0);
   --term-font-family: var(--font-mono);
-  border-radius: 0 0 var(--radius) var(--radius);
-  overflow: hidden;
 }
 /* The figures take the column's whole width, wider than the prose around them, which keeps its measure. Each run is
    there at its natural width and at a phone's 44 columns: the wide one shows where the figure is 40rem or more (or
