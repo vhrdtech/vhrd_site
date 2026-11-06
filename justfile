@@ -88,8 +88,8 @@ wordmark:
     uv run tools/wordmark.py "{{ brand }}/typst/vhrd/fonts/Audiowide-Regular.ttf"
 
 # Rebuild the link-preview images (og:image, twitter:image) under static/img/og/ from the board renders (after a
-# change to tools/og_images.py or to a board render it uses). --check also writes the default image's two crops
-# (1:1 and 1.91:1) into target/shots, for a by-eye look
+# change to tools/og_images.py or to a board render it uses). --check also composites the default image onto the
+# backgrounds a platform might fill its transparency with, at 1:1 and 1.91:1, into target/shots, for a by-eye look
 og *args:
     uv run tools/og_images.py {{ args }}
 

@@ -188,22 +188,43 @@ A picture still on its way shows as a small oscilloscope screen in its own box, 
 
 ## Link previews
 
-Every page has `og:image`, `og:image:width`, `og:image:height`, `og:image:alt` and `twitter:card` /
-`twitter:image` in `templates/base.html`, so LinkedIn, Facebook, X and messengers show a made-for-it image
-instead of cropping whatever render they pick out of the page themselves.
+Every page has `author`, `og:title`, `og:description`, `og:type`, `og:url`, `og:site_name`, `og:locale`,
+`og:image`, `og:image:width`, `og:image:height`, `og:image:alt` and `twitter:card` / `twitter:image` in
+`templates/base.html`, so LinkedIn, Facebook, X and messengers show a made-for-it card instead of cropping
+whatever render they pick out of the page themselves. There is no byline per page (no blog, no articles), so
+`author` is the same for every page and there is no `article:author`.
 
-- The image is `config.toml`'s `extra.og_image` (the Donguru hero render, `static/img/og/default.jpg`) unless
+- The image is `config.toml`'s `extra.og_image` (the Donguru hero render, `static/img/og/default.png`) unless
   the page's own front matter sets `extra.og_image` (and `extra.og_image_alt`): `/pinsmith`, `/can`, `/software`
   and `/work` each show their own board.
-- `just og` (`tools/og_images.py`, uv, Pillow) writes `static/img/og/<name>.jpg`: a board's hero render, cropped
-  to its own content, centred on the site's dark background (`--bg`) inside a 1200×627 canvas (1.91:1, what
-  LinkedIn, Facebook and X use for a large card). The board is scaled to fit well inside the middle 600×500 of
-  that canvas, with margin either side of the 627×627 square crop LinkedIn and messengers make from a 1.91:1
-  card, so the whole board stays in view there too; the script refuses to write a file where it wouldn't. Run it
-  again after a change to a board's hero render or to the script itself; `just test` does not rebuild it.
+- `just og` (`tools/og_images.py`, uv, Pillow and cairosvg) writes `static/img/og/<name>.png`: a board's hero
+  render, cropped to its own content, on a **transparent** background inside a 1200×627 canvas (1.91:1, what
+  LinkedIn, Facebook and X use for a large card). A solid dark background read as a heavy black block on
+  LinkedIn's white card; transparency lets each platform show it on its own background instead (LinkedIn and X
+  honour it; Facebook, Messenger and some others fill it with their own card colour, usually white or a light
+  grey).
+  - The board is scaled to fit well inside the middle 580×480 of the canvas, with margin either side of the
+    627×627 square crop LinkedIn and messengers make from a 1.91:1 card, so the whole board stays in view there
+    too; the script refuses to write a file where it wouldn't.
+  - A soft white halo (blurred, low opacity) sits behind the board: it blends away on a white or light card, and
+    keeps a dark board's edge from vanishing into a black one.
+  - Four red corner marks (brand red, like `.fig-frame`'s datasheet corners) and a small red VHRD.TECH wordmark
+    (bottom right, from `static/img/wordmark.svg`, recoloured to the one red so it reads on white and on black
+    alike) frame the board. The frame sits inside the square crop's edges too, so it survives a square-crop
+    platform as well as the full card.
+  - The composed image is colour-quantized (256 colours, no dither) before saving: a CAD render has few flat
+    colours and a smooth glow needs few alpha steps, so this loses nothing visible and keeps a lossless,
+    transparency-capable PNG well under the 400 KB budget (a losslessly-encoded render would otherwise run past
+    a megabyte).
+  - Run it again after a change to a board's hero render, the wordmark or the script itself; `just test` does
+    not rebuild it.
 - `tools/check_pages.py` (`just test`) checks every page: `og:image` is an absolute URL to a real 1200×627 PNG
   or JPEG that matches its own `og:image:width`/`height`, `og:image:alt` is not empty, and `twitter:image` is
   the same URL.
+- `just og --check` also writes the default image composited onto the backgrounds a platform that doesn't
+  honour transparency might fill it with — white (LinkedIn), X's two dark themes and Facebook's grey — at both
+  the 1.91:1 card and the 1:1 square crop, into `target/shots/og2-*.png`, for a by-eye look before trusting a
+  transparent image on a platform this repo can't open an account on to test directly.
 - **LinkedIn caches a link's preview.** After a deploy, open the new URL in its [Post
   Inspector](https://www.linkedin.com/post-inspector/) to refresh it there; other platforms refetch on their own
   schedule.

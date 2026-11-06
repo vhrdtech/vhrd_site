@@ -16,10 +16,13 @@
 {%- endif %}
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0f0f10">
+<meta name="author" content="Roman Isaikin">
 <meta property="og:title" content="{{ doc_title }}">
 <meta property="og:description" content="{{ doc_desc }}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{ current_url | safe }}">
+<meta property="og:site_name" content="{{ config.title }}">
+<meta property="og:locale" content="en_US">
 {%- if this and this.extra.og_image %}{% set og_image = this.extra.og_image %}{% set og_alt = this.extra.og_image_alt %}
 {%- else %}{% set og_image = config.extra.og_image %}{% set og_alt = config.extra.og_image_alt %}{% endif -%}
 {#- 1200x627 (1.91:1), the site default or a page's own (tools/og_images.py, `just og`): LinkedIn, Facebook, X
