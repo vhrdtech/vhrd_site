@@ -1,27 +1,30 @@
-<!-- tools/term_capture.py exact-units-error: `cargo build -q`, rustc 1.99.1 (58cf8f9c3 2026-10-13), tools/term/units_demo against exact_units at 1819d9f, 200×35, recorded 2026-11-04. Recorded, not edited: run it again to change it. -->
-<span class="f-brightred t-b">error[E0080]</span><span class="t-b">: evaluation panicked: a Fixed converts only between units of the same dimension (a pound-force is not a pound)</span>
-   <span class="f-brightblue t-b">--&gt; </span>~/.cargo/git/checkouts/exact_units-0e04409aaab251a0/1819d9f/src/fixed.rs:445:25
+<!-- tools/term_capture.py exact-units-error: `cargo build -q`, rustc 1.99.1 (58cf8f9c3 2026-10-13), tools/term/units_demo against exact_units at 1819d9f, 200×38, recorded 2026-11-06. Recorded, not edited: run it again to change it. -->
+<span class="f-brightred t-b">error[E0080]</span><span class="t-b">: evaluation panicked: a Fixed converts only between units of the same dimension: Torque (N·m) is kg·m²·s⁻²·rad⁻¹, not Joule (J) which is kg·m²·s⁻²; they differ by rad⁻¹ — cross it with a</span>
+<span class="t-b">named step: Torque × Radian is Joule</span>
+   <span class="f-brightblue t-b">--&gt; </span>~/.cargo/git/checkouts/exact_units-0e04409aaab251a0/90d25ff/src/fixed.rs:445:25
     <span class="f-brightblue t-b">|</span>
 <span class="f-brightblue t-b">445</span> <span class="f-brightblue t-b">|</span>         let c = const { Conversion::between::&lt;U, P, U2, P2, T, T2&gt;(false) };
     <span class="f-brightblue t-b">|</span>                         <span class="f-brightred t-b">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</span> <span class="f-brightred t-b">evaluation of `exact_units::Fixed::&lt;exact_units::units::Torque, exact_units::prefix::One, i32&gt;::convert::&lt;exact_units::u</span>
 <span class="f-brightred t-b">nits::Joule, exact_units::prefix::One, i32&gt;::{constant#0}` failed inside this call</span>
     <span class="f-brightblue t-b">|</span>
 <span class="f-brightgreen t-b">note</span>: inside `exact_units::fixed::Conversion::between::&lt;Torque, One, Joule, One, i32, i32&gt;`
-   <span class="f-brightblue t-b">--&gt; </span>/rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panic.rs:62:9
+   <span class="f-brightblue t-b">--&gt; </span>~/.cargo/git/checkouts/exact_units-0e04409aaab251a0/90d25ff/src/fixed.rs:907:13
     <span class="f-brightblue t-b">|</span>
-<span class="f-brightblue t-b"> 62</span> <span class="f-brightblue t-b">|</span>           $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
-    <span class="f-brightblue t-b">|</span>           <span class="f-brightgreen t-b">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</span> <span class="f-brightgreen t-b">the failure occurred here</span>
+<span class="f-brightblue t-b">907</span> <span class="f-brightblue t-b">|</span>             crate::conv_error::dim_mismatch::&lt;U, U2&gt;("a Fixed");
+    <span class="f-brightblue t-b">|</span>             <span class="f-brightgreen t-b">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</span>
+<span class="f-brightgreen t-b">note</span>: inside `exact_units::conv_error::dim_mismatch::&lt;Torque, Joule&gt;`
+   <span class="f-brightblue t-b">--&gt; </span>/rustc/58cf8f9c35b355199727627d07ae34a4e2846d67/library/core/src/panic.rs:57:9
     <span class="f-brightblue t-b">|</span>
-   <span class="f-brightblue t-b">::: </span>~/.cargo/git/checkouts/exact_units-0e04409aaab251a0/1819d9f/src/fixed.rs:910:9
+<span class="f-brightblue t-b"> 57</span> <span class="f-brightblue t-b">|</span>         $crate::panicking::panic_display(&amp;$arg);
+    <span class="f-brightblue t-b">|</span>         <span class="f-brightgreen t-b">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</span> <span class="f-brightgreen t-b">the failure occurred here</span>
     <span class="f-brightblue t-b">|</span>
-<span class="f-brightblue t-b">910</span> <span class="f-brightblue t-b">|</span> <span class="f-brightblue t-b">/</span>         assert!(
-<span class="f-brightblue t-b">911</span> <span class="f-brightblue t-b">|</span> <span class="f-brightblue t-b">|</span>             U::DIM.same(U2::DIM),
-<span class="f-brightblue t-b">912</span> <span class="f-brightblue t-b">|</span> <span class="f-brightblue t-b">|</span>             "a Fixed converts only between units of the same dimension (a pound-force is not a pound)"
-<span class="f-brightblue t-b">913</span> <span class="f-brightblue t-b">|</span> <span class="f-brightblue t-b">|</span>         );
-    <span class="f-brightblue t-b">|</span> <span class="f-brightblue t-b">|_________-</span> <span class="f-brightblue t-b">in this macro invocation</span>
+   <span class="f-brightblue t-b">::: </span>~/.cargo/git/checkouts/exact_units-0e04409aaab251a0/90d25ff/src/conv_error.rs:388:5
+    <span class="f-brightblue t-b">|</span>
+<span class="f-brightblue t-b">388</span> <span class="f-brightblue t-b">|</span>     panic!("{}", msg.as_str())
+    <span class="f-brightblue t-b">|</span>     <span class="f-brightblue t-b">--------------------------</span> <span class="f-brightblue t-b">in this macro invocation</span>
 <span></span>
 <span class="f-brightgreen t-b">note</span><span class="t-b">: erroneous constant encountered</span>
-   <span class="f-brightblue t-b">--&gt; </span>~/.cargo/git/checkouts/exact_units-0e04409aaab251a0/1819d9f/src/fixed.rs:445:17
+   <span class="f-brightblue t-b">--&gt; </span>~/.cargo/git/checkouts/exact_units-0e04409aaab251a0/90d25ff/src/fixed.rs:445:17
     <span class="f-brightblue t-b">|</span>
 <span class="f-brightblue t-b">445</span> <span class="f-brightblue t-b">|</span>         let c = const { Conversion::between::&lt;U, P, U2, P2, T, T2&gt;(false) };
     <span class="f-brightblue t-b">|</span>                 <span class="f-brightgreen t-b">^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</span>

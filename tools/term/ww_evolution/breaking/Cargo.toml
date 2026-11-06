@@ -1,5 +1,6 @@
 # The WireWeaver evolution check on /software (tools/term_capture.py, capture ww-api-check): wire_weaver's
-# examples/blinky_api, saved at 0.1.0 (api_snapshots/, copied as it is), then edited and bumped to 0.1.1: breaking.
+# examples/blinky_api, saved at 0.1.0 (api_snapshots/, copied as it is), then given led_on a required trailing
+# argument, no #[default]: left at 0.1.1, breaking (EVO-22: an old client's bytes don't reach it).
 # ww api check only reads the source and the snapshot; nothing here is built.
 [package]
 name = "blinky_api"

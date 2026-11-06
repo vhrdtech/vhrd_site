@@ -60,9 +60,9 @@ Real runs of the command-line tools, recorded once and kept as text, colours and
 
 {{ <vh.ref name="WireWeaver" /> }}'s `ww` prints the tree of an API: every method, stream and property, with the number it has on the wire. This one is the GPIO example, ports of pins.
 
-{{ <vh.term id="ww-api-check" n="8" prompt={false} caption="ww api check: catches a breaking API change before it ships" /> }}
+{{ <vh.term id="ww-api-check" n="8" prompt={false} caption="ww api check: a safe trailing argument next to one that breaks old clients" /> }}
 
-`ww api check` compares an API with the snapshot saved at its last release, and says whether the new version number is enough. Adding a method is compatible: old clients and devices still work with new ones, and a patch bump will do. Giving `led_on` an argument breaks old clients, so the check fails and names the bump it needs.
+`ww api check` compares an API with the snapshot saved at its last release, and says whether the new version number is enough. A trailing argument on `led_on` with a `#[default]` stays wire-compatible: an old client and a new device still talk, and the other way round. Its Rust signature still changed, so the check still asks for a bump, and says plainly that the wire itself is fine. One without a default breaks an old client's bytes outright, so the check fails and names the bump it needs.
 
 {{ <vh.term id="bedrock-lint" n="9" caption="bedrock-lint: what could hang or brick a board in the field" /> }}
 
