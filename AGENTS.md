@@ -218,12 +218,13 @@ per page (no blog, no articles), so `author` is the same for every page and ther
   to survive it, and it does (Roman, round 5).
 - **The default card comes in two designs at one URL.** Roman drew both in Inkscape (10 Nov 2026), on the same
   1200×627 canvas:
-  - `assets/og/default.svg`, the wide card: the headline on the left, Donguru's flat top render on the right.
-    Unlike the other SVGs it carries its render embedded (a data URI) and the wordmark as Audiowide text, as
-    Inkscape saved them; both only ever reach the raster images.
+  - `assets/og/default.svg`, the wide card: the headline on the left, Donguru's flat top render on the right,
+    the whole picture and its shadow inside the canvas. Unlike the other SVGs it sets the wordmark as Audiowide
+    text, as Inkscape saved it; that only ever reaches the raster images.
   - `assets/og/default-square.svg`, the square card: the whole design inside the canvas's centre 627×627 square
-    (x 286 to 913), so a centre square crop shows all of it. Its board is `assets/og/b153a_top.png`, a render
-    from the Donguru project kept beside the SVG; it is never shipped itself.
+    (x 286 to 913), so a centre square crop shows all of it.
+  - Both link the same render, `assets/og/b153a_top.png`, from the Donguru project, kept beside the SVGs. It is
+    never shipped itself.
   The crawlers that crop `og:image` to its centre square get the square card: LinkedIn (its organic posts' small
   thumbnail) and WhatsApp, matched on their User-Agent (`LinkedInBot`, `WhatsApp`). Nobody else documents a
   square crop, so nobody else is in the list. Everyone else gets the wide card. The HTML is static and the same
