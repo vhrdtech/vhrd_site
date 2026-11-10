@@ -6,7 +6,7 @@ headings, figure captions, code, terminal captures, key/value specs (vh.specs), 
 and calls to action: those are counted on their own, never mixed into word, paragraph or sentence counts.
 Standard library only.
 
-Usage: python3 tools/page_stats.py [PAGE] [--dir DIR] [--json FILE]
+Usage: uv run tools/page_stats.py [PAGE] [--dir DIR] [--json FILE] (`just page-stats [PAGE]`)
   no PAGE:  a compact table, one row per page
   PAGE:     the detailed view of one page, e.g. "donguru/" ("" for the front page)
   --dir DIR builds the site itself into target/page-stats by default; pass an already-built directory

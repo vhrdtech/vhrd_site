@@ -88,7 +88,7 @@ perf *args:
 # ease. A table for every page, or `just page-stats donguru/` for one page's detail; both also write
 # target/page-stats.json
 page-stats *args:
-    python3 tools/page_stats.py {{ args }}
+    uv run tools/page_stats.py {{ args }}
 
 # Cut the Core subset out of each IBM Plex Latin1 face and update fonts.css (after a change to the Latin1 files)
 fonts:
