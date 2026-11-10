@@ -58,3 +58,17 @@ notify_consent = "2026-11-06"
 og_image = "img/og/default-6.jpg"
 twitter_image = "img/og/default-6.png"
 og_image_alt = "The headline “Instruments for embedded development” beside Donguru (B153), a USB-C dongle PCB seen from the top, framed by red corner marks and the VHRD.TECH wordmark"
+
+# tools/page_stats.py's soft budgets (SITE-20 page-stats): it warns a page over one of these but never fails
+# `just test`. Roman sets the real numbers after seeing the report on the live content; these are starting
+# points. wpm and the per-image reading-time constants are report-only (no budget), its formula is in the
+# tool's docstring.
+[extra.page_stats]
+wpm = 230
+image_first_seconds = 12
+image_min_seconds = 3
+image_falloff_count = 10
+longest_run_words = 250
+paragraph_words = 90
+median_sentence_words = 20
+long_sentence_words = 25

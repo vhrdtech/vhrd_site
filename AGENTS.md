@@ -152,6 +152,49 @@ Desktop Firefox can show a short light flash when moving from one page to anothe
 
 Mozilla's bugs on it: [1538414](https://bugzilla.mozilla.org/show_bug.cgi?id=1538414) (white flashes between pages), [1488384](https://bugzilla.mozilla.org/show_bug.cgi?id=1488384) (the tab panel follows the theme's colour scheme), [1712839](https://bugzilla.mozilla.org/show_bug.cgi?id=1712839) (flashing with Fission), [1740499](https://bugzilla.mozilla.org/show_bug.cgi?id=1740499) (visible redraws on page loads with Fission).
 
+## Page stats
+
+`tools/page_stats.py` (SITE-20 page-stats, standard library only) reports how much there is to read on each
+page and how it is shaped, built on the built site (zola output). It reads each page's `<main>` only: the
+header, footer and nav sit outside it in `base.html` and never count. Within `<main>`, "prose" is flowing
+text (`<p>`, `<li>`, `<blockquote>`) outside headings, figure captions, code, terminal captures, key/value
+specs (`vh.specs`), labels, badges, draft notes and calls to action: those are counted on their own, never
+mixed into word, paragraph or sentence counts.
+
+Per page:
+
+1. word count and reading time: words / wpm minutes, plus a falling allowance per image the way Medium
+   estimates it (the first image costs `image_first_seconds`, each one after that a little less, down to a
+   floor of `image_min_seconds` over `image_falloff_count` images, then every further image costs the
+   floor). `wpm` and the image constants are report-only, no budget.
+2. the longest run: the most prose words between two visual breaks (a heading, a figure — an image or a
+   terminal capture — a video, a table, a FAQ-style `<summary>`, or a call-to-action button, class `v-btn`),
+   and how many such runs are over the soft budget `longest_run_words`.
+3. paragraph length (max, median words) and sentence length (median, max, and the share over
+   `long_sentence_words` words), against the soft budgets `paragraph_words` and `median_sentence_words`.
+4. images and figures: every figure other than a terminal capture counts as one image, words per image, and
+   how many of the `<img>` elements actually inside those figures have no alt attribute at all (an empty
+   `alt=""` is a deliberate decorative choice, not a miss; a decorative icon elsewhere on the page, outside
+   any figure, is not counted as an image at all).
+5. headings: how many, and words per heading.
+6. links inside `<main>` (internal: a fragment, a site-relative path, or vhrd.tech; external: anything else)
+   and calls to action (class `v-btn`, whether a link or a submit button).
+7. code blocks (a `<pre>` outside a figure: a fenced sample, a `vh.code_tabs` panel) and terminal captures
+   (`vh.term`, a `<figure class="fig term-fig">`).
+8. Flesch reading ease, English pages only (the page's own `<html lang>`): the standard formula over the
+   same prose text as 2 and 3. Syllables are a common heuristic (vowel groups, minus a few silent endings),
+   not a dictionary count; the sentence splitter is a plain regex, not grammar-aware.
+
+The soft budgets and the reading-time constants live in one place, `config.toml`'s `[extra.page_stats]`
+(`wpm`, `image_first_seconds`, `image_min_seconds`, `image_falloff_count`, `longest_run_words`,
+`paragraph_words`, `median_sentence_words`, `long_sentence_words`). `just page-stats` warns a page over a
+budget but never fails `just test`: Roman sets the real numbers after seeing the report on the live
+content, these are starting points. `just page-stats` prints a compact table, one row per page; `just
+page-stats donguru/` (or `""` for the front page) prints the detail view of one page; both also write the
+full numbers to `target/page-stats.json` for a later comparison. `tools/test_page_stats.py` (`just test`)
+covers the metric functions on small HTML fixtures, including the regression that first caught the parser
+merging a list of cards into one giant paragraph.
+
 ## Intro
 
 The front page opens like an old CRT oscilloscope powering up (`templates/partials/intro.html`, its script `templates/partials/intro-script.html` at the end of the body, styles in `static/css/intro.css`, inlined on the front page only):
@@ -321,6 +364,7 @@ just brand            # pull tokens.css and vhrd.css from ~/git/vhrd_brand ($VHR
 just wordmark         # redraw the wordmark and favicon from vhrd_brand's Audiowide
 just check-browser    # the browser check alone
 just perf             # first screen on a slow phone: requests, KB, FCP, LCP (median of 3 runs)
+just page-stats [PAGE]  # reading metrics per page: words, reading time, longest run, paragraphs, headings... ("Page stats" above)
 just fonts            # Core subsets of the IBM Plex Latin1 faces, and fonts.css
 just live             # the live site for https://vhrd.tech/ into target/live (indexable, nothing of WordPress), checked
 just deploy           # start the Deploy workflow on GitHub (site and notify service); it waits for approval ("Deploy" below)

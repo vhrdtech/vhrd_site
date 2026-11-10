@@ -44,6 +44,7 @@ test *args:
     zola build --output-dir target/test --force
     python3 tools/check_live.py built target/test --stamp "$VHRD_GIT"
     python3 tools/test_notify_plan.py
+    python3 tools/test_page_stats.py
     uv run tools/check_pages.py
     if [ -d "{{ brand }}/web" ]; then diff -q "{{ brand }}/web/tokens.css" static/css/brand/tokens.css && diff -q "{{ brand }}/web/vhrd.css" static/css/brand/vhrd.css; else echo "note: {{ brand }} missing, brand files not compared"; fi
 
@@ -62,7 +63,7 @@ lint:
     git diff --check HEAD
     cargo fmt --check
     cargo clippy --workspace --all-targets --quiet -- -D warnings
-    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py tools/samples.py tools/perf.py tools/fonts.py tools/check_live.py tools/notify_plan.py tools/test_notify_plan.py tools/mentions.py tools/term_capture.py tools/serve.py tools/og_images.py scripts/render_boards.py
+    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py tools/samples.py tools/perf.py tools/fonts.py tools/check_live.py tools/notify_plan.py tools/test_notify_plan.py tools/mentions.py tools/term_capture.py tools/serve.py tools/og_images.py tools/page_stats.py tools/test_page_stats.py scripts/render_boards.py
     uvx --from actionlint-py actionlint .github/workflows/deploy.yml
     uvx zizmor --offline .github/workflows/deploy.yml
 
@@ -81,6 +82,13 @@ install:
 # The front page's first screen on a slow phone (slow 4G, CPU / 4): requests, bytes, FCP, LCP, layout shift
 perf *args:
     uv run tools/perf.py {{ args }}
+
+# Reading-metrics report per page (SITE-20 page-stats): words, reading time, the longest run between visual
+# breaks, paragraph and sentence length, images, headings, links, calls to action, code and Flesch reading
+# ease. A table for every page, or `just page-stats donguru/` for one page's detail; both also write
+# target/page-stats.json
+page-stats *args:
+    python3 tools/page_stats.py {{ args }}
 
 # Cut the Core subset out of each IBM Plex Latin1 face and update fonts.css (after a change to the Latin1 files)
 fonts:
