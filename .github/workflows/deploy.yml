@@ -215,6 +215,8 @@ jobs:
             .github/deploy
             deploy/old-urls.txt
             deploy/redirects.map
+            deploy/nginx-og.conf
+            deploy/nginx-og-location.conf
             tools/check_live.py
           sparse-checkout-cone-mode: false
 
