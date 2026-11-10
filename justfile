@@ -122,11 +122,11 @@ live:
     python3 tools/check_live.py built target/live --stamp "$VHRD_GIT"
     @echo "built https://vhrd.tech/ ($VHRD_GIT) in target/live"
 
-# Deploy main to https://vhrd.tech/: starts the Deploy workflow on GitHub and follows it. It waits for approval in
-# the production environment (AGENTS.md "Deploy")
+# Deploy main to https://vhrd.tech/: starts the Deploy workflow on GitHub. It runs straight through, with no
+# approval gate (AGENTS.md "Deploy")
 deploy:
     gh workflow run deploy.yml --repo vhrdtech/vhrd_site --ref main
-    @echo "approve it in GitHub (Actions > Deploy vhrd.tech), then: gh run watch --repo vhrdtech/vhrd_site"
+    @echo "started; follow it: gh run watch --repo vhrdtech/vhrd_site"
 
 # Check the deployed site against target/live (from `just live` at the same commit): every page 200, the footer
 # stamp, every old WordPress path's 301, the site's own 404 page
