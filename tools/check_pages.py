@@ -1352,7 +1352,11 @@ def main():
                 errors = []
                 page.on("console", lambda m: m.type == "error" and errors.append(m.text))
                 page.on("pageerror", lambda e: errors.append(str(e)))
-                page.on("requestfailed", lambda r: errors.append(f"failed {r.url}"))
+                # A request the next page.goto cancels (the last page's lazy images or favicon, still in flight on
+                # a busy PC) fails as net::ERR_ABORTED and would land on the next page's list: not a broken file,
+                # which answers 404 and shows as a console error above.
+                page.on("requestfailed", lambda r: r.failure != "net::ERR_ABORTED"
+                        and errors.append(f"failed {r.url} ({r.failure})"))
                 for path in PAGES:
                     errors.clear()
                     resp = page.goto(base + path)
