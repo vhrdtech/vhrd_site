@@ -17,7 +17,10 @@ vhrd.tech:
 - the redirects (deploy/redirects.map, as `redirects` checks them);
 - it is the indexable build (robots.txt allows, no page but the mail links' says noindex) and the sitemap names
   https://vhrd.tech/;
-- with --stamp, the front page's footer stamp is that hash.
+- with --stamp, the front page's footer stamp is that hash;
+- the default share image's two cards (deploy/nginx-og.conf): the location in deploy/nginx-og-location.conf is the
+  front page's og:image, the map's default is that file, and every file the map names is in the build, a
+  1200x627 truecolour JPEG.
 
 `redirects` checks deploy/redirects.map against a build: every target is a page of it, no redirect hides one of its
 pages, every old WordPress path in deploy/old-urls.txt is a page or redirected, and every link in
@@ -25,7 +28,9 @@ deploy/golden-links.txt (what we have printed or sent) is a page, a file or redi
 
 `site` checks a deployed site against that folder: the front page answers 200 and carries the stamp, a second page
 and a stylesheet and script answer 200, one old path per redirect rule answers its 301 (the server's copy of the map
-is installed by hand, so it can differ from the repo's), and a missing path gets the site's own 404 page. `built` has
+is installed by hand, so it can differ from the repo's), a missing path gets the site's own 404 page, and the default og:image URL answers LinkedInBot and WhatsApp with
+the square card and a browser with the wide one, with Vary: User-Agent (deploy/nginx-og.conf, installed by hand
+like the map). `built` has
 already checked the rest against the map, and rsync sets the same modes on every file. With --full, every page of
 the sitemap, every old path and every golden link too.
 """
@@ -56,6 +61,12 @@ MAP = ROOT / "deploy/redirects.map"
 OLD = ROOT / "deploy/old-urls.txt"
 GOLDEN = ROOT / "deploy/golden-links.txt"
 NOT_FOUND = "No trace here"  # the 404 page's headline
+OG_MAP = ROOT / "deploy/nginx-og.conf"
+OG_LOCATION = ROOT / "deploy/nginx-og-location.conf"
+# What the crawlers send: LinkedIn's and WhatsApp's own, and a desktop browser's.
+UA_SQUARE = ["LinkedInBot/1.0 (compatible; Mozilla/5.0; Apache-HttpClient +http://www.linkedin.com)",
+             "WhatsApp/2.23.20.0 A"]
+UA_WIDE = "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0"
 
 
 def built(folder, stamp):
@@ -90,6 +101,44 @@ def built(folder, stamp):
         front = (folder / "index.html").read_text() if (folder / "index.html").is_file() else ""
         if f"<code>{stamp}</code>" not in front:
             problems.append(f"index.html: the footer stamp is not {stamp}")
+    problems += og_cards(folder)
+    return problems
+
+
+def og_map():
+    """deploy/nginx-og.conf and its location: (the og:image path, the default file, the files for a cropping
+    crawler), each a URL path."""
+    path = re.search(r"^location = (\S+) \{", OG_LOCATION.read_text(), re.M).group(1)
+    entries = dict(re.findall(r"^\s+(\S+)\s+(/\S+);$", OG_MAP.read_text(), re.M))
+    return path, entries.pop("default"), sorted(set(entries.values()))
+
+
+def jpeg_size(data):
+    """(width, height, components) of a baseline or progressive JPEG, or None."""
+    i = 2
+    while data[:2] == b"\xff\xd8" and i + 9 < len(data) and data[i] == 0xFF:
+        if data[i + 1] in (0xC0, 0xC1, 0xC2):
+            return int.from_bytes(data[i + 7:i + 9], "big"), int.from_bytes(data[i + 5:i + 7], "big"), data[i + 9]
+        i += 2 + int.from_bytes(data[i + 2:i + 4], "big")
+    return None
+
+
+def og_cards(folder):
+    """The problems of the default share image's two cards in a build folder."""
+    problems = []
+    path, wide, square = og_map()
+    front = (folder / "index.html").read_text() if (folder / "index.html").is_file() else ""
+    image = re.search(r'<meta property="og:image" content="([^"]+)"', front)
+    if not image or not image.group(1).endswith(path):
+        problems.append(f"{OG_LOCATION.name}: location {path}, but the front page's og:image is "
+                        f"{image and image.group(1)}")
+    if wide != path:
+        problems.append(f"{OG_MAP.name}: the default is {wide}, not the location's own {path}")
+    for name in [wide] + square:
+        file = folder / name.lstrip("/")
+        size = jpeg_size(file.read_bytes()) if file.is_file() else None
+        if size != (1200, 627, 3):
+            problems.append(f"{name}: {size or 'missing or not a JPEG'}, expected a 1200x627 truecolour JPEG")
     return problems
 
 
@@ -175,6 +224,16 @@ def fetch(url, location=False):
     return out if location else out[:2]
 
 
+def fetch_image(url, agent):
+    """Status, body bytes and Vary header of a GET as that User-Agent."""
+    request = urllib.request.Request(url, headers={"User-Agent": agent})
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            return response.status, response.read(), response.headers.get("Vary", "")
+    except urllib.error.HTTPError as error:
+        return error.code, b"", ""
+
+
 def one_per_rule(paths, rules):
     """The first old path each redirect rule answers."""
     seen, out = set(), []
@@ -219,6 +278,16 @@ def site(base, folder, stamp, full=False):
             problems.append(f"{url}: {status} to {location!r}, expected 301 to {target}")
         elif not target and status != 200:
             problems.append(f"{url}: {status}, expected the page")
+    path, wide, square = og_map()
+    url = base + path.lstrip("/")
+    for agent, name in [(UA_WIDE, wide)] + [(agent, square[0]) for agent in UA_SQUARE]:
+        status, data, vary = fetch_image(url, agent)
+        expected = (folder / name.lstrip("/")).read_bytes()
+        print(f"{status} {url} as {agent.split('/')[0]}: {'the' if data == expected else 'not the'} {name}")
+        if status != 200 or data != expected:
+            problems.append(f"{url} as {agent!r}: {status}, not the bytes of {name} (deploy/nginx-og.conf installed?)")
+        elif "user-agent" not in vary.lower():
+            problems.append(f"{url} as {agent!r}: Vary is {vary!r}, expected User-Agent")
     url = base + "no-such-page-" + (stamp or "x") + "/"
     status, body = fetch(url)
     print(f"{status} {url}")

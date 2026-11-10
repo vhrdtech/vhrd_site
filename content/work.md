@@ -6,8 +6,8 @@ template = "work.html"
 [extra]
 label = "Work"
 sig = "analog"
-og_image = "img/og/work-5.jpg"
-twitter_image = "img/og/work-5.png"
+og_image = "img/og/work-6.jpg"
+twitter_image = "img/og/work-6.png"
 og_image_alt = "A USB to isolated CAN FD bridge PCB (B135), framed by red corner marks and the VHRD.TECH wordmark, with the headline “Boards and projects from the VHRD lab”"
 # The board renders (static/img/boards/<dir>/manifest.toml), linked to their product page; pitch is the card's line,
 # photo a photo of the real board shown next to its render (static/img/lab/<photo>/manifest.toml).

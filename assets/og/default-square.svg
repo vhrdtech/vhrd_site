@@ -172,6 +172,7 @@
      id="headline"
      class="headline-shadow"
      transform="translate(449.8649,210.14933)"><text
+       class="ink"
        x="-141.55223"
        y="-78.71814"
        id="text10-2"
@@ -189,6 +190,7 @@
      id="headline-3"
      class="headline-shadow"
      transform="translate(445.70154,213.1175)"><text
+       class="ink"
        x="-137.90111"
        y="-131.0508"
        id="text10-2-6"
@@ -206,6 +208,7 @@
      id="headline-5"
      class="headline-shadow"
      transform="translate(-123.75015,91.009413)"><text
+       class="ink"
        x="831.10773"
        y="-61.344128"
        id="text10-2-9"
@@ -231,7 +234,8 @@
      style="display:inline" /><!-- wordmark: the outline paths from static/img/wordmark.svg (never the Audiowide font itself), scaled to
        a 33px cap height, flush right with the corners above --><text
      xml:space="preserve"
-     style="font-size:62.8569px;writing-mode:lr-tb;direction:ltr;fill:#c8141c;fill-opacity:1;stroke-width:1.12245"
+     class="red"
+     style="font-size:62.8569px;writing-mode:lr-tb;direction:ltr;stroke-width:1.12245"
      x="103.89841"
      y="-850.4967"
      id="text16"
@@ -243,7 +247,8 @@
        y="-850.4967"
        style="font-size:62.8569px;stroke-width:1.12245">VHRD.TECH</tspan></text><text
      xml:space="preserve"
-     style="font-size:56px;writing-mode:lr-tb;direction:ltr;fill:#c8141c;fill-opacity:1"
+     class="red"
+     style="font-size:56px;writing-mode:lr-tb;direction:ltr"
      x="307.02106"
      y="99.522835"
      id="text23"><tspan
@@ -254,7 +259,7 @@
      width="956.82074"
      height="602.83215"
      preserveAspectRatio="none"
-     xlink:href="../../../../sync/prj/P2534-donguru/render/b153a_top.png"
+     xlink:href="b153a_top.png"
      id="image1"
      x="168.81461"
      y="-909.40216"

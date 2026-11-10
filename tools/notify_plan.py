@@ -54,6 +54,9 @@ SITE_ONLY = [
     "deploy/old-urls.txt",
     "deploy/golden-links.txt",
     "deploy/nginx-notify.conf",
+    "deploy/nginx-og.conf",
+    "deploy/nginx-og-location.conf",
+    "assets",
 ]
 
 

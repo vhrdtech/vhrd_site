@@ -98,8 +98,8 @@ wordmark:
 
 # Rebuild the link-preview images (og:image, twitter:image) under static/img/og/ from the board renders and the
 # page headlines (after a change to tools/og_images.py, a headline or a board render it uses), with the
-# headline in vhrd_brand's Audiowide (the font itself is never published). --check also composites the default
-# and /donguru images onto the backgrounds a platform might fill their transparency with, at 1:1 and 1.91:1,
+# headline in vhrd_brand's Audiowide (the font itself is never published). --check also composites the default,
+# the square default and /donguru images onto the backgrounds a platform might fill their transparency with, at 1:1 and 1.91:1,
 # plus LinkedIn's small organic-post thumbnail at both ratios, into target/shots, for a by-eye look
 og *args:
     uv run tools/og_images.py "{{ brand }}/typst/vhrd/fonts/Audiowide-Regular.ttf" {{ args }}

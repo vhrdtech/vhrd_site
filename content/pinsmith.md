@@ -6,8 +6,8 @@ description = "Pinsmith (B200): digital and analog I/O over USB, with no firmwar
 label = "Pinsmith"
 sig = "bus"
 stub = true
-og_image = "img/og/pinsmith-5.jpg"
-twitter_image = "img/og/pinsmith-5.png"
+og_image = "img/og/pinsmith-6.jpg"
+twitter_image = "img/og/pinsmith-6.png"
 og_image_alt = "Pinsmith (B200), a USB I/O PCB, framed by red corner marks and the VHRD.TECH wordmark, with the headline “Pinsmith · digital and analog I/O over USB”"
 +++
 

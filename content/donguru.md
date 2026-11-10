@@ -6,8 +6,8 @@ template = "donguru.html"
 [extra]
 label = "B153 · Donguru"
 sig = "usb"
-og_image = "img/og/donguru-5.jpg"
-twitter_image = "img/og/donguru-5.png"
+og_image = "img/og/donguru-6.jpg"
+twitter_image = "img/og/donguru-6.png"
 og_image_alt = "Donguru (B153), a USB-C dongle PCB, framed by red corner marks and the VHRD.TECH wordmark, with the headline “Donguru · one cable from your PC to your board”"
 +++
 

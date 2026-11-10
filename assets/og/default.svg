@@ -156,6 +156,7 @@
      id="headline"
      class="headline-shadow"
      transform="translate(-49.484444,224.77912)"><text
+       class="ink"
        x="78.103516"
        y="-46.714333"
        id="text10-2"
@@ -206,7 +207,8 @@
      y="488.29559"
      transform="rotate(-90)" /><text
      xml:space="preserve"
-     style="font-size:56px;writing-mode:lr-tb;direction:ltr;fill:#c8141c;fill-opacity:1"
+     class="red"
+     style="font-size:56px;writing-mode:lr-tb;direction:ltr"
      x="807.76111"
      y="554.60345"
      id="text16"
@@ -217,7 +219,8 @@
        y="554.60345"
        style="font-size:56px">VHRD.TECH</tspan></text><text
      xml:space="preserve"
-     style="font-size:56px;writing-mode:lr-tb;direction:ltr;fill:#c8141c;fill-opacity:1"
+     class="red"
+     style="font-size:56px;writing-mode:lr-tb;direction:ltr"
      x="29.054939"
      y="177.83527"
      id="text23"><tspan

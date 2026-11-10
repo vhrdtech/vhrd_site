@@ -6,8 +6,8 @@ description = "USB and Ethernet bridges to isolated CAN FD, CANnify boards, and 
 label = "CAN"
 sig = "can"
 stub = true
-og_image = "img/og/can-5.jpg"
-twitter_image = "img/og/can-5.png"
+og_image = "img/og/can-6.jpg"
+twitter_image = "img/og/can-6.png"
 og_image_alt = "An Ethernet to dual isolated CAN FD bridge PCB (B125), framed by red corner marks and the VHRD.TECH wordmark, with the headline “The CAN line · USB and Ethernet to isolated CAN FD”"
 +++
 

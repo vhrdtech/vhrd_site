@@ -17,9 +17,10 @@ or a text editor, save, then run `just og` to re-render every image.
 Usage: uv run tools/og_images.py PATH/TO/Audiowide-Regular.ttf [--check]   (`just og [--check]`, the font path
 from vhrd_brand, same as `just wordmark`: the font itself is baked into these raster images, never shipped)
 
-`--check` also writes the default and donguru images composited onto the backgrounds a platform that doesn't
-honour transparency might fill it with (X's dark themes, Facebook's grey), at the full 1.91:1 card and the
-1:1 square crop, plus both at LinkedIn's small ~160px organic-post thumbnail size, into target/shots.
+`--check` also writes the default, default-square and donguru images composited onto the backgrounds a platform
+that doesn't honour transparency might fill it with (X's dark themes, Facebook's grey), at the full 1.91:1 card
+and the 1:1 square crop, plus both at LinkedIn's small ~160px organic-post thumbnail size, into target/shots
+(default-square has no PNG: only its JPEG on white).
 """
 
 import shutil
@@ -37,10 +38,16 @@ W, H = 1200, 627
 BUDGET_KB = 1024
 JPEG_QUALITY = 90
 
-# The six share images: assets/og/<name>.svg -> static/img/og/<name>.jpg and .png. "-5" since the rendering
-# engine changed (SVG + resvg, not Python + Pillow layout): LinkedIn, Facebook and Telegram cache a preview by
-# its image URL, so a changed image needs a new name too, or they go on showing the old file.
-NAMES = ["default-5", "donguru-5", "pinsmith-5", "can-5", "software-5", "work-5"]
+# The share images: assets/og/<name>.svg -> static/img/og/<name>-<round>.jpg and .png. The round goes up when
+# an image changes ("-6": default.svg and default-square.svg redrawn by hand in Inkscape): LinkedIn, Facebook
+# and Telegram cache a preview by its image URL, so a changed image needs a new name too, or they go on showing
+# the old file. deploy/nginx-og.conf names the two default files too.
+ROUND = 6
+NAMES = [f"{n}-{ROUND}" for n in ("default", "donguru", "pinsmith", "can", "software", "work")]
+# The square card: the same 1200x627 canvas with the design inside its centre 627x627 square, so a centre square
+# crop shows all of it. nginx sends it instead of default's JPEG to the crawlers that crop to that square
+# (deploy/nginx-og.conf); it is never a page's twitter:image, so it gets no PNG.
+SQUARE_NAMES = [f"default-square-{ROUND}"]
 
 # Backgrounds the transparent PNG (twitter:image) might be filled with instead of its own alpha: X's three
 # themes and Facebook/Messenger's card grey.
@@ -50,7 +57,7 @@ PLATFORM_BACKGROUNDS = [
     ("xnavy", (0x15, 0x20, 0x2b)),
     ("grey", (0xf0, 0xf2, 0xf5)),
 ]
-SHOT_NAMES = ("default-5", "donguru-5")
+SHOT_NAMES = (f"default-{ROUND}", f"default-square-{ROUND}", f"donguru-{ROUND}")
 
 
 def render(svg, stylesheet, font_path, out_png):
@@ -76,15 +83,17 @@ def write_shots(name, jpeg_img, png_img):
     LinkedIn's small organic-post thumbnail (AGENTS.md "Link previews")."""
     shots = ROOT / "target/shots"
     shots.mkdir(parents=True, exist_ok=True)
-    jpeg_img.save(shots / f"og5-{name}-white-191x1.png")
-    square_crop(jpeg_img).save(shots / f"og5-{name}-white-1x1.png")
-    jpeg_img.resize((160, round(160 * H / W)), Image.LANCZOS).save(shots / f"og5-{name}-thumb-191x1.png")
-    square_crop(jpeg_img).resize((160, 160), Image.LANCZOS).save(shots / f"og5-{name}-thumb-1x1.png")
+    jpeg_img.save(shots / f"og{ROUND}-{name}-white-191x1.png")
+    square_crop(jpeg_img).save(shots / f"og{ROUND}-{name}-white-1x1.png")
+    jpeg_img.resize((160, round(160 * H / W)), Image.LANCZOS).save(shots / f"og{ROUND}-{name}-thumb-191x1.png")
+    square_crop(jpeg_img).resize((160, 160), Image.LANCZOS).save(shots / f"og{ROUND}-{name}-thumb-1x1.png")
+    if png_img is None:
+        return
     for bg_name, rgb in PLATFORM_BACKGROUNDS:
         flat = Image.new("RGB", (W, H), rgb)
         flat.paste(png_img, (0, 0), png_img)
-        flat.save(shots / f"og5-{name}-{bg_name}-191x1.png")
-        square_crop(flat).save(shots / f"og5-{name}-{bg_name}-1x1.png")
+        flat.save(shots / f"og{ROUND}-{name}-{bg_name}-191x1.png")
+        square_crop(flat).save(shots / f"og{ROUND}-{name}-{bg_name}-1x1.png")
 
 
 def write_image(path, img, fmt, **kwargs):
@@ -101,7 +110,7 @@ def main():
     font_path = Path(sys.argv[1])
     check = "--check" in sys.argv[2:]
     OUT.mkdir(parents=True, exist_ok=True)
-    for name in NAMES:
+    for name in NAMES + SQUARE_NAMES:
         base = name.rsplit("-", 1)[0]
         svg = ASSETS / f"{base}.svg"
 
@@ -111,13 +120,15 @@ def main():
         write_image(OUT / f"{name}.jpg", flat, "JPEG", quality=JPEG_QUALITY, subsampling=0, progressive=False, optimize=True)
         (OUT / f"{name}-light-tmp.png").unlink()
 
-        png_img = render(svg, ASSETS / "dark.css", font_path, OUT / f"{name}.png")
-        write_image(OUT / f"{name}.png", png_img, "PNG", optimize=True)
+        png_img = None
+        if name in NAMES:
+            png_img = render(svg, ASSETS / "dark.css", font_path, OUT / f"{name}.png")
+            write_image(OUT / f"{name}.png", png_img, "PNG", optimize=True)
 
         if check and name in SHOT_NAMES:
             write_shots(name, flat, png_img)
     if check:
-        print(f"target/shots/og5-*.png written ({len(SHOT_NAMES)} images x ({len(PLATFORM_BACKGROUNDS)} backgrounds x 2 crops + 2 thumbnails))")
+        print(f"target/shots/og{ROUND}-*.png written: on white at 1.91:1 and 1:1 and as 160px thumbnails, and the PNGs on {len(PLATFORM_BACKGROUNDS)} platform backgrounds, for {', '.join(SHOT_NAMES)}")
 
 
 if __name__ == "__main__":

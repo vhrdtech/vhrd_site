@@ -23,7 +23,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 - `static/css/site.css`: the site's own layer. `base.html` inlines all the CSS (fonts.css, the brand files and site.css) into each page with `load_data`, so there is no render-blocking request. A part only some pages have keeps its styles in its own file, inlined only where `extra.styles` names it (`intro.css`, `stack.css`, `term.css`; "Performance" below). A light flash between pages in desktop Firefox is Firefox's own tab background, not the site's: "The light blink between pages in Firefox" below before chasing it again. `static/js/site.js`: theme toggle, tabs, the image placeholders' marking and the signup form's fetch, nothing else.
 - `static/fonts/`: IBM Plex woff2 subsets and `fonts.css` ("Brand and fonts" below). `static/img/boards/` holds board renders (`just renders`, "Board renders" below) and `static/img/lab/` lab photos.
 - `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check, `tools/perf.py` measures the first screen on a slow phone, `tools/fonts.py` cuts the Core font subsets and the small Greek faces (Ω, μ) from vhrd_brand's full fonts, `tools/og_images.py` renders `assets/og/*.svg` (the share images' layout) into `static/img/og/` with resvg ("Link previews" below).
-- `server/`: the Cargo workspace (`Cargo.toml` at the root) of the notify service: `vhrd_notify` (library: `email.rs` the address check, `store.rs` the intake and the records, `list.rs` what happens to a record, `token.rs` the links' tokens, `mail.rs` composing and sending a mail, `outbox.rs` the worker, `limit.rs` the rate limit, `server.rs` the signup endpoint, `links.rs` the confirm, remove and unsubscribe endpoints, `config.rs` the settings; `mail/confirm.txt` the confirmation text), `vhrd_notify_cli` (the `vhrd_notify` binary: serve, list, count, export, send, mail-test, delete) and `vhrd_notify_activate` (the activator that takes a release the Deploy workflow uploaded, root's on the server, a crate of its own so an upload never checks itself; its end-to-end tests in `tests/activate.rs` are also the fake systemctl and service, and run one at a time, `.config/nextest.toml`). `deploy/notify.toml` is its settings on the server, `deploy/vhrd-notify.service` its user unit (user vhrd-notify), `deploy/vhrd-notify-activate.path` and `.service` the activator's units, `deploy/nginx-notify.conf` the nginx block, `ship.toml` what `tpm ship` ships when GitHub can't (fallback only). Dependencies without default features and with no C library (no SQLite: the store is a plain file at this size).
+- `server/`: the Cargo workspace (`Cargo.toml` at the root) of the notify service: `vhrd_notify` (library: `email.rs` the address check, `store.rs` the intake and the records, `list.rs` what happens to a record, `token.rs` the links' tokens, `mail.rs` composing and sending a mail, `outbox.rs` the worker, `limit.rs` the rate limit, `server.rs` the signup endpoint, `links.rs` the confirm, remove and unsubscribe endpoints, `config.rs` the settings; `mail/confirm.txt` the confirmation text), `vhrd_notify_cli` (the `vhrd_notify` binary: serve, list, count, export, send, mail-test, delete) and `vhrd_notify_activate` (the activator that takes a release the Deploy workflow uploaded, root's on the server, a crate of its own so an upload never checks itself; its end-to-end tests in `tests/activate.rs` are also the fake systemctl and service, and run one at a time, `.config/nextest.toml`). `deploy/notify.toml` is its settings on the server, `deploy/vhrd-notify.service` its user unit (user vhrd-notify), `deploy/vhrd-notify-activate.path` and `.service` the activator's units, `deploy/nginx-notify.conf` the nginx block (`deploy/nginx-og.conf` and `nginx-og-location.conf` are the share image's, "Link previews" below), `ship.toml` what `tpm ship` ships when GitHub can't (fallback only). Dependencies without default features and with no C library (no SQLite: the store is a plain file at this size).
 - `content/privacy.md`: the privacy note the forms link to. Any change to what the site or the service keeps changes it in the same commit.
 - `.github/workflows/deploy.yml`: the only way the site and the notify service reach vhrd.tech ("Deploy" below); `.github/deploy/known_hosts` pins the server's host key. `tools/check_live.py` checks a live build before upload and the site after it. `tools/notify_plan.py` decides whether a run ships the notify service.
 - `data/term/`: the terminal captures on /software (`captures.toml`, and per capture the screen as HTML and its TOML), recorded by `tools/term_capture.py` (`just captures`, "Terminal captures" below) and shown by `vh.term`. Never edited by hand. `tools/term/units_demo` is the crate behind the exact_units compile error, `tools/term/ww_evolution` the API behind the evolution check.
@@ -202,7 +202,7 @@ per page (no blog, no articles), so `author` is the same for every page and ther
   Facebook composite a transparent image onto their card themselves and, where they don't honour the alpha
   channel, fill it with a dull grey rather than the card's white, which reads as a worse block than a plain
   white background would (Roman, round 4). X reads `twitter:image` first and shows it on its own light or dark
-  theme, so it keeps the transparent PNG. `og:image` is `img/og/default-5.jpg` by default; `/donguru`,
+  theme, so it keeps the transparent PNG. `og:image` is `img/og/default-6.jpg` by default; `/donguru`,
   `/pinsmith`, `/can`, `/software` and `/work` each show their own board and headline, as both files.
 - **The canvas stays exactly 1200×627 (1.91:1), never 1200×630.** 1.91:1 is the minimum ratio LinkedIn needs to
   show an organic post's large card at all; a 1200×630 canvas is 1.905:1, just under that line, and drops to
@@ -216,8 +216,39 @@ per page (no blog, no articles), so `author` is the same for every page and ther
   Facebook, Slack, messengers). The corner marks sit near the card's own edges (below), wider than that square
   crop, so LinkedIn's crop cuts them and the headline along with it — that is fine, since only the board needs
   to survive it, and it does (Roman, round 5).
+- **The default card comes in two designs at one URL.** Roman drew both in Inkscape (10 Nov 2026), on the same
+  1200×627 canvas:
+  - `assets/og/default.svg`, the wide card: the headline on the left, Donguru's flat top render on the right.
+    Unlike the other SVGs it carries its render embedded (a data URI) and the wordmark as Audiowide text, as
+    Inkscape saved them; both only ever reach the raster images.
+  - `assets/og/default-square.svg`, the square card: the whole design inside the canvas's centre 627×627 square
+    (x 286 to 913), so a centre square crop shows all of it. Its board is `assets/og/b153a_top.png`, a render
+    from the Donguru project kept beside the SVG; it is never shipped itself.
+  The crawlers that crop `og:image` to its centre square get the square card: LinkedIn (its organic posts' small
+  thumbnail) and WhatsApp, matched on their User-Agent (`LinkedInBot`, `WhatsApp`). Nobody else documents a
+  square crop, so nobody else is in the list. Everyone else gets the wide card. The HTML is static and the same
+  for everyone; nginx picks the file:
+  - `deploy/nginx-og.conf` is an http-level map, installed as `/etc/nginx/conf.d/vhrd.tech-og.conf`:
+    `map $http_user_agent $og_default { default /img/og/default-6.jpg; ~*LinkedInBot /img/og/default-square-6.jpg;
+    ~*WhatsApp /img/og/default-square-6.jpg; }`.
+  - `deploy/nginx-og-location.conf` goes into the vhrd.tech https `server { }`: `location = /img/og/default-6.jpg
+    { try_files $og_default =404; add_header Vary User-Agent always; }`, plus every `add_header` line the server
+    block already has (an `add_header` in a location stops it inheriting the server block's; on 10 Nov 2026 that
+    was `Strict-Transport-Security`).
+  - Installing them is a root step on the server, like the redirect map: copy the map, paste the location,
+    `nginx -t`, `systemctl reload nginx`. It can go in before the deploy that ships `-6`: until then nothing links
+    to that URL.
+  - The output names stay `default-6.jpg` and `default-square-6.jpg` unless the round number changes. A new round
+    renames them in `tools/og_images.py` (`ROUND`), `config.toml` and both nginx files together, and root
+    installs the nginx files again.
+  - `tools/check_live.py built` (`just test`, `just live`) checks that the location is the front page's
+    `og:image`, that the map's default is that same file, and that every file the map names is in the build as a
+    1200×627 truecolour JPEG. `check_live.py site` (the Deploy workflow, `just check-live`) fetches that URL as
+    LinkedInBot, as WhatsApp and as a browser, and fails unless each gets the bytes of its own file with
+    `Vary: User-Agent`. A deploy before root installs the nginx files fails there, after the upload.
 - **The layout lives in SVG, not Python.** Each share image is a plain SVG under `assets/og/`
-  (`default.svg`, `donguru.svg`, `pinsmith.svg`, `can.svg`, `software.svg`, `work.svg`), 1200×627, holding the
+  (`default.svg`, `default-square.svg`, `donguru.svg`, `pinsmith.svg`, `can.svg`, `software.svg`, `work.svg`),
+  1200×627, holding the
   whole frame: the four red corner marks, the headline as real `<text>`/`<tspan>` in Audiowide (not paths,
   so it edits like any other text), the board picture as an `<image>` with a relative `href` to its existing
   hero render under `static/img/boards/` (no separate cropped asset: the hero PNG's own transparent margin is
@@ -238,7 +269,8 @@ per page (no blog, no articles), so `author` is the same for every page and ther
   Both stylesheets mark every rule `!important`, since they need to beat the SVG's own inline default.
 - `just og` (`tools/og_images.py`, uv and Pillow; the font path from vhrd_brand, the same one `just wordmark`
   uses, never shipped itself) is now a thin wrapper with no layout logic: for each of the six names it shells
-  out to resvg twice (light and dark) and writes two files:
+  out to resvg twice (light and dark) and writes two files (the square card only the JPEG: it is never a
+  `twitter:image`):
   - `static/img/og/<name>.png`: resvg's own dark-look render, a truecolour RGBA PNG with alpha, unchanged —
     `extra.twitter_image`.
   - `static/img/og/<name>.jpg`: resvg's light-look render flattened onto white and saved as a baseline (not
@@ -246,11 +278,12 @@ per page (no blog, no articles), so `author` is the same for every page and ther
   Both are asserted exactly 1200×627. `tools/check_live.py built` (`just test` and `just live`) ships a `.png`
   or `.jpg` only under `img/og/`: every other PNG or JPEG (a board render's source, "Board renders" above)
   still stops the build.
-  - **Each file name carries a version** (`default-5.png`/`.jpg`, not `default.png`): LinkedIn, Facebook and
-    Telegram cache a link's preview by its image URL, so a change to an image itself needs a new name too, or
-    they go on showing the old file. A change to `NAMES` in `tools/og_images.py` is followed by the same
-    names in `config.toml`'s `extra.og_image` / `extra.twitter_image` and each page's own, in its front
-    matter.
+  - **Each file name carries a version** (`default-6.png`/`.jpg`, not `default.png`): LinkedIn, Facebook and
+    Telegram cache a link's preview by its image URL (LinkedIn for about 7 days), so a change to an image itself
+    needs a new name too, or they go on showing the old file. Every name shares one round number, `ROUND` in
+    `tools/og_images.py`; a new round is followed by the same names in `config.toml`'s `extra.og_image` /
+    `extra.twitter_image`, each page's own, in its front matter, and the two nginx files above. The old round's
+    files are removed.
   - Each image stays a few hundred KB, under the script's 1 MB budget: LinkedIn and Facebook accept files up
     to 5-8 MB, but a smaller one loads faster.
   - Run it again after a change to a board's hero render, a headline, the wordmark or an SVG itself; `just
@@ -266,10 +299,10 @@ per page (no blog, no articles), so `author` is the same for every page and ther
 - Every page's `description` is 100-125 characters, written as a short complete sentence or two, not wrapped to
   a width. The home page's names no product (`~/git/tpm/area/marketing/brand.md`: product names stay out of
   that long-lived text); a product's own page may name itself.
-- `just og --check` also writes the default and `/donguru` images composited onto the backgrounds a platform
+- `just og --check` also writes the default, the square and the `/donguru` images composited onto the backgrounds a platform
   that doesn't honour transparency might fill it with — X's two dark themes and Facebook's grey — at both the
   1.91:1 card and the 1:1 square crop, plus both at LinkedIn's small ~160px organic-post thumbnail size (on
-  white, since `og:image` is already flattened there), into `target/shots/og5-*.png`, for a by-eye look before
+  white, since `og:image` is already flattened there), into `target/shots/og6-*.png`, for a by-eye look before
   trusting a transparent image or a small headline on a platform this repo can't open an account on to test
   directly.
 - **LinkedIn caches a link's preview.** After a deploy, open the new URL in its [Post

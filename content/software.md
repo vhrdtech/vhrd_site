@@ -6,8 +6,8 @@ description = "IOWeaver, the protocol analyzer and grapher; RockFace, the firmwa
 label = "Software"
 sig = "usb"
 styles = ["term"]
-og_image = "img/og/software-5.jpg"
-twitter_image = "img/og/software-5.png"
+og_image = "img/og/software-6.jpg"
+twitter_image = "img/og/software-6.png"
 og_image_alt = "CANnify Micro (B129), a breadboard CAN FD node PCB, framed by red corner marks and the VHRD.TECH wordmark, with the headline “The software for our instruments”"
 +++
 
