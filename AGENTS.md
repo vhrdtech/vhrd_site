@@ -276,9 +276,12 @@ per page (no blog, no articles), so `author` is the same for every page and ther
     `map $http_user_agent $og_default { default /img/og/default-6.jpg; ~*LinkedInBot /img/og/default-square-6.jpg;
     ~*WhatsApp /img/og/default-square-6.jpg; }`.
   - `deploy/nginx-og-location.conf` goes into the vhrd.tech https `server { }`: `location = /img/og/default-6.jpg
-    { try_files $og_default =404; add_header Vary User-Agent always; }`, plus every `add_header` line the server
-    block already has (an `add_header` in a location stops it inheriting the server block's; on 10 Nov 2026 that
-    was `Strict-Transport-Security`).
+    { try_files $og_default =404; add_header Vary User-Agent always; }`, plus every `add_header` line an exact
+    location like this one would otherwise lose: every line the server block already has (an `add_header` in a
+    location stops it inheriting the server block's; on 10 Nov 2026 that was `Strict-Transport-Security`), and
+    `Cache-Control: public, max-age=3600`, which every other static asset gets from the server's own
+    `/(css|fonts|img|js)/` prefix location — an exact location wins over a prefix one, so without repeating it
+    here this one URL would lose it entirely (server review, 11 Nov 2026).
   - Installing them is a root step on the server, like the redirect map: copy the map, paste the location,
     `nginx -t`, `systemctl reload nginx`. It can go in before the deploy that ships `-6`: until then nothing links
     to that URL.
@@ -303,16 +306,16 @@ per page (no blog, no articles), so `author` is the same for every page and ther
     bottom and the first match wins, so the `TelegramBot` entry has to come first, or Telegram would get the
     PNG instead of the fix.
   - `deploy/nginx-og-location.conf`'s second location: `location = /img/og/default-6.png { try_files
-    $og_twitter =404; add_header Vary User-Agent always; }`, plus the server block's own `add_header` lines, same
-    as the `og:image` location above. `try_files` changes the internal URI to whatever `$og_twitter` names, so
-    `Content-Type` follows the file actually served (a JPEG at a `.png` URL answers `image/jpeg`), confirmed the
-    same way.
+    $og_twitter =404; add_header Vary User-Agent always; }`, plus every `add_header` line the `og:image` location
+    above repeats, `Cache-Control` included. `try_files` changes the internal URI to whatever `$og_twitter`
+    names, so `Content-Type` follows the file actually served (a JPEG at a `.png` URL answers `image/jpeg`),
+    confirmed the same way.
   - Installed and checked the same way as the `og:image` map and location above, in the same root step.
     `tools/check_live.py built` checks the location is the front page's `twitter:image`, the map's default is
     the `og:image` card, and the Twitterbot entry is the location's own file, a 1200×627 truecolour PNG with an
     alpha channel. `check_live.py site` fetches that URL as Telegram's own User-Agent, as a browser and as
     `Twitterbot/1.0`, and fails unless the first two get the JPEG's bytes and the third the PNG's, with
-    `Vary: User-Agent`.
+    `Vary: User-Agent` and the same `Cache-Control` as the `og:image` location.
 - **The layout lives in SVG, not Python.** Each share image is a plain SVG under `assets/og/`
   (`default.svg`, `default-square.svg`, `donguru.svg`, `pinsmith.svg`, `can.svg`, `software.svg`, `work.svg`),
   1200×627, holding the

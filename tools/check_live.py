@@ -35,9 +35,10 @@ and a stylesheet and script answer 200, one old path per redirect rule answers i
 is installed by hand, so it can differ from the repo's), a missing path gets the site's own 404 page, and the default og:image URL answers LinkedInBot and WhatsApp with
 the square card and a browser with the wide one, with Vary: User-Agent (deploy/nginx-og.conf, installed by hand
 like the map). The twitter:image URL answers Telegram's own User-Agent and a browser with the og:image JPEG, and
-Twitterbot with the PNG, also with Vary: User-Agent. `built` has
-already checked the rest against the map, and rsync sets the same modes on every file. With --full, every page of
-the sitemap, every old path and every golden link too.
+Twitterbot with the PNG, also with Vary: User-Agent. Every one of those answers also carries the Cache-Control
+deploy/nginx-og-location.conf's two locations add (an exact location drops the server's own, so both locations
+repeat it). `built` has already checked the rest against the map, and rsync sets the same modes on every file.
+With --full, every page of the sitemap, every old path and every golden link too.
 """
 
 import argparse
@@ -267,13 +268,24 @@ def fetch(url, location=False):
 
 
 def fetch_image(url, agent):
-    """Status, body bytes and Vary header of a GET as that User-Agent."""
+    """Status, body bytes, Vary and Cache-Control headers of a GET as that User-Agent."""
     request = urllib.request.Request(url, headers={"User-Agent": agent})
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
-            return response.status, response.read(), response.headers.get("Vary", "")
+            return (response.status, response.read(), response.headers.get("Vary", ""),
+                     response.headers.get("Cache-Control", ""))
     except urllib.error.HTTPError as error:
-        return error.code, b"", ""
+        return error.code, b"", "", ""
+
+
+def og_cache_control():
+    """The Cache-Control value deploy/nginx-og-location.conf's two locations both add (an exact location wins
+    over the server's own /(css|fonts|img|js)/ one, which would otherwise set it): parsed, not hardcoded here,
+    so the check cannot drift from the file."""
+    values = set(re.findall(r'add_header Cache-Control "([^"]+)"', OG_LOCATION.read_text()))
+    if len(values) != 1:
+        raise SystemExit(f"{OG_LOCATION.name}: its locations' Cache-Control values differ: {sorted(values)}")
+    return values.pop()
 
 
 def one_per_rule(paths, rules):
@@ -320,26 +332,31 @@ def site(base, folder, stamp, full=False):
             problems.append(f"{url}: {status} to {location!r}, expected 301 to {target}")
         elif not target and status != 200:
             problems.append(f"{url}: {status}, expected the page")
+    cache_control = og_cache_control()
     path, wide, square = og_map()
     url = base + path.lstrip("/")
     for agent, name in [(UA_WIDE, wide)] + [(agent, square[0]) for agent in UA_SQUARE]:
-        status, data, vary = fetch_image(url, agent)
+        status, data, vary, cache = fetch_image(url, agent)
         expected = (folder / name.lstrip("/")).read_bytes()
         print(f"{status} {url} as {agent.split('/')[0]}: {'the' if data == expected else 'not the'} {name}")
         if status != 200 or data != expected:
             problems.append(f"{url} as {agent!r}: {status}, not the bytes of {name} (deploy/nginx-og.conf installed?)")
         elif "user-agent" not in vary.lower():
             problems.append(f"{url} as {agent!r}: Vary is {vary!r}, expected User-Agent")
+        elif cache != cache_control:
+            problems.append(f"{url} as {agent!r}: Cache-Control is {cache!r}, expected {cache_control!r}")
     twitter_path, twitter_default, twitter_png = og_twitter_map()
     turl = base + twitter_path.lstrip("/")
     for agent, name in [(UA_TELEGRAM, twitter_default), (UA_WIDE, twitter_default), (UA_TWITTERBOT, twitter_png)]:
-        status, data, vary = fetch_image(turl, agent)
+        status, data, vary, cache = fetch_image(turl, agent)
         expected = (folder / name.lstrip("/")).read_bytes()
         print(f"{status} {turl} as {agent.split('/')[0]}: {'the' if data == expected else 'not the'} {name}")
         if status != 200 or data != expected:
             problems.append(f"{turl} as {agent!r}: {status}, not the bytes of {name} (deploy/nginx-og.conf installed?)")
         elif "user-agent" not in vary.lower():
             problems.append(f"{turl} as {agent!r}: Vary is {vary!r}, expected User-Agent")
+        elif cache != cache_control:
+            problems.append(f"{turl} as {agent!r}: Cache-Control is {cache!r}, expected {cache_control!r}")
     url = base + "no-such-page-" + (stamp or "x") + "/"
     status, body = fetch(url)
     print(f"{status} {url}")
