@@ -290,6 +290,29 @@ per page (no blog, no articles), so `author` is the same for every page and ther
     1200×627 truecolour JPEG. `check_live.py site` (the Deploy workflow, `just check-live`) fetches that URL as
     LinkedInBot, as WhatsApp and as a browser, and fails unless each gets the bytes of its own file with
     `Vary: User-Agent`. A deploy before root installs the nginx files fails there, after the upload.
+- **`twitter:image` is also picked by User-Agent, the other way round.** It is the dark-look transparent PNG,
+  made for X's own light/dark theme: a crawler that composites it onto its own page instead, like Telegram's
+  and Discord's, fills the transparency with white and the PNG's white headline nearly vanishes (seen 11 Nov
+  2026). So `twitter:image` answers everyone but Twitterbot with the `og:image` JPEG instead (the light card,
+  which has a dark headline and needs no transparency), and only X's own crawler gets the PNG it was designed
+  for:
+  - `deploy/nginx-og.conf`'s second map: `map $http_user_agent $og_twitter { default /img/og/default-6.jpg;
+    ~*TelegramBot /img/og/default-6.jpg; ~*Twitterbot /img/og/default-6.png; }`. **Order matters**: Telegram's
+    own User-Agent is `TelegramBot (like TwitterBot)`, which case-insensitively contains `TwitterBot` and so
+    matches `~*Twitterbot` too (confirmed in a local nginx test); nginx tries a map's regex entries top to
+    bottom and the first match wins, so the `TelegramBot` entry has to come first, or Telegram would get the
+    PNG instead of the fix.
+  - `deploy/nginx-og-location.conf`'s second location: `location = /img/og/default-6.png { try_files
+    $og_twitter =404; add_header Vary User-Agent always; }`, plus the server block's own `add_header` lines, same
+    as the `og:image` location above. `try_files` changes the internal URI to whatever `$og_twitter` names, so
+    `Content-Type` follows the file actually served (a JPEG at a `.png` URL answers `image/jpeg`), confirmed the
+    same way.
+  - Installed and checked the same way as the `og:image` map and location above, in the same root step.
+    `tools/check_live.py built` checks the location is the front page's `twitter:image`, the map's default is
+    the `og:image` card, and the Twitterbot entry is the location's own file, a 1200×627 truecolour PNG with an
+    alpha channel. `check_live.py site` fetches that URL as Telegram's own User-Agent, as a browser and as
+    `Twitterbot/1.0`, and fails unless the first two get the JPEG's bytes and the third the PNG's, with
+    `Vary: User-Agent`.
 - **The layout lives in SVG, not Python.** Each share image is a plain SVG under `assets/og/`
   (`default.svg`, `default-square.svg`, `donguru.svg`, `pinsmith.svg`, `can.svg`, `software.svg`, `work.svg`),
   1200×627, holding the

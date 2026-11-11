@@ -20,7 +20,11 @@ vhrd.tech:
 - with --stamp, the front page's footer stamp is that hash;
 - the default share image's two cards (deploy/nginx-og.conf): the location in deploy/nginx-og-location.conf is the
   front page's og:image, the map's default is that file, and every file the map names is in the build, a
-  1200x627 truecolour JPEG.
+  1200x627 truecolour JPEG;
+- the twitter:image URL (deploy/nginx-og.conf's $og_twitter map): its location is the front page's twitter:image,
+  the map's default is the og:image JPEG (for Telegram and everyone else, who would draw the transparent PNG's
+  white headline on their own white page), and the Twitterbot entry is the location's own file, a 1200x627
+  truecolour PNG with an alpha channel.
 
 `redirects` checks deploy/redirects.map against a build: every target is a page of it, no redirect hides one of its
 pages, every old WordPress path in deploy/old-urls.txt is a page or redirected, and every link in
@@ -30,7 +34,8 @@ deploy/golden-links.txt (what we have printed or sent) is a page, a file or redi
 and a stylesheet and script answer 200, one old path per redirect rule answers its 301 (the server's copy of the map
 is installed by hand, so it can differ from the repo's), a missing path gets the site's own 404 page, and the default og:image URL answers LinkedInBot and WhatsApp with
 the square card and a browser with the wide one, with Vary: User-Agent (deploy/nginx-og.conf, installed by hand
-like the map). `built` has
+like the map). The twitter:image URL answers Telegram's own User-Agent and a browser with the og:image JPEG, and
+Twitterbot with the PNG, also with Vary: User-Agent. `built` has
 already checked the rest against the map, and rsync sets the same modes on every file. With --full, every page of
 the sitemap, every old path and every golden link too.
 """
@@ -67,6 +72,10 @@ OG_LOCATION = ROOT / "deploy/nginx-og-location.conf"
 UA_SQUARE = ["LinkedInBot/1.0 (compatible; Mozilla/5.0; Apache-HttpClient +http://www.linkedin.com)",
              "WhatsApp/2.23.20.0 A"]
 UA_WIDE = "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0"
+# Telegram's own User-Agent, which also matches "~*Twitterbot" case-insensitively (it contains "TwitterBot"):
+# the $og_twitter map's TelegramBot entry must come first, so this gets the JPEG, not X's PNG.
+UA_TELEGRAM = "TelegramBot (like TwitterBot)"
+UA_TWITTERBOT = "Twitterbot/1.0"
 
 
 def built(folder, stamp):
@@ -106,10 +115,11 @@ def built(folder, stamp):
 
 
 def og_map():
-    """deploy/nginx-og.conf and its location: (the og:image path, the default file, the files for a cropping
-    crawler), each a URL path."""
-    path = re.search(r"^location = (\S+) \{", OG_LOCATION.read_text(), re.M).group(1)
-    entries = dict(re.findall(r"^\s+(\S+)\s+(/\S+);$", OG_MAP.read_text(), re.M))
+    """deploy/nginx-og.conf's $og_default map and its location: (the og:image path, the default file, the
+    files for a cropping crawler), each a URL path."""
+    path = re.search(r"^location = (\S+) \{\s*try_files \$og_default\b", OG_LOCATION.read_text(), re.M).group(1)
+    body = re.search(r"map \$http_user_agent \$og_default \{(.*?)^\}", OG_MAP.read_text(), re.M | re.S).group(1)
+    entries = dict(re.findall(r"^\s*(\S+)\s+(/\S+);$", body, re.M))
     return path, entries.pop("default"), sorted(set(entries.values()))
 
 
@@ -123,8 +133,26 @@ def jpeg_size(data):
     return None
 
 
+def og_twitter_map():
+    """deploy/nginx-og.conf's $og_twitter map and its location in deploy/nginx-og-location.conf: the
+    twitter:image URL, the og:image JPEG everyone but Twitterbot gets there (Telegram's own User-Agent
+    included, AGENTS.md "Link previews"), and Twitterbot's own PNG."""
+    path = re.search(r"^location = (\S+) \{\s*try_files \$og_twitter\b", OG_LOCATION.read_text(), re.M).group(1)
+    body = re.search(r"map \$http_user_agent \$og_twitter \{(.*?)^\}", OG_MAP.read_text(), re.M | re.S).group(1)
+    entries = dict(re.findall(r"^\s*(\S+)\s+(/\S+);$", body, re.M))
+    return path, entries["default"], entries["~*Twitterbot"]
+
+
+def png_size(data):
+    """(width, height, IHDR colour type) of a PNG from its own header: 6 is truecolour with alpha."""
+    if data[:8] != b"\x89PNG\r\n\x1a\n":
+        return None
+    return int.from_bytes(data[16:20], "big"), int.from_bytes(data[20:24], "big"), data[25]
+
+
 def og_cards(folder):
-    """The problems of the default share image's two cards in a build folder."""
+    """The problems of the default share image's cards in a build folder: og:image's two (og_map) and
+    twitter:image's two (og_twitter_map)."""
     problems = []
     path, wide, square = og_map()
     front = (folder / "index.html").read_text() if (folder / "index.html").is_file() else ""
@@ -139,6 +167,20 @@ def og_cards(folder):
         size = jpeg_size(file.read_bytes()) if file.is_file() else None
         if size != (1200, 627, 3):
             problems.append(f"{name}: {size or 'missing or not a JPEG'}, expected a 1200x627 truecolour JPEG")
+    twitter_path, twitter_default, twitter_png = og_twitter_map()
+    timage = re.search(r'<meta name="twitter:image" content="([^"]+)"', front)
+    if not timage or not timage.group(1).endswith(twitter_path):
+        problems.append(f"{OG_LOCATION.name}: location {twitter_path}, but the front page's twitter:image is "
+                        f"{timage and timage.group(1)}")
+    if twitter_default != wide:
+        problems.append(f"{OG_MAP.name}: $og_twitter's default is {twitter_default}, not the og:image card {wide}")
+    if twitter_png != twitter_path:
+        problems.append(f"{OG_MAP.name}: $og_twitter's Twitterbot entry is {twitter_png}, "
+                        f"not the location's own {twitter_path}")
+    file = folder / twitter_png.lstrip("/")
+    size = png_size(file.read_bytes()) if file.is_file() else None
+    if size != (1200, 627, 6):
+        problems.append(f"{twitter_png}: {size or 'missing or not a PNG'}, expected a 1200x627 truecolour+alpha PNG")
     return problems
 
 
@@ -288,6 +330,16 @@ def site(base, folder, stamp, full=False):
             problems.append(f"{url} as {agent!r}: {status}, not the bytes of {name} (deploy/nginx-og.conf installed?)")
         elif "user-agent" not in vary.lower():
             problems.append(f"{url} as {agent!r}: Vary is {vary!r}, expected User-Agent")
+    twitter_path, twitter_default, twitter_png = og_twitter_map()
+    turl = base + twitter_path.lstrip("/")
+    for agent, name in [(UA_TELEGRAM, twitter_default), (UA_WIDE, twitter_default), (UA_TWITTERBOT, twitter_png)]:
+        status, data, vary = fetch_image(turl, agent)
+        expected = (folder / name.lstrip("/")).read_bytes()
+        print(f"{status} {turl} as {agent.split('/')[0]}: {'the' if data == expected else 'not the'} {name}")
+        if status != 200 or data != expected:
+            problems.append(f"{turl} as {agent!r}: {status}, not the bytes of {name} (deploy/nginx-og.conf installed?)")
+        elif "user-agent" not in vary.lower():
+            problems.append(f"{turl} as {agent!r}: Vary is {vary!r}, expected User-Agent")
     url = base + "no-such-page-" + (stamp or "x") + "/"
     status, body = fetch(url)
     print(f"{status} {url}")
