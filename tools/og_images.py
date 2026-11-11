@@ -30,6 +30,8 @@ from pathlib import Path
 
 from PIL import Image
 
+from og_version import write_data
+
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets/og"
 OUT = ROOT / "static/img/og"
@@ -38,16 +40,14 @@ W, H = 1200, 627
 BUDGET_KB = 1024
 JPEG_QUALITY = 90
 
-# The share images: assets/og/<name>.svg -> static/img/og/<name>-<round>.jpg and .png. The round goes up when
-# an image changes ("-6": default.svg and default-square.svg redrawn by hand in Inkscape): LinkedIn, Facebook
-# and Telegram cache a preview by its image URL, so a changed image needs a new name too, or they go on showing
-# the old file. deploy/nginx-og.conf names the two default files too.
-ROUND = 6
-NAMES = [f"{n}-{ROUND}" for n in ("default", "donguru", "pinsmith", "can", "software", "work")]
+# The share images: assets/og/<name>.svg -> static/img/og/<name>.jpg and .png. The names never change; a changed
+# image gets a new URL through the version written into data/og.toml at the end (tools/og_version.py), since
+# LinkedIn, Facebook and Telegram cache a preview by its image URL. deploy/nginx-og.conf names the default files.
+NAMES = ["default", "donguru", "pinsmith", "can", "software", "work"]
 # The square card: the same 1200x627 canvas with the design inside its centre 627x627 square, so a centre square
 # crop shows all of it. nginx sends it instead of default's JPEG to the crawlers that crop to that square
 # (deploy/nginx-og.conf); it is never a page's twitter:image, so it gets no PNG.
-SQUARE_NAMES = [f"default-square-{ROUND}"]
+SQUARE_NAMES = ["default-square"]
 
 # Backgrounds the transparent PNG (twitter:image) might be filled with instead of its own alpha: X's three
 # themes and Facebook/Messenger's card grey.
@@ -57,7 +57,7 @@ PLATFORM_BACKGROUNDS = [
     ("xnavy", (0x15, 0x20, 0x2b)),
     ("grey", (0xf0, 0xf2, 0xf5)),
 ]
-SHOT_NAMES = (f"default-{ROUND}", f"default-square-{ROUND}", f"donguru-{ROUND}")
+SHOT_NAMES = ("default", "default-square", "donguru")
 
 
 def render(svg, stylesheet, font_path, out_png):
@@ -83,17 +83,17 @@ def write_shots(name, jpeg_img, png_img):
     LinkedIn's small organic-post thumbnail (AGENTS.md "Link previews")."""
     shots = ROOT / "target/shots"
     shots.mkdir(parents=True, exist_ok=True)
-    jpeg_img.save(shots / f"og{ROUND}-{name}-white-191x1.png")
-    square_crop(jpeg_img).save(shots / f"og{ROUND}-{name}-white-1x1.png")
-    jpeg_img.resize((160, round(160 * H / W)), Image.LANCZOS).save(shots / f"og{ROUND}-{name}-thumb-191x1.png")
-    square_crop(jpeg_img).resize((160, 160), Image.LANCZOS).save(shots / f"og{ROUND}-{name}-thumb-1x1.png")
+    jpeg_img.save(shots / f"og-{name}-white-191x1.png")
+    square_crop(jpeg_img).save(shots / f"og-{name}-white-1x1.png")
+    jpeg_img.resize((160, round(160 * H / W)), Image.LANCZOS).save(shots / f"og-{name}-thumb-191x1.png")
+    square_crop(jpeg_img).resize((160, 160), Image.LANCZOS).save(shots / f"og-{name}-thumb-1x1.png")
     if png_img is None:
         return
     for bg_name, rgb in PLATFORM_BACKGROUNDS:
         flat = Image.new("RGB", (W, H), rgb)
         flat.paste(png_img, (0, 0), png_img)
-        flat.save(shots / f"og{ROUND}-{name}-{bg_name}-191x1.png")
-        square_crop(flat).save(shots / f"og{ROUND}-{name}-{bg_name}-1x1.png")
+        flat.save(shots / f"og-{name}-{bg_name}-191x1.png")
+        square_crop(flat).save(shots / f"og-{name}-{bg_name}-1x1.png")
 
 
 def write_image(path, img, fmt, **kwargs):
@@ -111,8 +111,7 @@ def main():
     check = "--check" in sys.argv[2:]
     OUT.mkdir(parents=True, exist_ok=True)
     for name in NAMES + SQUARE_NAMES:
-        base = name.rsplit("-", 1)[0]
-        svg = ASSETS / f"{base}.svg"
+        svg = ASSETS / f"{name}.svg"
 
         light_png = render(svg, ASSETS / "light.css", font_path, OUT / f"{name}-light-tmp.png")
         flat = Image.new("RGB", (W, H), (255, 255, 255))
@@ -127,8 +126,9 @@ def main():
 
         if check and name in SHOT_NAMES:
             write_shots(name, flat, png_img)
+    print(f"data/og.toml: version {write_data(OUT)}")
     if check:
-        print(f"target/shots/og{ROUND}-*.png written: on white at 1.91:1 and 1:1 and as 160px thumbnails, and the PNGs on {len(PLATFORM_BACKGROUNDS)} platform backgrounds, for {', '.join(SHOT_NAMES)}")
+        print(f"target/shots/og-*.png written: on white at 1.91:1 and 1:1 and as 160px thumbnails, and the PNGs on {len(PLATFORM_BACKGROUNDS)} platform backgrounds, for {', '.join(SHOT_NAMES)}")
 
 
 if __name__ == "__main__":

@@ -50,13 +50,13 @@ notify_consent = "2026-11-06"
 # The link-preview images: the headline in Audiowide on the left, Donguru's top-side render on the right, framed
 # with the brand's red corner marks and wordmark, 1200x627, laid out in assets/og/default.svg and rendered by
 # resvg (`just og`, tools/og_images.py). The crawlers that crop to the centre square (LinkedIn, WhatsApp) get
-# default-square-6.jpg at this same URL from nginx (deploy/nginx-og.conf), so the HTML stays the same for all. /donguru, /pinsmith, /can, /software and /work show their own board and
+# default-square.jpg at this same URL from nginx (deploy/nginx-og.conf), so the HTML stays the same for all. /donguru, /pinsmith, /can, /software and /work show their own board and
 # headline instead (extra.og_image, extra.twitter_image, extra.og_image_alt, in the page's front matter).
 # og:image is a JPEG flattened onto white, since LinkedIn and Facebook fill a transparent PNG with a dull grey
 # card instead of white (Roman, round 4); twitter:image keeps the transparent PNG, since X reads it first and
 # shows it on its own dark or light theme.
-og_image = "img/og/default-6.jpg"
-twitter_image = "img/og/default-6.png"
+og_image = "img/og/default.jpg"
+twitter_image = "img/og/default.png"
 og_image_alt = "The headline “Instruments for embedded development” beside Donguru (B153), a USB-C dongle PCB seen from the top, framed by red corner marks and the VHRD.TECH wordmark"
 
 # tools/page_stats.py's soft budgets (SITE-20 page-stats): it warns a page over one of these but never fails

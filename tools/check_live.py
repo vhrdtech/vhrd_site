@@ -24,7 +24,10 @@ vhrd.tech:
 - the twitter:image URL (deploy/nginx-og.conf's $og_twitter map): its location is the front page's twitter:image,
   the map's default is the og:image JPEG (for Telegram and everyone else, who would draw the transparent PNG's
   white headline on their own white page), and the Twitterbot entry is the location's own file, a 1200x627
-  truecolour PNG with an alpha channel.
+  truecolour PNG with an alpha channel;
+- every page's og:image and twitter:image end in `?v=` and the version of the build's img/og/ files
+  (tools/og_version.py): the names never change, so a changed image without `just og` (or `python3
+  tools/og_version.py`) would keep its old URL, and the crawlers, which cache a preview by it, the old image.
 
 `redirects` checks deploy/redirects.map against a build: every target is a page of it, no redirect hides one of its
 pages, every old WordPress path in deploy/old-urls.txt is a page or redirected, and every link in
@@ -47,6 +50,8 @@ import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
+
+from og_version import og_version
 
 REQUIRED = ["index.html", "404.html", "robots.txt", "sitemap.xml"]
 # What the site ships. Anything else (a .png render source, a .php, a manifest) stops the upload.
@@ -112,6 +117,7 @@ def built(folder, stamp):
         if f"<code>{stamp}</code>" not in front:
             problems.append(f"index.html: the footer stamp is not {stamp}")
     problems += og_cards(folder)
+    problems += og_versions(folder)
     return problems
 
 
@@ -158,7 +164,7 @@ def og_cards(folder):
     path, wide, square = og_map()
     front = (folder / "index.html").read_text() if (folder / "index.html").is_file() else ""
     image = re.search(r'<meta property="og:image" content="([^"]+)"', front)
-    if not image or not image.group(1).endswith(path):
+    if not image or not image.group(1).split("?")[0].endswith(path):
         problems.append(f"{OG_LOCATION.name}: location {path}, but the front page's og:image is "
                         f"{image and image.group(1)}")
     if wide != path:
@@ -170,7 +176,7 @@ def og_cards(folder):
             problems.append(f"{name}: {size or 'missing or not a JPEG'}, expected a 1200x627 truecolour JPEG")
     twitter_path, twitter_default, twitter_png = og_twitter_map()
     timage = re.search(r'<meta name="twitter:image" content="([^"]+)"', front)
-    if not timage or not timage.group(1).endswith(twitter_path):
+    if not timage or not timage.group(1).split("?")[0].endswith(twitter_path):
         problems.append(f"{OG_LOCATION.name}: location {twitter_path}, but the front page's twitter:image is "
                         f"{timage and timage.group(1)}")
     if twitter_default != wide:
@@ -182,6 +188,28 @@ def og_cards(folder):
     size = png_size(file.read_bytes()) if file.is_file() else None
     if size != (1200, 627, 6):
         problems.append(f"{twitter_png}: {size or 'missing or not a PNG'}, expected a 1200x627 truecolour+alpha PNG")
+    return problems
+
+
+def og_versions(folder):
+    """The pages whose og:image or twitter:image is not the build's image with `?v=` and the version of the build's
+    share images (tools/og_version.py, data/og.toml)."""
+    problems = []
+    og = folder / "img/og"
+    want = og_version(og) if og.is_dir() else None
+    for page in sorted(folder.rglob("*.html")):
+        html = page.read_text()
+        for tag in ('property="og:image"', 'name="twitter:image"'):
+            meta = re.search(rf'<meta {tag} content="([^"]+)"', html)
+            if not meta:
+                continue
+            where, url = f"{page.relative_to(folder)}: {tag.split('=')[1].strip('\"')}", meta.group(1)
+            path, _, query = url.partition("?")
+            if "/img/og/" not in path or not (og / path.rsplit("/", 1)[1]).is_file():
+                problems.append(f"{where} {url} is not a share image of the build")
+            elif query != f"v={want}":
+                problems.append(f"{where} is {url}, expected ?v={want} "
+                                "(the share images changed: `just og`, or `python3 tools/og_version.py`)")
     return problems
 
 

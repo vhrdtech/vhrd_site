@@ -29,15 +29,18 @@
     and messengers show this instead of cropping a render out of the page themselves. og:image is a JPEG
     flattened onto white (LinkedIn and Facebook show a card on white and fill a transparent image with a dull
     grey instead); twitter:image keeps the transparent PNG, since X reads twitter:image first and shows it on
-    its own light or dark theme (Roman, round 4 of link previews). #}
-<meta property="og:image" content="{{ get_url(path=og_image) | safe }}">
-<meta property="og:image:secure_url" content="{{ get_url(path=og_image) | safe }}">
+    its own light or dark theme (Roman, round 4 of link previews). The file names never change: `?v=` is the
+    images' version (data/og.toml, tools/og_version.py), so a changed image gets a new URL and the crawlers,
+    which cache a preview by its image URL, fetch it again. #}
+{%- set og_data = load_data(path="data/og.toml") %}{% set og_v = "?v=" ~ og_data.version %}
+<meta property="og:image" content="{{ get_url(path=og_image) | safe }}{{ og_v }}">
+<meta property="og:image:secure_url" content="{{ get_url(path=og_image) | safe }}{{ og_v }}">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="627">
 <meta property="og:image:alt" content="{{ og_alt }}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="{{ get_url(path=twitter_image) | safe }}">
+<meta name="twitter:image" content="{{ get_url(path=twitter_image) | safe }}{{ og_v }}">
 <link rel="icon" href="{{ get_url(path='favicon.svg') }}" type="image/svg+xml">
 {#- Dark is the default whatever the system prefers, set on <html> above, so there is no light
     flash and no-JS visitors get it too. Light only when the visitor picked it with the toggle: applied here, before
