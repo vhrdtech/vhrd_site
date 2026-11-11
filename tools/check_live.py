@@ -203,7 +203,8 @@ def og_versions(folder):
             meta = re.search(rf'<meta {tag} content="([^"]+)"', html)
             if not meta:
                 continue
-            where, url = f"{page.relative_to(folder)}: {tag.split('=')[1].strip('\"')}", meta.group(1)
+            label, url = tag.split('"')[1], meta.group(1)
+            where = f"{page.relative_to(folder)}: {label}"
             path, _, query = url.partition("?")
             if "/img/og/" not in path or not (og / path.rsplit("/", 1)[1]).is_file():
                 problems.append(f"{where} {url} is not a share image of the build")

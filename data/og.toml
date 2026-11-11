@@ -1,3 +1,3 @@
-# Written by tools/og_images.py (`just og`), never by hand: the share images' version, the `?v=` after
-# og:image and twitter:image (tools/og_version.py). tools/check_live.py fails when it is not the build's.
+# Written by `just og` (tools/og_images.py) or `python3 tools/og_version.py`, never by hand: the share
+# images' version, the `?v=` after og:image and twitter:image. tools/check_live.py fails when it is not the build's.
 version = "cb07bf6d1c"

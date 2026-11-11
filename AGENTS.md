@@ -22,7 +22,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 - `static/css/brand/`: `tokens.css` and `vhrd.css` from vhrd_brand (`just brand`). Never edit these here; change vhrd_brand and pull.
 - `static/css/site.css`: the site's own layer. `base.html` inlines all the CSS (fonts.css, the brand files and site.css) into each page with `load_data`, so there is no render-blocking request. A part only some pages have keeps its styles in its own file, inlined only where `extra.styles` names it (`intro.css`, `stack.css`, `term.css`; "Performance" below). A light flash between pages in desktop Firefox is Firefox's own tab background, not the site's: "The light blink between pages in Firefox" below before chasing it again. `static/js/site.js`: theme toggle, tabs, the image placeholders' marking and the signup form's fetch, nothing else.
 - `static/fonts/`: IBM Plex woff2 subsets and `fonts.css` ("Brand and fonts" below). `static/img/boards/` holds board renders (`just renders`, "Board renders" below) and `static/img/lab/` lab photos.
-- `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check, `tools/perf.py` measures the first screen on a slow phone, `tools/fonts.py` cuts the Core font subsets and the small Greek faces (Ω, μ) from vhrd_brand's full fonts, `tools/og_images.py` renders `assets/og/*.svg` (the share images' layout) into `static/img/og/` with resvg ("Link previews" below).
+- `tools/wordmark.py` draws the wordmark and favicon outlines. `tools/check_pages.py` is the browser check, `tools/perf.py` measures the first screen on a slow phone, `tools/fonts.py` cuts the Core font subsets and the small Greek faces (Ω, μ) from vhrd_brand's full fonts, `tools/og_images.py` renders `assets/og/*.svg` (the share images' layout) into `static/img/og/` with resvg, and `tools/og_version.py` gives them the `?v=` version in `data/og.toml` ("Link previews" below).
 - `server/`: the Cargo workspace (`Cargo.toml` at the root) of the notify service: `vhrd_notify` (library: `email.rs` the address check, `store.rs` the intake and the records, `list.rs` what happens to a record, `token.rs` the links' tokens, `mail.rs` composing and sending a mail, `outbox.rs` the worker, `limit.rs` the rate limit, `server.rs` the signup endpoint, `links.rs` the confirm, remove and unsubscribe endpoints, `config.rs` the settings; `mail/confirm.txt` the confirmation text), `vhrd_notify_cli` (the `vhrd_notify` binary: serve, list, count, export, send, mail-test, delete) and `vhrd_notify_activate` (the activator that takes a release the Deploy workflow uploaded, root's on the server, a crate of its own so an upload never checks itself; its end-to-end tests in `tests/activate.rs` are also the fake systemctl and service, and run one at a time, `.config/nextest.toml`). `deploy/notify.toml` is its settings on the server, `deploy/vhrd-notify.service` its user unit (user vhrd-notify), `deploy/vhrd-notify-activate.path` and `.service` the activator's units, `deploy/nginx-notify.conf` the nginx block (`deploy/nginx-og.conf` and `nginx-og-location.conf` are the share image's, "Link previews" below), `ship.toml` what `tpm ship` ships when GitHub can't (fallback only). Dependencies without default features and with no C library (no SQLite: the store is a plain file at this size).
 - `content/privacy.md`: the privacy note the forms link to. Any change to what the site or the service keeps changes it in the same commit.
 - `.github/workflows/deploy.yml`: the only way the site and the notify service reach vhrd.tech ("Deploy" below); `.github/deploy/known_hosts` pins the server's host key. `tools/check_live.py` checks a live build before upload and the site after it. `tools/notify_plan.py` decides whether a run ships the notify service.
@@ -245,7 +245,7 @@ per page (no blog, no articles), so `author` is the same for every page and ther
   Facebook composite a transparent image onto their card themselves and, where they don't honour the alpha
   channel, fill it with a dull grey rather than the card's white, which reads as a worse block than a plain
   white background would (Roman, round 4). X reads `twitter:image` first and shows it on its own light or dark
-  theme, so it keeps the transparent PNG. `og:image` is `img/og/default-6.jpg` by default; `/donguru`,
+  theme, so it keeps the transparent PNG. `og:image` is `img/og/default.jpg` by default; `/donguru`,
   `/pinsmith`, `/can`, `/software` and `/work` each show their own board and headline, as both files.
 - **The canvas stays exactly 1200×627 (1.91:1), never 1200×630.** 1.91:1 is the minimum ratio LinkedIn needs to
   show an organic post's large card at all; a 1200×630 canvas is 1.905:1, just under that line, and drops to
@@ -273,9 +273,9 @@ per page (no blog, no articles), so `author` is the same for every page and ther
   square crop, so nobody else is in the list. Everyone else gets the wide card. The HTML is static and the same
   for everyone; nginx picks the file:
   - `deploy/nginx-og.conf` is an http-level map, installed as `/etc/nginx/conf.d/vhrd.tech-og.conf`:
-    `map $http_user_agent $og_default { default /img/og/default-6.jpg; ~*LinkedInBot /img/og/default-square-6.jpg;
-    ~*WhatsApp /img/og/default-square-6.jpg; }`.
-  - `deploy/nginx-og-location.conf` goes into the vhrd.tech https `server { }`: `location = /img/og/default-6.jpg
+    `map $http_user_agent $og_default { default /img/og/default.jpg; ~*LinkedInBot /img/og/default-square.jpg;
+    ~*WhatsApp /img/og/default-square.jpg; }`.
+  - `deploy/nginx-og-location.conf` goes into the vhrd.tech https `server { }`: `location = /img/og/default.jpg
     { try_files $og_default =404; add_header Vary User-Agent always; }`, plus every `add_header` line an exact
     location like this one would otherwise lose: every line the server block already has (an `add_header` in a
     location stops it inheriting the server block's; on 10 Nov 2026 that was `Strict-Transport-Security`), and
@@ -283,11 +283,8 @@ per page (no blog, no articles), so `author` is the same for every page and ther
     `/(css|fonts|img|js)/` prefix location — an exact location wins over a prefix one, so without repeating it
     here this one URL would lose it entirely (server review, 11 Nov 2026).
   - Installing them is a root step on the server, like the redirect map: copy the map, paste the location,
-    `nginx -t`, `systemctl reload nginx`. It can go in before the deploy that ships `-6`: until then nothing links
-    to that URL.
-  - The output names stay `default-6.jpg` and `default-square-6.jpg` unless the round number changes. A new round
-    renames them in `tools/og_images.py` (`ROUND`), `config.toml` and both nginx files together, and root
-    installs the nginx files again.
+    `nginx -t`, `systemctl reload nginx`. The file names never change (the `?v=` version below gives a changed
+    image its new URL), so the two nginx files change only when what they do changes, never with an image.
   - `tools/check_live.py built` (`just test`, `just live`) checks that the location is the front page's
     `og:image`, that the map's default is that same file, and that every file the map names is in the build as a
     1200×627 truecolour JPEG. `check_live.py site` (the Deploy workflow, `just check-live`) fetches that URL as
@@ -299,13 +296,13 @@ per page (no blog, no articles), so `author` is the same for every page and ther
   2026). So `twitter:image` answers everyone but Twitterbot with the `og:image` JPEG instead (the light card,
   which has a dark headline and needs no transparency), and only X's own crawler gets the PNG it was designed
   for:
-  - `deploy/nginx-og.conf`'s second map: `map $http_user_agent $og_twitter { default /img/og/default-6.jpg;
-    ~*TelegramBot /img/og/default-6.jpg; ~*Twitterbot /img/og/default-6.png; }`. **Order matters**: Telegram's
+  - `deploy/nginx-og.conf`'s second map: `map $http_user_agent $og_twitter { default /img/og/default.jpg;
+    ~*TelegramBot /img/og/default.jpg; ~*Twitterbot /img/og/default.png; }`. **Order matters**: Telegram's
     own User-Agent is `TelegramBot (like TwitterBot)`, which case-insensitively contains `TwitterBot` and so
     matches `~*Twitterbot` too (confirmed in a local nginx test); nginx tries a map's regex entries top to
     bottom and the first match wins, so the `TelegramBot` entry has to come first, or Telegram would get the
     PNG instead of the fix.
-  - `deploy/nginx-og-location.conf`'s second location: `location = /img/og/default-6.png { try_files
+  - `deploy/nginx-og-location.conf`'s second location: `location = /img/og/default.png { try_files
     $og_twitter =404; add_header Vary User-Agent always; }`, plus every `add_header` line the `og:image` location
     above repeats, `Cache-Control` included. `try_files` changes the internal URI to whatever `$og_twitter`
     names, so `Content-Type` follows the file actually served (a JPEG at a `.png` URL answers `image/jpeg`),
@@ -348,12 +345,18 @@ per page (no blog, no articles), so `author` is the same for every page and ther
   Both are asserted exactly 1200×627. `tools/check_live.py built` (`just test` and `just live`) ships a `.png`
   or `.jpg` only under `img/og/`: every other PNG or JPEG (a board render's source, "Board renders" above)
   still stops the build.
-  - **Each file name carries a version** (`default-6.png`/`.jpg`, not `default.png`): LinkedIn, Facebook and
-    Telegram cache a link's preview by its image URL (LinkedIn for about 7 days), so a change to an image itself
-    needs a new name too, or they go on showing the old file. Every name shares one round number, `ROUND` in
-    `tools/og_images.py`; a new round is followed by the same names in `config.toml`'s `extra.og_image` /
-    `extra.twitter_image`, each page's own, in its front matter, and the two nginx files above. The old round's
-    files are removed.
+  - **The file names are fixed; the URL carries the version.** LinkedIn, Facebook and Telegram cache a link's
+    preview by its image URL (LinkedIn for about 7 days), so a changed image needs a new URL, or they go on
+    showing the old file. The names stay `default.jpg`, `donguru.png`, ... for good, and `templates/base.html`
+    adds `?v=` and the images' version to `og:image`, `og:image:secure_url` and `twitter:image`. The version is
+    one short hash over every file under `static/img/og/` (`tools/og_version.py`), not one per file: nginx answers
+    one URL with different files by User-Agent (the square card at `default.jpg`, the JPEG at `default.png`), so a
+    change to any file changes every URL. `just og` writes it into `data/og.toml` after rendering; after a change
+    to an image by any other means, `python3 tools/og_version.py` writes it alone. `tools/check_live.py built`
+    fails when a page's `?v=` is not the version of the build's images. `config.toml`, the pages' front matter and
+    the nginx files never change with an image. Until 11 Nov 2026 every name carried a round number instead
+    (`default-6.jpg`); a round renamed the files in `tools/og_images.py`, `config.toml`, every page and both
+    nginx files, and needed root to install the nginx files again.
   - Each image stays a few hundred KB, under the script's 1 MB budget: LinkedIn and Facebook accept files up
     to 5-8 MB, but a smaller one loads faster.
   - Run it again after a change to a board's hero render, a headline, the wordmark or an SVG itself; `just
