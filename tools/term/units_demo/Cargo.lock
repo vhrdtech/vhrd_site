@@ -17,11 +17,17 @@ checksum = "00d174d5400e5e8fd687ad1049e2f578285fa914201b1af7e8b112a4546bd826"
 [[package]]
 name = "exact_units"
 version = "0.1.0"
-source = "git+https://github.com/romixlab/exact_units#90d25ff83b6611bba5dba14c27b5d77137c5d9ad"
+source = "git+https://github.com/romixlab/exact_units#d6a725662ac4288072b8250c6c1af2adc10546c0"
 dependencies = [
+ "exact_units_macros",
  "serde",
  "shrink_wrap",
 ]
+
+[[package]]
+name = "exact_units_macros"
+version = "0.1.0"
+source = "git+https://github.com/romixlab/exact_units#d6a725662ac4288072b8250c6c1af2adc10546c0"
 
 [[package]]
 name = "hashbrown"
@@ -111,7 +117,7 @@ dependencies = [
 [[package]]
 name = "shrink_wrap"
 version = "0.2.0"
-source = "git+https://github.com/vhrdtech/wire_weaver#46d60964ba0b59f3ae2b72e9d9d1b10c37925c5a"
+source = "git+https://github.com/vhrdtech/wire_weaver#7a734408082ae888441f8cb4b5f4d71d9ebe4b3c"
 dependencies = [
  "either",
  "paste",
@@ -122,7 +128,7 @@ dependencies = [
 [[package]]
 name = "shrink_wrap_derive"
 version = "0.2.0"
-source = "git+https://github.com/vhrdtech/wire_weaver#46d60964ba0b59f3ae2b72e9d9d1b10c37925c5a"
+source = "git+https://github.com/vhrdtech/wire_weaver#7a734408082ae888441f8cb4b5f4d71d9ebe4b3c"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
