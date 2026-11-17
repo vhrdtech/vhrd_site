@@ -74,7 +74,7 @@ repo = "https://github.com/vhrdtech/wire_weaver"
 [[link]]
 name = "ShrinkWrap"
 url = "/open-source/#highlight-shrink_wrap"
-repo = "https://github.com/vhrdtech/wire_weaver/tree/master/shrink_wrap"
+repo = "https://github.com/romixlab/shrink_wrap"
 
 [[link]]
 name = "ExactUnits"

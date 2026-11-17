@@ -72,7 +72,7 @@ logo_light = "img/oss/shrink_wrap-light.svg"
 logo_w = 96
 logo_h = 96
 pitch = "ShrinkWrap is the binary wire format under WireWeaver. It packs data to 1-bit, 4-bit and 1-byte alignment without compression, so useful messages fit into a CAN frame. Structs, enums with data, strings and vectors of any size work without an allocator, and reading is zero-copy. An older device and newer software read each other's data, and the other way round."
-repo = "https://github.com/vhrdtech/wire_weaver/tree/master/shrink_wrap"
+repo = "https://github.com/romixlab/shrink_wrap"
 lang = "rust"
 code = '''
 // 1 + 7 or 1 + 10 bits
