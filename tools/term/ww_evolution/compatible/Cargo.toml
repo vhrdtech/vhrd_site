@@ -9,6 +9,6 @@ edition = "2024"
 publish = false
 
 [dependencies]
-wire_weaver = { git = "https://github.com/vhrdtech/wire_weaver" }
+ww_api = { git = "https://github.com/vhrdtech/wire_weaver" }
 
 [workspace]
