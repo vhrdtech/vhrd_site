@@ -1,8 +1,12 @@
-<!-- tools/term_capture.py ww-api-check: `ww api check compatible; ww api check breaking`, ww 0.5.0 (46d60964, committed 5 Nov 2026 14:11), wire_weaver's blinky_api example, saved at 0.1.0: a trailing #[default] argument bumped to 0.2.0, a required one left at 0.1.1 (tools/term/ww_evolution), 44×36, recorded 2026-11-06. Recorded, not edited: run it again to change it. -->
+<!-- tools/term_capture.py ww-api-check: `ww api check compatible; ww api check breaking`, ww 0.5.0 (43f8e1b, committed 18 Nov 2026 09:04), wire_weaver's blinky_api example, saved at 0.1.0: a trailing #[default] argument bumped to 0.2.0, a required one left at 0.1.1 (tools/term/ww_evolution), 44×55, recorded 2026-11-18. Recorded, not edited: run it again to change it. -->
 <span class="f-green">$ </span>ww api check compatible
 blinky_api 0.1.0 (compatible/api_snapshots/b
 linky_api_0_1_0.ron) -&gt; 0.2.0 (source): <span class="f-red">brea</span>
 <span class="f-red">king changes</span>
+  <span class="t-b">needs:</span> wire w1.0 -&gt; w1.1 or later (a new w
+ire revision), crate 0.1.0 -&gt; 0.2.0 or later
+ (breaking position (minor before 1.0, major
+ after))
   <span class="f-red">breaking (Rust only, the wire is compatibl</span>
 <span class="f-red">e):</span> BlinkyApi::led_on: takes 0 argument(s) o
 n the old version, 1 on the new version: the
@@ -13,12 +17,21 @@ s for handlers and client calls
 <span class="t-d">t, keep the wire, but change the Rust signat</span>
 <span class="t-d">ures of handlers and client calls (docs/evol</span>
 <span class="t-d">ution/rules.md#arguments)</span>
-<span class="f-green">version is bumped enough</span>
+Error: blinky_api declared wire version w1.0
+, the new version declares none.
+Declare the wire version in `[package.metada
+ta.wire_weaver] wire` of compatible/Cargo.to
+ml, w1.1 or later (docs/evolution/versions.m
+d#the-wire-version).
 <span></span>
 <span class="f-green">$ </span>ww api check breaking
 blinky_api 0.1.0 (breaking/api_snapshots/bli
 nky_api_0_1_0.ron) -&gt; 0.1.1 (source): <span class="f-red">breaki</span>
 <span class="f-red">ng changes</span>
+  <span class="t-b">needs:</span> wire w1.0 -&gt; w2.0 or later (a new w
+ire line), crate 0.1.0 -&gt; 0.2.0 or later (br
+eaking position (minor before 1.0, major aft
+er))
   <span class="f-red">breaking:</span> BlinkyApi::led_on: argument `bri
 ghtness` is not sent by the old version and
 has no #[default]
@@ -31,7 +44,13 @@ g changes, which requires a bump of the brea
 king position (minor before 1.0, major after
 ): 0.2.0 or later.
 Bump `version` in breaking/Cargo.toml to 0.2
-.0 or later (docs/evolution/rules.md#your-ap
-is-version); once that version is released,
-record it with `ww api save breaking` and co
-mmit api_snapshots/.
+.0 or later (docs/evolution/versions.md#your
+-apis-version); once that version is release
+d, record it with `ww api save breaking` and
+ commit api_snapshots/.
+blinky_api declared wire version w1.0, the n
+ew version declares none.
+Declare the wire version in `[package.metada
+ta.wire_weaver] wire` of breaking/Cargo.toml
+, w2.0 or later (docs/evolution/versions.md#
+the-wire-version).
