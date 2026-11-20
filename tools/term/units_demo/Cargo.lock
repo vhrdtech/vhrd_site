@@ -17,7 +17,7 @@ checksum = "00d174d5400e5e8fd687ad1049e2f578285fa914201b1af7e8b112a4546bd826"
 [[package]]
 name = "exact_units"
 version = "0.1.0"
-source = "git+https://github.com/romixlab/exact_units#db61a10385883b5d542dbe332a2fda964b8c4d5a"
+source = "git+https://github.com/romixlab/exact_units#7383e5273eb345567c0b8f9a89777a7011d30996"
 dependencies = [
  "exact_units_macros",
  "serde",
@@ -27,7 +27,7 @@ dependencies = [
 [[package]]
 name = "exact_units_macros"
 version = "0.1.0"
-source = "git+https://github.com/romixlab/exact_units#db61a10385883b5d542dbe332a2fda964b8c4d5a"
+source = "git+https://github.com/romixlab/exact_units#7383e5273eb345567c0b8f9a89777a7011d30996"
 
 [[package]]
 name = "hashbrown"
@@ -117,7 +117,7 @@ dependencies = [
 [[package]]
 name = "shrink_wrap"
 version = "0.2.0"
-source = "git+https://github.com/romixlab/shrink_wrap#2fd20613bd6c01d1caa9637e6e5c5c10975b6faf"
+source = "git+https://github.com/romixlab/shrink_wrap#cd4c1e4d4f14546206e0f480e35e041d56fb6f38"
 dependencies = [
  "either",
  "pastey",
@@ -128,7 +128,7 @@ dependencies = [
 [[package]]
 name = "shrink_wrap_derive"
 version = "0.2.0"
-source = "git+https://github.com/romixlab/shrink_wrap#2fd20613bd6c01d1caa9637e6e5c5c10975b6faf"
+source = "git+https://github.com/romixlab/shrink_wrap#cd4c1e4d4f14546206e0f480e35e041d56fb6f38"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
