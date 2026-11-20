@@ -26,7 +26,7 @@ FILES = {
     "deploy/notify.toml": "listen = 1\n",
     "deploy/vhrd-notify.service": "[Service]\n",
     ".github/workflows/deploy.yml": 'env:\n  RUST_TOOLCHAIN: "1.99.1"\n',
-    "content/portwright.md": "Donguru\n",
+    "content/portwright.md": "Portwright\n",
     "CHANGELOG.md": "# Changelog\n",
     "config.toml": "title = 1\n",
 }

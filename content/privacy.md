@@ -1,6 +1,6 @@
 +++
 title = "Privacy"
-description = "What this site keeps about you: access logs, visitor counts and the Donguru signup list, and for how long."
+description = "What this site keeps about you: access logs, visitor counts and the Portwright signup list, and for how long."
 
 [extra]
 label = "Privacy"
@@ -21,7 +21,7 @@ This site is run by VHRD.TECH AS, Asker, Norway. Questions about your data go to
 
 ## The signup list
 
-When you leave your address in a "Get notified" form for [Donguru](@/portwright.md), we send it one mail with a button to confirm it. The address goes on the list only when you press that button: you give your consent there, not by sending the form. We keep:
+When you leave your address in a "Get notified" form for [Portwright](@/portwright.md), we send it one mail with a button to confirm it. The address goes on the list only when you press that button: you give your consent there, not by sending the form. We keep:
 
 - your e-mail address;
 - the list you signed up for;
@@ -30,7 +30,7 @@ When you leave your address in a "Get notified" form for [Donguru](@/portwright.
 - the time you confirmed;
 - how many mails we sent to it, and when the last one went out.
 
-**Why:** to send you one mail when the Donguru campaign opens. We use the address for nothing else, and we do not give or sell it to anyone. You can take your consent back at any time.
+**Why:** to send you one mail when the Portwright campaign opens. We use the address for nothing else, and we do not give or sell it to anyone. You can take your consent back at any time.
 
 **Not confirmed:** an address nobody confirms is deleted after 7 days.
 

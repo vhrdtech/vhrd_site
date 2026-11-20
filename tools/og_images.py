@@ -17,7 +17,7 @@ or a text editor, save, then run `just og` to re-render every image.
 Usage: uv run tools/og_images.py PATH/TO/Audiowide-Regular.ttf [--check]   (`just og [--check]`, the font path
 from vhrd_brand, same as `just wordmark`: the font itself is baked into these raster images, never shipped)
 
-`--check` also writes the default, default-square and donguru images composited onto the backgrounds a platform
+`--check` also writes the default, default-square and portwright images composited onto the backgrounds a platform
 that doesn't honour transparency might fill it with (X's dark themes, Facebook's grey), at the full 1.91:1 card
 and the 1:1 square crop, plus both at LinkedIn's small ~160px organic-post thumbnail size, into target/shots
 (default-square has no PNG: only its JPEG on white).

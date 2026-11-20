@@ -1,6 +1,6 @@
 +++
 title = "FAQ"
-description = "Answers about buying Donguru and Pinsmith, open source, working with VHRD, and how this site handles tracking."
+description = "Answers about buying Portwright and Pinsmith, open source, working with VHRD, and how this site handles tracking."
 
 [extra]
 label = "FAQ"
@@ -10,13 +10,13 @@ sig = "ctrl"
 
 ## The products
 
-<details><summary>When can I buy Donguru or Pinsmith?</summary><p id="buy">Both launch on Crowd Supply. {{ <vh.ref name="Donguru" /> }} comes first, in Q1–Q2 2027; {{ <vh.ref name="Pinsmith" /> }} after it. Prices are not set yet. <a href="{{ get_url(path='/portwright/', trailing_slash=true) }}#notify">Get notified</a> and you hear when the campaign opens.</p></details>
+<details><summary>When can I buy Portwright or Pinsmith?</summary><p id="buy">Both launch on Crowd Supply. {{ <vh.ref name="Portwright" /> }} comes first, in Q1–Q2 2027; {{ <vh.ref name="Pinsmith" /> }} after it. Prices are not set yet. <a href="{{ get_url(path='/portwright/', trailing_slash=true) }}#notify">Get notified</a> and you hear when the campaign opens.</p></details>
 
 <details><summary>Why Crowd Supply and not Kickstarter?</summary><p id="crowd-supply">Crowd Supply is made for open-source electronics. They check every project before it goes up, and after the campaign they keep selling it.</p></details>
 
 <details><summary>Is it open source?</summary><p id="open-source">Yes, all of it: the schematics, the board files, the firmware and the software. You can read how the protection works, change it, and keep using the board without VHRD. The licences are named on each repository.</p></details>
 
-<details><summary>Which computers do the tools work on?</summary><p id="computers">The desktop tools — {{ <vh.ref name="IOWeaver" /> }} and {{ <vh.ref name="RockFace" /> }} — and the command-line tools, <code>dg</code>, <code>cnt</code>, <code>ww</code> and <code>bedrock-lint</code>, run on Linux, Windows and macOS. The Rust libraries build wherever Rust does.</p></details>
+<details><summary>Which computers do the tools work on?</summary><p id="computers">The desktop tools — {{ <vh.ref name="IOWeaver" /> }} and {{ <vh.ref name="RockFace" /> }} — and the command-line tools, <code>pw</code>, <code>cnt</code>, <code>ww</code> and <code>bedrock-lint</code>, run on Linux, Windows and macOS. The Rust libraries build wherever Rust does.</p></details>
 
 <details><summary>Where do you ship?</summary><p id="shipping">Anywhere a carrier delivers and VHRD may legally ship to. Campaign orders go out through Crowd Supply; the boards in <a href="{{ get_url(path='/shop/', trailing_slash=true) }}">the shop</a> are ordered by mail for now.</p></details>
 

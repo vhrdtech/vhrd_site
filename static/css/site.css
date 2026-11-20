@@ -465,8 +465,8 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 .more { margin-top: 1.5rem; font: 500 0.8125rem/1.4 var(--font-mono); letter-spacing: 0.04em; }
 .hero-fig .fig-placeholder { aspect-ratio: 3 / 2; }
 
-/* Donguru spotlight: the pitch, then the three features side by side on a wide screen. The block diagram is on
-   /donguru only. */
+/* Portwright spotlight: the pitch, then the three features side by side on a wide screen. The block diagram is on
+   /portwright only. */
 .spotlight-text > .v-lead { max-width: 48rem; }
 .ctas-link { align-self: center; margin-left: 0.5rem; }
 @media (min-width: 60rem) { .spotlight .features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 2rem; } }
@@ -514,7 +514,7 @@ pre.giallo { color-scheme: inherit !important; background-color: var(--surface) 
 /* A small app icon before a card title. */
 .card-icon { width: 32px; height: 32px; flex: none; }
 
-/* The group selector (/open-source's groups, /donguru's table jumps): one link per group with its signal colour's
+/* The group selector (/open-source's groups, /portwright's table jumps): one link per group with its signal colour's
    via. */
 .groups { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 1rem; margin-top: 2rem; padding: 0.9rem 1.25rem; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--raised); }
 .groups .v-label { margin: 0; }

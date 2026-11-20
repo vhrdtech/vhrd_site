@@ -1,5 +1,5 @@
 board = "B153"
-product = "Donguru (Type-C Serial)"
+product = "Portwright (Type-C Serial)"
 slug = "portwright"
 revision = "A"
 source_file = "b153_typec_serial/source/b153a/b153a_typec_serial.kicad_pcb"
@@ -7,7 +7,7 @@ hw_git_hash = "05afb76"
 
 [[views]]
 name = "hero"
-alt = "B153 Donguru PCB, three-quarter view"
+alt = "B153 Portwright PCB, three-quarter view"
 source = "b153_hero.png"
 web = [
   { width = 480, webp = "b153_hero-480.webp", avif = "b153_hero-480.avif" },
@@ -18,7 +18,7 @@ web = [
 
 [[views]]
 name = "detail"
-alt = "B153 Donguru PCB, angled detail view"
+alt = "B153 Portwright PCB, angled detail view"
 source = "b153_detail.png"
 web = [
   { width = 480, webp = "b153_detail-480.webp", avif = "b153_detail-480.avif" },
@@ -29,7 +29,7 @@ web = [
 
 [[views]]
 name = "top"
-alt = "B153 Donguru PCB, top view"
+alt = "B153 Portwright PCB, top view"
 source = "b153_top.png"
 web = [
   { width = 480, webp = "b153_top-480.webp", avif = "b153_top-480.avif" },
@@ -40,7 +40,7 @@ web = [
 
 [[views]]
 name = "bottom"
-alt = "B153 Donguru PCB, bottom view"
+alt = "B153 Portwright PCB, bottom view"
 source = "b153_bottom.png"
 web = [
   { width = 480, webp = "b153_bottom-480.webp", avif = "b153_bottom-480.avif" },

@@ -14,7 +14,7 @@ no console errors or failed requests, no sideways scroll, the open-source stack'
 Every code sample is the same code in its narrow and wide version, and a card shows the narrow one on a phone\nand the wide one on a wide screen, without a sideways scroll from 320 px up. /open-source
 lists every repository of data/repos.toml, a public one linked, a private one marked as coming and not linked.
 On the front page: the theme toggle switches and the choice survives a reload, the code tabs work by keyboard
-(arrow keys, on /donguru), the skip link is the first tab stop.
+(arrow keys, on /portwright), the skip link is the first tab stop.
 First-view budget: what a phone loads for the front page before scrolling (HTML, CSS, script, fonts, images)
 stays under BUDGET_KB as sent over the wire: text gzipped (as the local build would be served by a server that
 compresses), fonts and images as they are; against a deployed site, the transfer sizes the browser saw. Every image
@@ -36,7 +36,7 @@ Links: every page in the site map is reached from the front page by links (no or
 href on every page reached ends in '/' when it names a page and answers 200 without a redirect. On every page reached,
 the first mention of each project in data/links.toml is a link to it (tools/mentions.py).
 Mail: no page or file has an address in it ('@vhrd.tech'); with JavaScript every mail link is a mailto link with
-its subject (projects@ on /services, donguru@ on /donguru and the front page, contact@ in the footer), and without
+its subject (projects@ on /services, donguru@ on /portwright and the front page, contact@ in the footer), and without
 it a mail link is plain text ("projects at vhrd.tech") and a labelled one does not show.
 A picture on its way shows as a small scope screen in its box and fades in when it comes, without a size change.
 The signup form (only against the local build, which posts to a local notify service with a store of its own): with
@@ -1024,8 +1024,8 @@ MAIL_LINKS = """() => [...document.querySelectorAll('a[data-mail]')].map((a) =>
    a.getClientRects().length > 0 || !!a.closest('.notify-msg')])"""
 # Mail links each page must have, as the script makes them.
 MAIL_WANTED = {
-    "": ["mailto:donguru@vhrd.tech?subject=Donguru%20launch", "mailto:contact@vhrd.tech"],
-    "portwright/": ["mailto:donguru@vhrd.tech?subject=Donguru%20launch"],
+    "": ["mailto:donguru@vhrd.tech?subject=Portwright%20launch", "mailto:contact@vhrd.tech"],
+    "portwright/": ["mailto:donguru@vhrd.tech?subject=Portwright%20launch"],
     "services/": ["mailto:projects@vhrd.tech?subject=Project"],
     "about/": ["mailto:contact@vhrd.tech"],
 }
@@ -1454,7 +1454,7 @@ def main():
             if not page.locator('[role="tabpanel"]').nth(0).is_hidden():
                 failures.append("tabs: the first panel still shows after switching")
         else:
-            failures.append("tabs: no code tabs on /donguru")
+            failures.append("tabs: no code tabs on /portwright")
         ctx.close()
         browser.close()
 

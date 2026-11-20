@@ -1,6 +1,6 @@
 +++
 title = "Confirm your address"
-description = "Press the button on this page to confirm your address and join the Donguru launch list; nothing is added until then."
+description = "Press the button on this page to confirm your address and join the Portwright launch list; nothing is added until then."
 path = "notify/confirm/"
 template = "notify-link.html"
 
@@ -13,9 +13,9 @@ sig = "usb"
 noindex = true
 action = "confirm"
 button = "Confirm my address"
-done = "<strong>You are on the list.</strong> One mail comes when the Donguru campaign opens."
+done = "<strong>You are on the list.</strong> One mail comes when the Portwright campaign opens."
 +++
 
-You asked to hear when [Donguru](@/portwright.md) launches. Press the button to put your address on the list. Then one mail comes when the campaign opens, and nothing else.
+You asked to hear when [Portwright](@/portwright.md) launches. Press the button to put your address on the list. Then one mail comes when the campaign opens, and nothing else.
 
 Did not sign up? Do nothing: the address is deleted after 7 days.

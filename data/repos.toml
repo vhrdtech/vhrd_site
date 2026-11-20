@@ -145,7 +145,7 @@ owner = "vhrdtech"
 area = "firmware"
 lang = "Rust"
 docs = "https://vhrdtech.github.io/typec_dongle/"
-desc = "Donguru is a USB-C dongle that turns one USB-C port into a small test bench: a USB hub, UART, I2C, GPIO and ADC, a power switch and a power meter. The `donguru` (`dg`) command line drives all of it, with JSON output and fixed exit codes for scripts and CI. A Python package does the same through the same Rust library. Rev B boards for testers are planned for the end of 2026."
+desc = "Portwright is a USB-C dongle that turns one USB-C port into a small test bench: a USB hub, UART, I2C, GPIO and ADC, a power switch and a power meter. The `portwright` (`pw`) command line drives all of it, with JSON output and fixed exit codes for scripts and CI. A Python package does the same through the same Rust library. Rev B boards for testers are planned for the end of 2026."
 
 [[repo]]
 name = "logring"
@@ -348,7 +348,7 @@ owner = "romixlab"
 area = "templates"
 private = true
 lang = "Rust"
-desc = "A firmware template for the B153A Donguru board (STM32G0B1). One API definition gives the embassy firmware, a typed WireWeaver API, a Rust client library, a command line and a Python module. The firmware starts with device info, crash records, a settings store in flash, a stored defmt log and reboots into the ROM bootloader. It is meant to be copied and renamed for a new device."
+desc = "A firmware template for the B153A Portwright board (STM32G0B1). One API definition gives the embassy firmware, a typed WireWeaver API, a Rust client library, a command line and a Python module. The firmware starts with device info, crash records, a settings store in flash, a stored defmt log and reboots into the ROM bootloader. It is meant to be copied and renamed for a new device."
 
 [[repo]]
 name = "report_template"

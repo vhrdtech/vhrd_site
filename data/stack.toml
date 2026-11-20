@@ -208,7 +208,7 @@ if !guard.runs_board() {
 // by the host over WireWeaver:
 // Acquiring, Locked within 2 ms.
 // `ww sync` locks the boards in
-// 1.2-1.6 s. On Donguru it costs
+// 1.2-1.6 s. On Portwright it costs
 // about 1.5 KB of flash.
 static SYNC: Sync =
     Sync::new(Config::DEFAULT);
@@ -237,7 +237,7 @@ if !guard.runs_board() {
 
 // One clock on all boards, steered by the host over WireWeaver:
 // Acquiring, Locked within 2 ms. `ww sync` locks the boards in
-// 1.2-1.6 s. On Donguru it costs about 1.5 KB of flash.
+// 1.2-1.6 s. On Portwright it costs about 1.5 KB of flash.
 static SYNC: Sync = Sync::new(Config::DEFAULT);
 
 // clock.steer, once a second

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{#- The landing page, top to bottom as in the P2633 plan: hero, products, the Donguru spotlight, software, the lab,
+{#- The landing page, top to bottom as in the P2633 plan: hero, products, the Portwright spotlight, software, the lab,
     the open-source stack, notify and contact. Facts come from the project and crate READMEs; anything not yet
     confirmed carries a draft badge. Board renders and lab photos are taken by path and show once the files exist. -#}
 {% block head -%}
@@ -22,12 +22,12 @@
     <h1 class="v-hero">Where code meets <span class="hl">hardware</span></h1>
     <p class="v-lead">Instruments for embedded development, and the open-source software behind them.</p>
     <div class="ctas">
-      <a class="v-btn v-primary" href="{{ get_url(path='/portwright/', trailing_slash=true) }}">Learn more about Donguru</a>
+      <a class="v-btn v-primary" href="{{ get_url(path='/portwright/', trailing_slash=true) }}">Learn more about Portwright</a>
       <a class="v-btn" href="#products">See the products</a>
     </div>
     <p class="draft-note"><span class="v-badge">draft</span> Copy not yet read by Marketing and PM. Board renders follow.</p>
   </div>
-  {{ <vh.fig stem="img/boards/b153-portwright/b153_hero" widths={[640, 1280, 1920]} sizes="(max-width: 52rem) calc(100vw - 2rem), 34rem" alt="Donguru, the B153 board, three-quarter view" n="1" caption="B153 Donguru" cls="hero-fig" eager={true} /> }}
+  {{ <vh.fig stem="img/boards/b153-portwright/b153_hero" widths={[640, 1280, 1920]} sizes="(max-width: 52rem) calc(100vw - 2rem), 34rem" alt="Portwright, the B153 board, three-quarter view" n="1" caption="B153 Portwright" cls="hero-fig" eager={true} /> }}
 </section>
 
 {{ <vh.trace sig="usb" from={74} to={16} label="USB 2.0" /> }}
@@ -35,8 +35,8 @@
 {% <vh.section label="Products" n="01" id="products" title="Hardware for the bench"> %}
 <p class="v-muted section-lead">Three tools for bring-up, debugging and test, each with a Rust driver, a CLI and a GUI.</p>
 {% <vh.cards> %}
-{{ <vh.card title="Donguru" href="#donguru" badge="Coming Q1–Q2 2027" sig="usb" n="2"
-   stem="img/boards/b153-portwright/b153_hero" widths={[640, 1280, 1920]} alt="Donguru, the B153 board, three-quarter view" caption="B153 Donguru"
+{{ <vh.card title="Portwright" href="#portwright" badge="Coming Q1–Q2 2027" sig="usb" n="2"
+   stem="img/boards/b153-portwright/b153_hero" widths={[640, 1280, 1920]} alt="Portwright, the B153 board, three-quarter view" caption="B153 Portwright"
    pitch="A USB-C dongle with a USB 2.0 hub, a VBUS switch with a power meter, and UART, I2C and SWD on the plug's sideband pins."
    specs={["Hub: USB 2.0 Hi-Speed", "SBU: UART, I2C, SWD, FDCAN", "VBUS: switch to 20 V, 5 A + meter"]} /> }}
 {{ <vh.card title="Pinsmith" href="/pinsmith/" badge="In development" badge_cls="" sig="bus" n="3"
@@ -52,18 +52,18 @@
 
 {{ <vh.trace sig="usb" from={16} to={84} label="D+ / D−" /> }}
 
-{% <vh.section label="Donguru · B153" n="02" id="donguru" title="One cable to your board"> %}
+{% <vh.section label="Portwright · B153" n="02" id="portwright" title="One cable to your board"> %}
 <div class="spotlight">
 <div class="spotlight-text">
-<p class="v-lead">Donguru sits between your computer and a device with a USB-C port. One cable carries USB, the device's sideband pins and power you can switch and measure.</p>
+<p class="v-lead">Portwright sits between your computer and a device with a USB-C port. One cable carries USB, the device's sideband pins and power you can switch and measure.</p>
 <ol class="features">
 <li><h3>Hub and sideband pins in one plug</h3><p>A USB 2.0 Hi-Speed hub, and UART, I2C, SWD, FDCAN, GPIO and ADC on the plug's SBU pins. The cable orientation is a setting: a flipped cable is one command, not re-plugging.</p></li>
 <li><h3>Power under control</h3><p>A VBUS switch up to 20 V and 5 A, off at power-up, a power meter, and a switch on the device's USB data lines. Guards in the firmware cut VBUS at a voltage, current or power limit.</p></li>
-<li><h3>Scriptable</h3><p>A CLI, <code>dg</code>, with a Rust library and a Python wheel behind it, and a CMSIS-DAP debug probe for probe-rs, OpenOCD and pyOCD.</p></li>
+<li><h3>Scriptable</h3><p>A CLI, <code>pw</code>, with a Rust library and a Python wheel behind it, and a CMSIS-DAP debug probe for probe-rs, OpenOCD and pyOCD.</p></li>
 </ol>
 <p class="v-muted">For bring-up, debugging, flashing and production test of devices with a USB-C port.</p>
 <div class="ctas">
-<a class="v-btn v-primary" href="{{ get_url(path='/portwright/', trailing_slash=true) }}">Learn more about Donguru</a>
+<a class="v-btn v-primary" href="{{ get_url(path='/portwright/', trailing_slash=true) }}">Learn more about Portwright</a>
 <a class="go ctas-link" href="{{ get_url(path='/portwright/#diagram', trailing_slash=true) }}">Block diagram and specs</a>
 </div>
 </div>
@@ -75,7 +75,7 @@
 {% <vh.section label="Software" n="03" id="software" title="See what your device says"> %}
 <p class="v-muted section-lead">{{ <vh.ref name="IOWeaver" /> }} plots what your device says. {{ <vh.ref name="RockFace" /> }} debugs the firmware that says it. {{ <vh.ref name="WireWeaver" /> }} keeps both sides speaking the same API.</p>
 <div class="cols">
-<div class="col" style="--sig: var(--signal-usb)"><h3>IOWeaver</h3><p>Protocol analyzer and grapher. Record, decode, plot and send. It ships with {{ <vh.ref name="Pinsmith" /> }} and {{ <vh.ref name="Donguru" /> }}.</p></div>
+<div class="col" style="--sig: var(--signal-usb)"><h3>IOWeaver</h3><p>Protocol analyzer and grapher. Record, decode, plot and send. It ships with {{ <vh.ref name="Pinsmith" /> }} and {{ <vh.ref name="Portwright" /> }}.</p></div>
 <div class="col" style="--sig: var(--signal-ctrl)"><h3>RockFace {{ draft | safe }}</h3><p>Firmware debugger: logs, stack and CPU use, zero-cost profiling, logs from a fleet. Commercial release: TBD.</p></div>
 <div class="col" style="--sig: var(--signal-bus)"><h3>WireWeaver</h3><p>One API definition for device and host: RPC, streams and properties, backwards and forwards compatible. Open source.</p></div>
 </div>
@@ -119,12 +119,12 @@
 
 {{ <vh.trace sig="power" from={8} to={50} label="VBUS 5 V" /> }}
 
-{% <vh.section label="Stay in the loop" n="06" id="notify" title="Hear when Donguru launches"> %}
+{% <vh.section label="Stay in the loop" n="06" id="notify" title="Hear when Portwright launches"> %}
 <div class="contact">
 <div>
-<p class="v-lead">Donguru launches on Crowd Supply. Leave your address and you hear first, when the campaign opens. {{ draft | safe }}</p>
+<p class="v-lead">Portwright launches on Crowd Supply. Leave your address and you hear first, when the campaign opens. {{ draft | safe }}</p>
 {{ <vh.notify from="home" consent={config.extra.notify_consent} /> }}
-<p class="v-muted notify-fallback">Rather send a mail? Write to {{ <vh.mail to="donguru" subject="Donguru launch" /> }}. <a class="go" href="{{ get_url(path='/portwright/', trailing_slash=true) }}">What Donguru is</a></p>
+<p class="v-muted notify-fallback">Rather send a mail? Write to {{ <vh.mail to="donguru" subject="Portwright launch" /> }}. <a class="go" href="{{ get_url(path='/portwright/', trailing_slash=true) }}">What Portwright is</a></p>
 </div>
 <div class="contact-card">
 <p class="v-label">Contact</p>

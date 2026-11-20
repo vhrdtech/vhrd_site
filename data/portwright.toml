@@ -1,4 +1,4 @@
-# Donguru (B153): the tables of /donguru, copied from the datasheet, Preview 0.2 of 24 Oct 2026
+# Portwright (B153): the tables of /portwright, copied from the datasheet, Preview 0.2 of 24 Oct 2026
 # (~/git/hw/b153_typec_serial/spec/datasheet/b153_datasheet.typ). The values, units and notes stay exactly as there:
 # Marketing's rule is that the specs on the page equal the datasheet. When the datasheet changes, change this file.
 # Markup in the strings: [tbd] becomes the tbd badge; <sub> and <code> pass through.
@@ -22,7 +22,7 @@ safe_state = [
   ["Relay", "open"],
   ["Device USB data", "connected to the hub"],
   ["SBU", "to the MCU side, level translator off, pull-ups off, low level selected"],
-  ["J101 IO, plug A2/B2", "MCU pins as inputs; with Donguru unpowered a pin driven high reaches its 3.3 V rail through the MCU's clamp diodes and series resistors"],
+  ["J101 IO, plug A2/B2", "MCU pins as inputs; with Portwright unpowered a pin driven high reaches its 3.3 V rail through the MCU's clamp diodes and series resistors"],
 ]
 
 sbu_modes = [
@@ -58,16 +58,16 @@ plug = [
 ]
 
 receptacle = [
-  ["VBUS", "powers Donguru and the device"],
+  ["VBUS", "powers Portwright and the device"],
   ["D+/D−", "hub upstream, USB 2.0 Hi-Speed"],
   ["CC1, CC2", "UCPD1: PD, sink or source"],
-  ["SBU1, SBU2", "Donguru's own SWD: one Donguru can flash another"],
+  ["SBU1, SBU2", "Portwright's own SWD: one Portwright can flash another"],
 ]
 
 [[specs]]
 title = "Absolute maximum ratings"
 id = "abs-max"
-note = "Stress beyond these may damage the board. They are not operating conditions. The over-voltage values are design targets, to be tested on rev B, including 20 V applied without any PD negotiation (a lab supply, a broken charger), not only after a contract Donguru negotiated itself."
+note = "Stress beyond these may damage the board. They are not operating conditions. The over-voltage values are design targets, to be tested on rev B, including 20 V applied without any PD negotiation (a lab supply, a broken charger), not only after a contract Portwright negotiated itself."
 rows = [
   ["VBUS, either port", "−0.3", "", "24", "V", "load switch over-voltage cut-off; TVS 22 V standoff; to be tested"],
   ["VBUS current through the switch", "", "", "5", "A", "[tbd], set by the current limit"],
@@ -84,7 +84,7 @@ title = "Recommended operating conditions"
 id = "operating"
 rows = [
   ["Computer VBUS", "4.5", "5.0", "20", "V", "above 5.5 V only on request"],
-  ["Supply current, Donguru itself", "", "[tbd]", "", "mA", ""],
+  ["Supply current, Portwright itself", "", "[tbd]", "", "mA", ""],
   ["SBU level", "", "1.8 or 3.3", "", "V", "selectable"],
   ["Load on J101 pin 5, 3.3 V out", "", "", "[tbd]", "mA", "buck: 600 mA for the whole board"],
   ["Operating temperature", "0", "", "50", "°C", "[tbd]"],

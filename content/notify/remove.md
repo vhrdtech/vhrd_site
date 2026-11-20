@@ -1,6 +1,6 @@
 +++
 title = "Remove your address"
-description = "Press the button on this page to remove your address from the Donguru launch list; it is deleted at once."
+description = "Press the button on this page to remove your address from the Portwright launch list; it is deleted at once."
 path = "notify/remove/"
 template = "notify-link.html"
 
@@ -16,4 +16,4 @@ button = "Remove my address"
 done = "<strong>Your address is deleted.</strong> No more mail comes from this list."
 +++
 
-Press the button to take your address off the [Donguru](@/portwright.md) launch list. It is deleted at once, and no more mail comes from this list.
+Press the button to take your address off the [Portwright](@/portwright.md) launch list. It is deleted at once, and no more mail comes from this list.

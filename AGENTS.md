@@ -1,6 +1,6 @@
 # Working on vhrd_site
 
-vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates in `templates/`, hand-written CSS. Its one server-side part is `vhrd_notify`, a small Rust service for the Get notified forms (`server/`, "Notify service" below). It is the home for Donguru's launch, Pinsmith, the CAN line and the software, so every page answers: what it is, why it is good, what to do next.
+vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates in `templates/`, hand-written CSS. Its one server-side part is `vhrd_notify`, a small Rust service for the Get notified forms (`server/`, "Notify service" below). It is the home for Portwright's launch, Pinsmith, the CAN line and the software, so every page answers: what it is, why it is good, what to do next.
 
 ## Zola version
 
@@ -15,7 +15,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 ## Layout
 
 - `config.toml`: site settings; `[extra]` holds the company line, contact mail, header links and the notify button.
-- `content/`: one Markdown file per page (`donguru.md` is `/portwright/`). Stubs carry `extra.stub = true`. No blog and no feed. WordPress is gone from vhrd.tech: its old paths (posts, /feed/, /product/, /cart/, /checkout/, ...) redirect on the server with `deploy/redirects.map`, and nothing of WordPress (wp-*, PHP, those paths) may be generated here. `/shop/` is the site's own page; every other path gets the site's 404 page.
+- `content/`: one Markdown file per page (`portwright.md` is `/portwright/`). Stubs carry `extra.stub = true`. No blog and no feed. WordPress is gone from vhrd.tech: its old paths (posts, /feed/, /product/, /cart/, /checkout/, ...) redirect on the server with `deploy/redirects.map`, and nothing of WordPress (wp-*, PHP, those paths) may be generated here. `/shop/` is the site's own page; every other path gets the site's 404 page.
 - `templates/base.html`: the page frame, with the view frame's four crosses (`.view-frame`) and an `intro` block the home page fills. `partials/header.html`, `partials/footer.html` (build stamp from `VHRD_GIT` and `VHRD_BUILT`, which the justfile sets) and `partials/wordmark.html` (generated).
 - `templates/components.html`: the `vh.*` components, usable in templates and Markdown ("Components" below).
 - `templates/index.html`: the landing page; `partials/intro.html` is its oscilloscope intro, with its script in `partials/intro-script.html` at the end of the body ("Intro" below). `page.html` is a plain page, `section.html` is the blog list, and there are `404.html` and `robots.txt`.
@@ -46,13 +46,13 @@ Tera components in `templates/components.html` work in templates and in Markdown
 ```jinja
 {% <vh.section label="Products" n="01" id="products" title="What we make"> %}
 {% <vh.cards> %}
-{{ <vh.card title="Donguru" href="/portwright/" sig="usb" n="2" badge="Coming Q1–Q2 2027"
+{{ <vh.card title="Portwright" href="/portwright/" sig="usb" n="2" badge="Coming Q1–Q2 2027"
    pitch="One cable to your board." specs={["Host: USB-C, USB 2.0", "MCU: STM32G0B1"]} /> }}
 {% </vh.cards> %}
 {% </vh.section> %}
 
 {{ <vh.trace sig="power" from={8} to={50} label="VBUS 5 V" /> }}
-{{ <vh.fig src="img/boards/b153.webp" alt="Donguru, top side" n="1" caption="B153 Donguru · rev B" width="1200" height="800" /> }}
+{{ <vh.fig src="img/boards/b153.webp" alt="Portwright, top side" n="1" caption="B153 Portwright · rev B" width="1200" height="800" /> }}
 ```
 
 - `vh.section`: a section with a numbered mono label, a title and a hairline with crosshairs.
@@ -131,7 +131,7 @@ On the PC with that library, a fontconfig include adds the synced design-fonts f
 The front page is built to show fast on a slow phone. `just perf` (`tools/perf.py`) loads it at 390 px under Lighthouse's mobile throttling (150 ms round trip, 1.6 Mbit/s, CPU four times slower), with an empty cache, and prints the median requests, bytes, first and largest contentful paint and layout shift. The browser check keeps the first view on a phone under 200 KB.
 
 - All CSS is inline in each page (about 11 KB gzipped): nothing blocks the first paint but the HTML.
-- A part only some pages have brings its own styles, inlined only there: `extra.styles` in a page's front matter names files in `static/css/` (`intro` on the front page, `stack` on the front page and /open-source, `term` on /software, `about` on /about for the founder's photo). /donguru inlines `donguru.css` from its template. Every other page carries 54 KB of CSS instead of 75 KB. The browser check fails a page that shows such a part without its styles, inlines styles it does not use, or carries more than `SHARED_CSS_KB` of the shared CSS.
+- A part only some pages have brings its own styles, inlined only there: `extra.styles` in a page's front matter names files in `static/css/` (`intro` on the front page, `stack` on the front page and /open-source, `term` on /software, `about` on /about for the founder's photo). /portwright inlines `portwright.css` from its template. Every other page carries 54 KB of CSS instead of 75 KB. The browser check fails a page that shows such a part without its styles, inlines styles it does not use, or carries more than `SHARED_CSS_KB` of the shared CSS.
 - Only the hero render is eager, with `fetchpriority="high"` and a preload; every other image is `loading="lazy"`.
 - Three font faces are preloaded, the ones the first screen sets text in, as Core subsets, with `font-display: swap`.
 - The local server of the checks gzips text, as a real server would.
@@ -190,7 +190,7 @@ The soft budgets and the reading-time constants live in one place, `config.toml`
 `paragraph_words`, `median_sentence_words`, `long_sentence_words`). `just page-stats` warns a page over a
 budget but never fails `just test`: Roman sets the real numbers after seeing the report on the live
 content, these are starting points. `just page-stats` prints a compact table, one row per page; `just
-page-stats donguru/` (or `""` for the front page) prints the detail view of one page; both also write the
+page-stats portwright/` (or `""` for the front page) prints the detail view of one page; both also write the
 full numbers to `target/page-stats.json` for a later comparison. `tools/test_page_stats.py` (`just test`)
 covers the metric functions on small HTML fixtures, including the regression that first caught the parser
 merging a list of cards into one giant paragraph.
@@ -245,7 +245,7 @@ per page (no blog, no articles), so `author` is the same for every page and ther
   Facebook composite a transparent image onto their card themselves and, where they don't honour the alpha
   channel, fill it with a dull grey rather than the card's white, which reads as a worse block than a plain
   white background would (Roman, round 4). X reads `twitter:image` first and shows it on its own light or dark
-  theme, so it keeps the transparent PNG. `og:image` is `img/og/default.jpg` by default; `/donguru`,
+  theme, so it keeps the transparent PNG. `og:image` is `img/og/default.jpg` by default; `/portwright`,
   `/pinsmith`, `/can`, `/software` and `/work` each show their own board and headline, as both files.
 - **The canvas stays exactly 1200×627 (1.91:1), never 1200×630.** 1.91:1 is the minimum ratio LinkedIn needs to
   show an organic post's large card at all; a 1200×630 canvas is 1.905:1, just under that line, and drops to
@@ -261,12 +261,12 @@ per page (no blog, no articles), so `author` is the same for every page and ther
   to survive it, and it does (Roman, round 5).
 - **The default card comes in two designs at one URL.** Roman drew both in Inkscape (10 Nov 2026), on the same
   1200×627 canvas:
-  - `assets/og/default.svg`, the wide card: the headline on the left, Donguru's flat top render on the right,
+  - `assets/og/default.svg`, the wide card: the headline on the left, Portwright's flat top render on the right,
     the whole picture and its shadow inside the canvas. Unlike the other SVGs it sets the wordmark as Audiowide
     text, as Inkscape saved it; that only ever reaches the raster images.
   - `assets/og/default-square.svg`, the square card: the whole design inside the canvas's centre 627×627 square
     (x 286 to 913), so a centre square crop shows all of it.
-  - Both link the same render, `assets/og/b153a_top.png`, from the Donguru project, kept beside the SVGs. It is
+  - Both link the same render, `assets/og/b153a_top.png`, from the Portwright project, kept beside the SVGs. It is
     never shipped itself.
   The crawlers that crop `og:image` to its centre square get the square card: LinkedIn (its organic posts' small
   thumbnail) and WhatsApp, matched on their User-Agent (`LinkedInBot`, `WhatsApp`). Nobody else documents a
@@ -314,7 +314,7 @@ per page (no blog, no articles), so `author` is the same for every page and ther
     `Twitterbot/1.0`, and fails unless the first two get the JPEG's bytes and the third the PNG's, with
     `Vary: User-Agent` and the same `Cache-Control` as the `og:image` location.
 - **The layout lives in SVG, not Python.** Each share image is a plain SVG under `assets/og/`
-  (`default.svg`, `default-square.svg`, `donguru.svg`, `pinsmith.svg`, `can.svg`, `software.svg`, `work.svg`),
+  (`default.svg`, `default-square.svg`, `portwright.svg`, `pinsmith.svg`, `can.svg`, `software.svg`, `work.svg`),
   1200×627, holding the
   whole frame: the four red corner marks, the headline as real `<text>`/`<tspan>` in Audiowide (not paths,
   so it edits like any other text), the board picture as an `<image>` with a relative `href` to its existing
@@ -347,7 +347,7 @@ per page (no blog, no articles), so `author` is the same for every page and ther
   still stops the build.
   - **The file names are fixed; the URL carries the version.** LinkedIn, Facebook and Telegram cache a link's
     preview by its image URL (LinkedIn for about 7 days), so a changed image needs a new URL, or they go on
-    showing the old file. The names stay `default.jpg`, `donguru.png`, ... for good, and `templates/base.html`
+    showing the old file. The names stay `default.jpg`, `portwright.png`, ... for good, and `templates/base.html`
     adds `?v=` and the images' version to `og:image`, `og:image:secure_url` and `twitter:image`. The version is
     one short hash over every file under `static/img/og/` (`tools/og_version.py`), not one per file: nginx answers
     one URL with different files by User-Agent (the square card at `default.jpg`, the JPEG at `default.png`), so a
@@ -372,7 +372,7 @@ per page (no blog, no articles), so `author` is the same for every page and ther
 - Every page's `description` is 100-125 characters, written as a short complete sentence or two, not wrapped to
   a width. The home page's names no product (`~/git/tpm/area/marketing/brand.md`: product names stay out of
   that long-lived text); a product's own page may name itself.
-- `just og --check` also writes the default, the square and the `/donguru` images composited onto the backgrounds a platform
+- `just og --check` also writes the default, the square and the `/portwright` images composited onto the backgrounds a platform
   that doesn't honour transparency might fill it with — X's two dark themes and Facebook's grey — at both the
   1.91:1 card and the 1:1 square crop, plus both at LinkedIn's small ~160px organic-post thumbnail size (on
   white, since `og:image` is already flattened there), into `target/shots/og6-*.png`, for a by-eye look before
@@ -439,7 +439,7 @@ A build only works under the link it was built for, because every URL carries th
 
 ## Notify service
 
-The "Get notified" forms on /donguru and the front page (`vh.notify`) post to `vhrd_notify`, a small Rust service on the web server behind nginx at `/api/notify`. It is the site's only server-side part. Nothing goes on the list until the address's owner presses the button in our confirmation mail (double opt-in).
+The "Get notified" forms on /portwright and the front page (`vh.notify`) post to `vhrd_notify`, a small Rust service on the web server behind nginx at `/api/notify`. It is the site's only server-side part. Nothing goes on the list until the address's owner presses the button in our confirmation mail (double opt-in).
 
 - **Code:** a Cargo workspace in `server/`: `vhrd_notify` (library) and `vhrd_notify_cli` (the `vhrd_notify` binary). axum without its default features; TLS only for mail out, through rustls with graviola's crypto (Rust and assembly, no C); no C library anywhere. graviola needs aes, ssse3, avx, avx2, adx, bmi2 and pclmulqdq on x86_64: without them the service refuses to start. If the server ever lacks one, the fallback is rustls's `ring` provider, which builds C (say so here then).
 - **The form:** `email`, `list` (only `donguru`), `consent` (the version of the consent line shown, `extra.notify_consent`), `from` (the page) and `leave_empty`, a honeypot off screen (a name no browser or password manager fills in). At most 1 KB.

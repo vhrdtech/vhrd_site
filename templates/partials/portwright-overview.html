@@ -1,9 +1,9 @@
-{#- Donguru (B153) overview for /donguru: a redraw of the datasheet's overview() (hw b153_typec_serial/spec/diagrams/
+{#- Portwright (B153) overview for /portwright: a redraw of the datasheet's overview() (hw b153_typec_serial/spec/diagrams/
     b153_diagrams.typ), same blocks and the same nets, in the site's look: hairline blocks, the MCU in the brand red,
     nets in the signal colours. Paths not settled yet (tbd) are dashed, like the datasheet's dotted lines. Uses the .bd styles of
-    site.css; .bd-tbd and the legend are in donguru.css. -#}
+    site.css; .bd-tbd and the legend are in portwright.css. -#}
 <svg class="bd bd-overview" viewBox="0 0 720 400" role="img" aria-labelledby="ov-title ov-desc" focusable="false">
-<title id="ov-title">Donguru block diagram</title>
+<title id="ov-title">Portwright block diagram</title>
 <desc id="ov-desc">The computer's USB-C receptacle feeds VBUS through the VBUS switch with its voltage and current meter to the device's USB-C plug. The computer's USB goes into a USB 2.0 hub: port 1 to the STM32G0B1 MCU, port 2 as D+ and D− through the plug signal block to the device, and, not settled yet, port 3 to the 2.54 mm header and port 4 to the device over SBU. The MCU drives the VBUS switch and reads the meter, runs the header IO, and reaches the plug's SBU, CC, A2 and B2 pins.</desc>
 <g class="bd-net" style="--sig: var(--signal-power)">
   <path d="M110 50 H425"/>

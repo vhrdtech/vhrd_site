@@ -71,7 +71,7 @@ def main():
     ap.add_argument("base", nargs="?")
     ap.add_argument("--chromium", default=shutil.which("chromium") or shutil.which("chromium-browser"))
     ap.add_argument("--runs", type=int, default=3)
-    ap.add_argument("--path", default="", help="page under the base, e.g. donguru/")
+    ap.add_argument("--path", default="", help="page under the base, e.g. portwright/")
     ap.add_argument("--list", action="store_true", help="also list what the first run fetched")
     a = ap.parse_args()
     base, out = (a.base, None) if a.base else serve_build()

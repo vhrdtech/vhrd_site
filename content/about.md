@@ -33,7 +33,7 @@ VHRD is one person. Friends help now and then, next to their own full-time jobs:
 
 ## What VHRD makes
 
-- [Donguru](@/portwright.md): one cable from your PC to your board.
+- [Portwright](@/portwright.md): one cable from your PC to your board.
 - [Pinsmith](@/pinsmith.md): digital and analog I/O over USB, with no programming needed.
 - [The CAN line](@/can.md): USB and Ethernet to isolated CAN FD bridges.
 - [IOWeaver and RockFace](@/software.md): the desktop software for the instruments.

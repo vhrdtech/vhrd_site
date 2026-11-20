@@ -132,7 +132,7 @@ class CodeAndLinksAndCtas(unittest.TestCase):
         self.assertEqual(m["word_count"], 0)  # code is never prose
 
     def test_inline_code_in_prose_is_not_a_break_and_is_not_a_code_block(self):
-        m = analyze("<p>Run <code>dg</code> to see the version.</p>")
+        m = analyze("<p>Run <code>pw</code> to see the version.</p>")
         self.assertEqual(m["code_blocks"], 0)
         self.assertEqual(len(m["runs"]), 1)
         self.assertEqual(m["word_count"], 6)  # inline code text still reads as prose
