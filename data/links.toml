@@ -10,7 +10,7 @@
 # Boards first: in a text like "the B200 Pinsmith board" the board number takes the link (vh.linkify)
 [[link]]
 name = "B153"
-url = "/donguru/"
+url = "/portwright/"
 
 [[link]]
 name = "B200"
@@ -43,7 +43,7 @@ url = "/shop/"
 # Products and their software
 [[link]]
 name = "Donguru"
-url = "/donguru/"
+url = "/portwright/"
 
 [[link]]
 name = "Pinsmith"

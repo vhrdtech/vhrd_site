@@ -154,7 +154,7 @@ async fn without_script_redirects_back_to_the_page() {
     )
     .await;
     assert_eq!(s, StatusCode::SEE_OTHER);
-    assert_eq!(loc.as_deref(), Some("https://vhrd.tech/donguru/#notify-bad"));
+    assert_eq!(loc.as_deref(), Some("https://vhrd.tech/portwright/#notify-bad"));
     // a page not listed goes to the first one, never to a place the form names
     let body = "email=nope&list=donguru&consent=2026-11-05&from=https%3A%2F%2Fevil.example";
     let (_, loc, _) = send(
@@ -166,7 +166,7 @@ async fn without_script_redirects_back_to_the_page() {
         },
     )
     .await;
-    assert_eq!(loc.as_deref(), Some("https://vhrd.tech/donguru/#notify-bad"));
+    assert_eq!(loc.as_deref(), Some("https://vhrd.tech/portwright/#notify-bad"));
     std::fs::remove_dir_all(dir).unwrap();
 }
 
@@ -296,7 +296,7 @@ async fn rate_limit_per_client() {
     .await;
     assert_eq!(
         (s, loc.as_deref()),
-        (StatusCode::SEE_OTHER, Some("https://vhrd.tech/donguru/#notify-wait"))
+        (StatusCode::SEE_OTHER, Some("https://vhrd.tech/portwright/#notify-wait"))
     );
     // another client is not held back
     let (s, _, _) = send(

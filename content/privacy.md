@@ -21,7 +21,7 @@ This site is run by VHRD.TECH AS, Asker, Norway. Questions about your data go to
 
 ## The signup list
 
-When you leave your address in a "Get notified" form for [Donguru](@/donguru.md), we send it one mail with a button to confirm it. The address goes on the list only when you press that button: you give your consent there, not by sending the form. We keep:
+When you leave your address in a "Get notified" form for [Donguru](@/portwright.md), we send it one mail with a button to confirm it. The address goes on the list only when you press that button: you give your consent there, not by sending the form. We keep:
 
 - your e-mail address;
 - the list you signed up for;

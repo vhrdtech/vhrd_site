@@ -16,6 +16,6 @@ button = "Confirm my address"
 done = "<strong>You are on the list.</strong> One mail comes when the Donguru campaign opens."
 +++
 
-You asked to hear when [Donguru](@/donguru.md) launches. Press the button to put your address on the list. Then one mail comes when the campaign opens, and nothing else.
+You asked to hear when [Donguru](@/portwright.md) launches. Press the button to put your address on the list. Then one mail comes when the campaign opens, and nothing else.
 
 Did not sign up? Do nothing: the address is deleted after 7 days.

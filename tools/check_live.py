@@ -31,10 +31,12 @@ vhrd.tech:
 
 `redirects` checks deploy/redirects.map against a build: every target is a page of it, no redirect hides one of its
 pages, every old WordPress path in deploy/old-urls.txt is a page or redirected, and every link in
-deploy/golden-links.txt (what we have printed or sent) is a page, a file or redirected.
+deploy/golden-links.txt (what we have printed or sent) is a page, a file or redirected. A golden link with a
+#fragment must also find that id on the page it lands on, after the redirect: the browser keeps the fragment.
 
 `site` checks a deployed site against that folder: the front page answers 200 and carries the stamp, a second page
-and a stylesheet and script answer 200, one old path per redirect rule answers its 301 (the server's copy of the map
+and a stylesheet and script answer 200, one old or golden path per redirect rule answers its 301 (a golden link's
+#fragment never reaches the server: its path is fetched) (the server's copy of the map
 is installed by hand, so it can differ from the repo's), a missing path gets the site's own 404 page, and the default og:image URL answers LinkedInBot and WhatsApp with
 the square card and a browser with the wide one, with Vary: User-Agent (deploy/nginx-og.conf, installed by hand
 like the map). The twitter:image URL answers Telegram's own User-Agent and a browser with the og:image JPEG, and
@@ -267,10 +269,21 @@ def redirects(folder):
     for path in old_paths():
         if not page_at(folder, path) and not redirect_for(path, rules):
             problems.append(f"{OLD.name}: {path} is neither a page nor redirected")
-    for path in golden_paths():
-        if not page_at(folder, path) and not (folder / path.lstrip("/")).is_file() and not redirect_for(path, rules):
-            problems.append(f"{GOLDEN.name}: {path} is a link we promised, and this build breaks it")
+    for link in golden_paths():
+        path, _, anchor = link.partition("#")
+        lands = path if page_at(folder, path) else redirect_for(path, rules)
+        if not lands and not (folder / path.lstrip("/")).is_file():
+            problems.append(f"{GOLDEN.name}: {link} is a link we promised, and this build breaks it")
+        elif anchor and not (lands and page_at(folder, lands) and has_anchor(folder, lands, anchor)):
+            problems.append(f"{GOLDEN.name}: {link}: no id {anchor!r} on the page it lands on ({lands})")
     return problems
+
+
+def has_anchor(folder, path, anchor):
+    """Whether the page at path has an element with that id. A redirect keeps the link's #fragment (nginx's
+    Location has none, so the browser carries it over), so the fragment must exist on the page it lands on."""
+    html = (folder / path.lstrip("/") / "index.html").read_text()
+    return re.search(r'\bid="?' + re.escape(anchor) + r'["\s>]', html) is not None
 
 
 def sitemap(folder):
@@ -353,7 +366,8 @@ def site(base, folder, stamp, full=False):
             if status != 200:
                 problems.append(f"{url}: {status}")
     rules = redirect_map()
-    for path in old_paths() + golden_paths() if full else one_per_rule(old_paths(), rules):
+    golden = [link.partition("#")[0] for link in golden_paths()]
+    for path in dict.fromkeys(old_paths() + golden if full else one_per_rule(old_paths() + golden, rules)):
         url, target = base + path.lstrip("/"), redirect_for(path, rules)
         status, _, location = fetch(url, location=True)
         print(f"{status} {url}{' -> ' + location if location else ''}")

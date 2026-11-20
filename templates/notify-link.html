@@ -20,7 +20,7 @@
   <button class="v-btn v-primary" type="submit">{{ page.extra.button }}</button>
   </div>
   <p class="notify-msg notify-ok" id="notify-done" role="status" tabindex="-1">{{ page.extra.done | safe }}</p>
-  <p class="notify-msg notify-bad" id="notify-gone" role="alert" tabindex="-1">This link is old or was used. <a href="{{ get_url(path='/donguru/', trailing_slash=true) }}#notify">Sign up again on the Donguru page</a></p>
+  <p class="notify-msg notify-bad" id="notify-gone" role="alert" tabindex="-1">This link is old or was used. <a href="{{ get_url(path='/portwright/', trailing_slash=true) }}#notify">Sign up again on the Donguru page</a></p>
   <p class="notify-msg notify-bad" id="notify-wait" role="alert" tabindex="-1">Too many tries from your connection. Try again in an hour.</p>
   <p class="notify-msg notify-bad" id="notify-err" role="alert" tabindex="-1">That did not work: the server had a problem. Try again later, or write to {{ <vh.mail to="donguru" subject="Donguru launch" /> }}.</p>
   </form>

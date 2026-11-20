@@ -138,7 +138,7 @@ class CodeAndLinksAndCtas(unittest.TestCase):
         self.assertEqual(m["word_count"], 6)  # inline code text still reads as prose
 
     def test_links_classified_internal_and_external(self):
-        html = ('<p><a href="/donguru/">a</a> <a href="#notify">b</a> '
+        html = ('<p><a href="/portwright/">a</a> <a href="#notify">b</a> '
                 '<a href="https://vhrd.tech/software/">c</a> <a href="https://github.com/vhrdtech/x">d</a></p>')
         m = analyze(html)
         self.assertEqual(m["links_internal"], 3)

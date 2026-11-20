@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 {#- /donguru: the product page, made from the datasheet (hw b153_typec_serial/spec/datasheet/b153_datasheet.typ,
-    Preview 0.2). The tables come from data/donguru.toml, a copy of the datasheet's; the copy here says only what the
+    Preview 0.2). The tables come from data/portwright.toml, a copy of the datasheet's; the copy here says only what the
     datasheet, the P2534 README and typec_dongle's FEATURES.md say. What the datasheet marks tbd or planned stays
-    marked. The page's own styles are static/css/donguru.css, inlined here like site.css in base.html. -#}
+    marked. The page's own styles are static/css/portwright.css, inlined here like site.css in base.html. -#}
 {% block head -%}
-{%- set hero = "img/boards/b153-donguru/b153_hero" %}
+{%- set hero = "img/boards/b153-portwright/b153_hero" %}
 <link rel="preload" as="image" type="image/avif" fetchpriority="high" imagesrcset="{% for w in [640, 1280, 1920] %}{{ get_url(path=hero ~ '-' ~ w ~ '.avif') }} {{ w }}w{% if not loop.last %}, {% endif %}{% endfor %}" imagesizes="(max-width: 52rem) calc(100vw - 2rem), 34rem">
 <style>
-{{ load_data(path="static/css/donguru.css", format="plain") | safe }}
+{{ load_data(path="static/css/portwright.css", format="plain") | safe }}
 </style>
 {%- endblock head %}
 {% block content %}
-{%- set d = load_data(path="data/donguru.toml") -%}
+{%- set d = load_data(path="data/portwright.toml") -%}
 {%- set tbd = '<span class="v-badge dg-tbd">tbd</span>' -%}
 {%- set draft = '<span class="v-badge">draft</span>' -%}
 <section class="section hero dg-hero">
@@ -26,7 +26,7 @@
     </div>
     <p class="draft-note">{{ draft | safe }} Copy not yet read by Marketing and PM. Specifications from the datasheet, {{ d.datasheet }}; the PDF is coming.</p>
   </div>
-  {{ <vh.fig stem="img/boards/b153-donguru/b153_hero" widths={[640, 1280, 1920]} sizes="(max-width: 52rem) calc(100vw - 2rem), 34rem" alt="Donguru, the B153 board, three-quarter view" n="1" caption="B153 Donguru · rev A (render)" cls="hero-fig" eager={true} /> }}
+  {{ <vh.fig stem="img/boards/b153-portwright/b153_hero" widths={[640, 1280, 1920]} sizes="(max-width: 52rem) calc(100vw - 2rem), 34rem" alt="Donguru, the B153 board, three-quarter view" n="1" caption="B153 Donguru · rev A (render)" cls="hero-fig" eager={true} /> }}
 </section>
 
 {{ <vh.trace sig="usb" from={74} to={16} label="USB 2.0" /> }}
@@ -60,7 +60,7 @@
 {{ <vh.trace sig="usb" from={60} to={84} label="D+ / D−" /> }}
 
 {% <vh.section label="Block diagram" n="03" id="diagram" title="What is on the board"> %}
-<figure class="fig dg-diagram"><div class="fig-frame"><div class="bd-scroll" tabindex="0" role="group" aria-label="Block diagram, scrolls sideways on small screens">{% include "partials/donguru-overview.html" %}</div></div><figcaption><span class="fig-no">FIG. 2</span>Donguru overview, from the datasheet. Dashed: not settled yet ({{ tbd | safe }}).</figcaption></figure>
+<figure class="fig dg-diagram"><div class="fig-frame"><div class="bd-scroll" tabindex="0" role="group" aria-label="Block diagram, scrolls sideways on small screens">{% include "partials/portwright-overview.html" %}</div></div><figcaption><span class="fig-no">FIG. 2</span>Donguru overview, from the datasheet. Dashed: not settled yet ({{ tbd | safe }}).</figcaption></figure>
 <ul class="dg-legend" aria-label="Legend">
 <li style="--sig: var(--signal-power)">Power</li>
 <li style="--sig: var(--signal-usb)">USB</li>
@@ -116,8 +116,8 @@
 
 {% <vh.section label="Pinout" n="05" id="pinout" title="Pinout, connectors and size"> %}
 <div class="dg-boards">
-{{ <vh.fig stem="img/boards/b153-donguru/b153_top" widths={[640, 1280, 1920]} sizes="(max-width: 52rem) calc(100vw - 2rem), 36rem" alt="B153 Donguru PCB, top view" n="3" caption="Top · rev A (render)" /> }}
-{{ <vh.fig stem="img/boards/b153-donguru/b153_bottom" widths={[640, 1280, 1920]} sizes="(max-width: 52rem) calc(100vw - 2rem), 36rem" alt="B153 Donguru PCB, bottom view" n="4" caption="Bottom · rev A (render)" /> }}
+{{ <vh.fig stem="img/boards/b153-portwright/b153_top" widths={[640, 1280, 1920]} sizes="(max-width: 52rem) calc(100vw - 2rem), 36rem" alt="B153 Donguru PCB, top view" n="3" caption="Top · rev A (render)" /> }}
+{{ <vh.fig stem="img/boards/b153-portwright/b153_bottom" widths={[640, 1280, 1920]} sizes="(max-width: 52rem) calc(100vw - 2rem), 36rem" alt="B153 Donguru PCB, bottom view" n="4" caption="Bottom · rev A (render)" /> }}
 </div>
 <div class="dg-pins">
 <div>

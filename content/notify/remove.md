@@ -16,4 +16,4 @@ button = "Remove my address"
 done = "<strong>Your address is deleted.</strong> No more mail comes from this list."
 +++
 
-Press the button to take your address off the [Donguru](@/donguru.md) launch list. It is deleted at once, and no more mail comes from this list.
+Press the button to take your address off the [Donguru](@/portwright.md) launch list. It is deleted at once, and no more mail comes from this list.

@@ -4,7 +4,7 @@
     confirmed carries a draft badge. Board renders and lab photos are taken by path and show once the files exist. -#}
 {% block head -%}
 {#- The hero render, before anything else: the largest paint on every width. Same candidates as its <picture>. #}
-{%- set hero = "img/boards/b153-donguru/b153_hero" %}
+{%- set hero = "img/boards/b153-portwright/b153_hero" %}
 <link rel="preload" as="image" type="image/avif" fetchpriority="high" imagesrcset="{% for w in [640, 1280, 1920] %}{{ get_url(path=hero ~ '-' ~ w ~ '.avif') }} {{ w }}w{% if not loop.last %}, {% endif %}{% endfor %}" imagesizes="(max-width: 52rem) calc(100vw - 2rem), 34rem">
 {#- The intro plays on a first visit from outside the site and on a reload, with JS on, without reduced motion and
     unless a #fragment links to a section. Not when the visitor comes home from inside the site (a link with a
@@ -22,12 +22,12 @@
     <h1 class="v-hero">Where code meets <span class="hl">hardware</span></h1>
     <p class="v-lead">Instruments for embedded development, and the open-source software behind them.</p>
     <div class="ctas">
-      <a class="v-btn v-primary" href="{{ get_url(path='/donguru/', trailing_slash=true) }}">Learn more about Donguru</a>
+      <a class="v-btn v-primary" href="{{ get_url(path='/portwright/', trailing_slash=true) }}">Learn more about Donguru</a>
       <a class="v-btn" href="#products">See the products</a>
     </div>
     <p class="draft-note"><span class="v-badge">draft</span> Copy not yet read by Marketing and PM. Board renders follow.</p>
   </div>
-  {{ <vh.fig stem="img/boards/b153-donguru/b153_hero" widths={[640, 1280, 1920]} sizes="(max-width: 52rem) calc(100vw - 2rem), 34rem" alt="Donguru, the B153 board, three-quarter view" n="1" caption="B153 Donguru" cls="hero-fig" eager={true} /> }}
+  {{ <vh.fig stem="img/boards/b153-portwright/b153_hero" widths={[640, 1280, 1920]} sizes="(max-width: 52rem) calc(100vw - 2rem), 34rem" alt="Donguru, the B153 board, three-quarter view" n="1" caption="B153 Donguru" cls="hero-fig" eager={true} /> }}
 </section>
 
 {{ <vh.trace sig="usb" from={74} to={16} label="USB 2.0" /> }}
@@ -36,7 +36,7 @@
 <p class="v-muted section-lead">Three tools for bring-up, debugging and test, each with a Rust driver, a CLI and a GUI.</p>
 {% <vh.cards> %}
 {{ <vh.card title="Donguru" href="#donguru" badge="Coming Q1–Q2 2027" sig="usb" n="2"
-   stem="img/boards/b153-donguru/b153_hero" widths={[640, 1280, 1920]} alt="Donguru, the B153 board, three-quarter view" caption="B153 Donguru"
+   stem="img/boards/b153-portwright/b153_hero" widths={[640, 1280, 1920]} alt="Donguru, the B153 board, three-quarter view" caption="B153 Donguru"
    pitch="A USB-C dongle with a USB 2.0 hub, a VBUS switch with a power meter, and UART, I2C and SWD on the plug's sideband pins."
    specs={["Hub: USB 2.0 Hi-Speed", "SBU: UART, I2C, SWD, FDCAN", "VBUS: switch to 20 V, 5 A + meter"]} /> }}
 {{ <vh.card title="Pinsmith" href="/pinsmith/" badge="In development" badge_cls="" sig="bus" n="3"
@@ -63,8 +63,8 @@
 </ol>
 <p class="v-muted">For bring-up, debugging, flashing and production test of devices with a USB-C port.</p>
 <div class="ctas">
-<a class="v-btn v-primary" href="{{ get_url(path='/donguru/', trailing_slash=true) }}">Learn more about Donguru</a>
-<a class="go ctas-link" href="{{ get_url(path='/donguru/#diagram', trailing_slash=true) }}">Block diagram and specs</a>
+<a class="v-btn v-primary" href="{{ get_url(path='/portwright/', trailing_slash=true) }}">Learn more about Donguru</a>
+<a class="go ctas-link" href="{{ get_url(path='/portwright/#diagram', trailing_slash=true) }}">Block diagram and specs</a>
 </div>
 </div>
 </div>
@@ -124,7 +124,7 @@
 <div>
 <p class="v-lead">Donguru launches on Crowd Supply. Leave your address and you hear first, when the campaign opens. {{ draft | safe }}</p>
 {{ <vh.notify from="home" consent={config.extra.notify_consent} /> }}
-<p class="v-muted notify-fallback">Rather send a mail? Write to {{ <vh.mail to="donguru" subject="Donguru launch" /> }}. <a class="go" href="{{ get_url(path='/donguru/', trailing_slash=true) }}">What Donguru is</a></p>
+<p class="v-muted notify-fallback">Rather send a mail? Write to {{ <vh.mail to="donguru" subject="Donguru launch" /> }}. <a class="go" href="{{ get_url(path='/portwright/', trailing_slash=true) }}">What Donguru is</a></p>
 </div>
 <div class="contact-card">
 <p class="v-label">Contact</p>

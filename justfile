@@ -45,6 +45,7 @@ test *args:
     python3 tools/check_live.py built target/test --stamp "$VHRD_GIT"
     python3 tools/test_notify_plan.py
     python3 tools/test_page_stats.py
+    python3 tools/test_check_live.py
     uv run tools/check_pages.py
     if [ -d "{{ brand }}/web" ]; then diff -q "{{ brand }}/web/tokens.css" static/css/brand/tokens.css && diff -q "{{ brand }}/web/vhrd.css" static/css/brand/vhrd.css; else echo "note: {{ brand }} missing, brand files not compared"; fi
 
@@ -63,7 +64,7 @@ lint:
     git diff --check HEAD
     cargo fmt --check
     cargo clippy --workspace --all-targets --quiet -- -D warnings
-    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py tools/samples.py tools/perf.py tools/fonts.py tools/check_live.py tools/notify_plan.py tools/test_notify_plan.py tools/mentions.py tools/term_capture.py tools/serve.py tools/og_images.py tools/og_version.py tools/page_stats.py tools/test_page_stats.py scripts/render_boards.py
+    PYTHONPYCACHEPREFIX="$(mktemp -d)" uv run --no-project python -m py_compile tools/wordmark.py tools/check_pages.py tools/samples.py tools/perf.py tools/fonts.py tools/check_live.py tools/notify_plan.py tools/test_notify_plan.py tools/mentions.py tools/term_capture.py tools/serve.py tools/og_images.py tools/og_version.py tools/page_stats.py tools/test_page_stats.py tools/test_check_live.py scripts/render_boards.py
     uvx --from actionlint-py actionlint .github/workflows/deploy.yml
     uvx zizmor --offline .github/workflows/deploy.yml
 

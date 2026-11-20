@@ -43,7 +43,7 @@ JPEG_QUALITY = 90
 # The share images: assets/og/<name>.svg -> static/img/og/<name>.jpg and .png. The names never change; a changed
 # image gets a new URL through the version written into data/og.toml at the end (tools/og_version.py), since
 # LinkedIn, Facebook and Telegram cache a preview by its image URL. deploy/nginx-og.conf names the default files.
-NAMES = ["default", "donguru", "pinsmith", "can", "software", "work"]
+NAMES = ["default", "portwright", "pinsmith", "can", "software", "work"]
 # The square card: the same 1200x627 canvas with the design inside its centre 627x627 square, so a centre square
 # crop shows all of it. nginx sends it instead of default's JPEG to the crawlers that crop to that square
 # (deploy/nginx-og.conf); it is never a page's twitter:image, so it gets no PNG.
@@ -57,7 +57,7 @@ PLATFORM_BACKGROUNDS = [
     ("xnavy", (0x15, 0x20, 0x2b)),
     ("grey", (0xf0, 0xf2, 0xf5)),
 ]
-SHOT_NAMES = ("default", "default-square", "donguru")
+SHOT_NAMES = ("default", "default-square", "portwright")
 
 
 def render(svg, stylesheet, font_path, out_png):

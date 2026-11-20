@@ -12,7 +12,7 @@ og_image_alt = "A USB to isolated CAN FD bridge PCB (B135), framed by red corner
 # The board renders (static/img/boards/<dir>/manifest.toml), linked to their product page; pitch is the card's line,
 # photo a photo of the real board shown next to its render (static/img/lab/<photo>/manifest.toml).
 boards = [
-  { dir = "b153-donguru", view = "b153_hero", href = "/donguru/", sig = "usb" },
+  { dir = "b153-portwright", view = "b153_hero", href = "/portwright/", sig = "usb" },
   { dir = "b200-re-port", view = "b200_hero", href = "/pinsmith/", sig = "analog" },
   { dir = "b125-eth-2fdcan", view = "b125_hero", href = "/can/", sig = "can" },
   { dir = "b135-usb-fdcan", view = "b135_hero", href = "/can/", sig = "can", photo = "b135-photo" },

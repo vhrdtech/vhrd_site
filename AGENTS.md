@@ -15,7 +15,7 @@ vhrd.tech, a static site built with Zola: Markdown in `content/`, Tera templates
 ## Layout
 
 - `config.toml`: site settings; `[extra]` holds the company line, contact mail, header links and the notify button.
-- `content/`: one Markdown file per page (`donguru.md` is `/donguru/`). Stubs carry `extra.stub = true`. No blog and no feed. WordPress is gone from vhrd.tech: its old paths (posts, /feed/, /product/, /cart/, /checkout/, ...) redirect on the server with `deploy/redirects.map`, and nothing of WordPress (wp-*, PHP, those paths) may be generated here. `/shop/` is the site's own page; every other path gets the site's 404 page.
+- `content/`: one Markdown file per page (`donguru.md` is `/portwright/`). Stubs carry `extra.stub = true`. No blog and no feed. WordPress is gone from vhrd.tech: its old paths (posts, /feed/, /product/, /cart/, /checkout/, ...) redirect on the server with `deploy/redirects.map`, and nothing of WordPress (wp-*, PHP, those paths) may be generated here. `/shop/` is the site's own page; every other path gets the site's 404 page.
 - `templates/base.html`: the page frame, with the view frame's four crosses (`.view-frame`) and an `intro` block the home page fills. `partials/header.html`, `partials/footer.html` (build stamp from `VHRD_GIT` and `VHRD_BUILT`, which the justfile sets) and `partials/wordmark.html` (generated).
 - `templates/components.html`: the `vh.*` components, usable in templates and Markdown ("Components" below).
 - `templates/index.html`: the landing page; `partials/intro.html` is its oscilloscope intro, with its script in `partials/intro-script.html` at the end of the body ("Intro" below). `page.html` is a plain page, `section.html` is the blog list, and there are `404.html` and `robots.txt`.
@@ -46,7 +46,7 @@ Tera components in `templates/components.html` work in templates and in Markdown
 ```jinja
 {% <vh.section label="Products" n="01" id="products" title="What we make"> %}
 {% <vh.cards> %}
-{{ <vh.card title="Donguru" href="/donguru/" sig="usb" n="2" badge="Coming Q1–Q2 2027"
+{{ <vh.card title="Donguru" href="/portwright/" sig="usb" n="2" badge="Coming Q1–Q2 2027"
    pitch="One cable to your board." specs={["Host: USB-C, USB 2.0", "MCU: STM32G0B1"]} /> }}
 {% </vh.cards> %}
 {% </vh.section> %}

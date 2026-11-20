@@ -5,9 +5,12 @@
 /about/
 /can/
 /donguru/
+/donguru/#notify
 /lab/
 /open-source/
 /pinsmith/
+/portwright/
+/portwright/#notify
 /services/
 /shop/
 /software/

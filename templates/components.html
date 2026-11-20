@@ -40,9 +40,9 @@
     once the file exists; until then a hatched placeholder says what goes there, never a broken image.
     - `src`: one file under static/, e.g. "img/lab/x.webp".
     - `stem` and `widths`: AVIF and WebP in several widths, files `<stem>-<width>.avif` and `.webp`, e.g.
-      stem="img/boards/b153-donguru/b153_hero" widths={[640, 1280]}; `sizes` tells the browser the shown width.
+      stem="img/boards/b153-portwright/b153_hero" widths={[640, 1280]}; `sizes` tells the browser the shown width.
     Width and height come from the file, so the page never jumps. `eager` for the first view (the hero):
-    {{ <vh.fig stem="img/boards/b153-donguru/b153_hero" widths={[640, 1280]} alt="..." n="1" caption="B153 Donguru" /> }} -#}
+    {{ <vh.fig stem="img/boards/b153-portwright/b153_hero" widths={[640, 1280]} alt="..." n="1" caption="B153 Donguru" /> }} -#}
 {% component vh.fig(src: string = "", stem: string = "", widths: array = [], sizes: string = "(max-width: 52rem) 100vw, 40vw", alt: string = "", n: string = "", caption: string = "", cls: string = "", eager: bool = false) %}
 {%- if stem and widths %}{% set probe = stem ~ "-" ~ widths[0] ~ ".webp" %}{% elif src %}{% set probe = src %}{% else %}{% set probe = "" %}{% endif -%}
 {%- if probe %}{% set meta = get_image_metadata(path=probe, allow_missing=true) %}{% else %}{% set meta = "" %}{% endif -%}

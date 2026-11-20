@@ -77,7 +77,7 @@ from playwright.sync_api import sync_playwright
 import mentions
 import samples
 
-PAGES = ["", "donguru/", "pinsmith/", "can/", "software/", "open-source/", "lab/", "work/", "services/", "about/", "shop/",
+PAGES = ["", "portwright/", "pinsmith/", "can/", "software/", "open-source/", "lab/", "work/", "services/", "about/", "shop/",
          "privacy/", "faq/", "notify/confirm/", "notify/remove/", "no-such-page/"]
 # Pages only our mail links to (NOTIFY-4 double-opt-in): the exception to the orphan rule. Each must answer 200, say
 # noindex and stay out of the site map; their own links are checked like those of a page reached.
@@ -263,11 +263,11 @@ def check_notify(browser, base):
     files = [NOTIFY_STORE, NOTIFY_STORE.with_name(NOTIFY_STORE.name + ".intake")]
     stored = lambda: "".join(f.read_text() for f in files if f.exists())  # noqa: E731
     cases = [  # page, JavaScript, theme, address, message expected
-        ("donguru/", True, "dark", "check-js@example.com", "ok"),
-        ("donguru/", True, "light", "nope@localhost", "bad"),
+        ("portwright/", True, "dark", "check-js@example.com", "ok"),
+        ("portwright/", True, "light", "nope@localhost", "bad"),
         ("", True, "light", "check-home@example.com", "ok"),
         ("", False, "dark", "check-nojs@example.com", "ok"),
-        ("donguru/", False, "light", "nope@localhost", "bad"),
+        ("portwright/", False, "light", "nope@localhost", "bad"),
     ]
     for path, js, theme, address, want in cases:
         where = f"notify: {path or '/'} {'with' if js else 'without'} JavaScript, {theme}"
@@ -494,7 +494,7 @@ def check_term_live(browser, base):
     page = ctx.new_page()
     hits = []
     page.on("request", lambda r: is_vendor(r.url) and hits.append(r.url))
-    for path in ("", "open-source/", "donguru/"):
+    for path in ("", "open-source/", "portwright/"):
         page.goto(base + path)
         page.wait_for_load_state("networkidle")
     if hits:
@@ -1025,7 +1025,7 @@ MAIL_LINKS = """() => [...document.querySelectorAll('a[data-mail]')].map((a) =>
 # Mail links each page must have, as the script makes them.
 MAIL_WANTED = {
     "": ["mailto:donguru@vhrd.tech?subject=Donguru%20launch", "mailto:contact@vhrd.tech"],
-    "donguru/": ["mailto:donguru@vhrd.tech?subject=Donguru%20launch"],
+    "portwright/": ["mailto:donguru@vhrd.tech?subject=Donguru%20launch"],
     "services/": ["mailto:projects@vhrd.tech?subject=Project"],
     "about/": ["mailto:contact@vhrd.tech"],
 }
@@ -1102,7 +1102,7 @@ def check_css(out):
     every page stays under SHARED_CSS_KB."""
     root = Path(__file__).resolve().parent.parent
     parts = {name: (root / f"static/css/{name}.css").read_text() for name in CSS_PARTS}
-    own = (root / "static/css/donguru.css").read_text()
+    own = (root / "static/css/portwright.css").read_text()
     failures = []
     for f in sorted(out.rglob("*.html")):
         rel = f.relative_to(out)
@@ -1444,7 +1444,7 @@ def main():
         page.keyboard.press("Tab")
         if page.evaluate("document.activeElement.className") != "skip":
             failures.append("keyboard: the skip link is not the first tab stop")
-        page.goto(base + "donguru/")  # the code tabs: the front page has none since FIG. 5 went
+        page.goto(base + "portwright/")  # the code tabs: the front page has none since FIG. 5 went
         tabs = page.locator('[role="tab"]')
         if tabs.count() >= 2:
             tabs.nth(0).focus()

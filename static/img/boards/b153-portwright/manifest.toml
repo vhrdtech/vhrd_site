@@ -1,6 +1,6 @@
 board = "B153"
 product = "Donguru (Type-C Serial)"
-slug = "donguru"
+slug = "portwright"
 revision = "A"
 source_file = "b153_typec_serial/source/b153a/b153a_typec_serial.kicad_pcb"
 hw_git_hash = "05afb76"

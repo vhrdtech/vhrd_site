@@ -10,7 +10,7 @@ lists = ["donguru"]
 consent_versions = ["2026-11-05", "2026-11-06"]
 site_origin = "https://vhrd.tech"
 pages = [
-  { name = "donguru", path = "/donguru/" },
+  { name = "donguru", path = "/portwright/" },
   { name = "home", path = "/" },
 ]
 max_body = 1024

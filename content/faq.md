@@ -10,7 +10,7 @@ sig = "ctrl"
 
 ## The products
 
-<details><summary>When can I buy Donguru or Pinsmith?</summary><p id="buy">Both launch on Crowd Supply. {{ <vh.ref name="Donguru" /> }} comes first, in Q1–Q2 2027; {{ <vh.ref name="Pinsmith" /> }} after it. Prices are not set yet. <a href="{{ get_url(path='/donguru/', trailing_slash=true) }}#notify">Get notified</a> and you hear when the campaign opens.</p></details>
+<details><summary>When can I buy Donguru or Pinsmith?</summary><p id="buy">Both launch on Crowd Supply. {{ <vh.ref name="Donguru" /> }} comes first, in Q1–Q2 2027; {{ <vh.ref name="Pinsmith" /> }} after it. Prices are not set yet. <a href="{{ get_url(path='/portwright/', trailing_slash=true) }}#notify">Get notified</a> and you hear when the campaign opens.</p></details>
 
 <details><summary>Why Crowd Supply and not Kickstarter?</summary><p id="crowd-supply">Crowd Supply is made for open-source electronics. They check every project before it goes up, and after the campaign they keep selling it.</p></details>
 

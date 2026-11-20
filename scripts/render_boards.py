@@ -78,7 +78,7 @@ class Board:
 
 # The front-page boards, then the /work and /can ones.
 BOARDS = [
-    Board("b153", "b153_typec_serial", "Donguru (Type-C Serial)", "donguru"),
+    Board("b153", "b153_typec_serial", "Portwright (Type-C Serial)", "portwright"),
     Board("b200", "b200_re_port", "Pinsmith", "re-port"),
     Board("b125", "b125_2fdcan_iso_eth",
           "Ethernet to 2x ISO FDCAN bridge (DB-9, SD logging, optional PoE/BP)", "eth-2fdcan"),

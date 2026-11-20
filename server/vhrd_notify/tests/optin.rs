@@ -473,7 +473,7 @@ async fn a_launch_mail_carries_the_one_click_unsubscribe() {
     let text = vhrd_notify::outbox::list_text_path(&cfg.store, "launch-1");
     std::fs::write(
         &text,
-        "Donguru is live\nIt's here: https://vhrd.tech/donguru/\n\nLeave the list: {remove}\n",
+        "Donguru is live\nIt's here: https://vhrd.tech/portwright/\n\nLeave the list: {remove}\n",
     )
     .unwrap();
     let rules = cfg.rules();

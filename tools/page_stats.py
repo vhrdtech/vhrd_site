@@ -8,7 +8,7 @@ Standard library only.
 
 Usage: uv run tools/page_stats.py [PAGE] [--dir DIR] [--json FILE] (`just page-stats [PAGE]`)
   no PAGE:  a compact table, one row per page
-  PAGE:     the detailed view of one page, e.g. "donguru/" ("" for the front page)
+  PAGE:     the detailed view of one page, e.g. "portwright/" ("" for the front page)
   --dir DIR builds the site itself into target/page-stats by default; pass an already-built directory
             (e.g. target/test) to read that instead
   --json FILE  where the full per-page numbers are written, default target/page-stats.json, for a later
@@ -365,7 +365,7 @@ def page_path(index_html, root):
 
 
 def collect(root, budgets, base_netloc):
-    """Every built page, by its path: {"": {...}, "donguru/": {...}, ...}."""
+    """Every built page, by its path: {"": {...}, "portwright/": {...}, ...}."""
     pages = {}
     for f in sorted(root.rglob("index.html")):
         path = page_path(f, root)
@@ -438,7 +438,7 @@ def print_detail(path, m, budgets):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("page", nargs="?", help='a built page\'s path, e.g. "donguru/" ("" for the front page); '
+    ap.add_argument("page", nargs="?", help='a built page\'s path, e.g. "portwright/" ("" for the front page); '
                                               "omitted: the table for every page")
     ap.add_argument("--dir", help="an already-built site to read (e.g. target/test); default: build one")
     ap.add_argument("--json", default="target/page-stats.json")

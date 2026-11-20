@@ -28,6 +28,9 @@ map $uri $vhrd_redirect {
     "~^/[0-9]{4}/[0-9]{2}/[0-9]{2}/[^/]+/?$"  /;
     "~^/[0-9]{4}(/[0-9]{2})?/?$"            /;
 
+    # Products renamed: the old product page and its anchors (#notify) lead to the new one
+    ~^/donguru/?$                           /portwright/;
+
     # Contact and privacy: the address and the company are on /about/
     ~^/(contact|contact-form|privacy-policy)/?$  /about/;
 }

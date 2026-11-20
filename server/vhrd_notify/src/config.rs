@@ -138,7 +138,7 @@ impl Default for Config {
             pages: vec![
                 Page {
                     name: "donguru".into(),
-                    path: "/donguru/".into(),
+                    path: "/portwright/".into(),
                 },
                 Page {
                     name: "home".into(),

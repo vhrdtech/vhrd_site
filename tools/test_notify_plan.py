@@ -26,7 +26,7 @@ FILES = {
     "deploy/notify.toml": "listen = 1\n",
     "deploy/vhrd-notify.service": "[Service]\n",
     ".github/workflows/deploy.yml": 'env:\n  RUST_TOOLCHAIN: "1.99.1"\n',
-    "content/donguru.md": "Donguru\n",
+    "content/portwright.md": "Donguru\n",
     "CHANGELOG.md": "# Changelog\n",
     "config.toml": "title = 1\n",
 }
@@ -80,7 +80,7 @@ class Plan(unittest.TestCase):
         self.assertSkips()
 
     def test_site_only_change(self):
-        self.write("content/donguru.md", "more\n", append=True)
+        self.write("content/portwright.md", "more\n", append=True)
         self.write("CHANGELOG.md", "- a line\n", append=True)
         self.write("config.toml", "x = 2\n", append=True)
         self.commit("site")
