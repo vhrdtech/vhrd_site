@@ -44,4 +44,4 @@ When you leave your address in a "Get notified" form for [Portwright](@/portwrig
 
 ## Your rights
 
-You can ask what we keep about you, have it corrected, or have it deleted. To be removed from the list, use the link in any of our mails, reply to it or write to {{ <vh.mail to="donguru" subject="Remove me" /> }}. If you think we handle your data wrongly, you can complain to the Norwegian Data Protection Authority, Datatilsynet.
+You can ask what we keep about you, have it corrected, or have it deleted. To be removed from the list, use the link in any of our mails, reply to it or write to {{ <vh.mail to="portwright" subject="Remove me" /> }}. If you think we handle your data wrongly, you can complain to the Norwegian Data Protection Authority, Datatilsynet.

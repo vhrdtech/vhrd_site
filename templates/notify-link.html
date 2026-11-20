@@ -22,7 +22,7 @@
   <p class="notify-msg notify-ok" id="notify-done" role="status" tabindex="-1">{{ page.extra.done | safe }}</p>
   <p class="notify-msg notify-bad" id="notify-gone" role="alert" tabindex="-1">This link is old or was used. <a href="{{ get_url(path='/portwright/', trailing_slash=true) }}#notify">Sign up again on the Portwright page</a></p>
   <p class="notify-msg notify-bad" id="notify-wait" role="alert" tabindex="-1">Too many tries from your connection. Try again in an hour.</p>
-  <p class="notify-msg notify-bad" id="notify-err" role="alert" tabindex="-1">That did not work: the server had a problem. Try again later, or write to {{ <vh.mail to="donguru" subject="Portwright launch" /> }}.</p>
+  <p class="notify-msg notify-bad" id="notify-err" role="alert" tabindex="-1">That did not work: the server had a problem. Try again later, or write to {{ <vh.mail to="portwright" subject="Portwright launch" /> }}.</p>
   </form>
   {#- The token from the address, without the '#'; a #notify-... is the service's answer, not a token. -#}
   <script>(()=>{const t=location.hash.slice(1),f=document.getElementById("notify-token");if(t&&!t.startsWith("notify-")){f.value=t;f.closest(".notify-paste").hidden=true}})()</script>

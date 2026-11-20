@@ -112,7 +112,7 @@ impl Default for Mail {
             tls: MailTls::Implicit,
             user: "notify-sender@vhrd.tech".into(),
             password_file: "smtp-password".into(),
-            from: "donguru@vhrd.tech".into(),
+            from: "portwright@vhrd.tech".into(),
             from_name: "VHRD".into(),
             hello: "vhrd.tech".into(),
             timeout_secs: 30,

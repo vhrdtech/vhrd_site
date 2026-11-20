@@ -44,7 +44,7 @@ token_key = "/home/vhrd-notify/.config/vhrd-notify/token-key"
 [titles]
 portwright = "Portwright"
 
-# mail out through mail.vhrd.tech as donguru@ (Roman's steps: the login notify-sender@, allowed to send as donguru@,
+# mail out through mail.vhrd.tech as portwright@ (Roman's steps: the login notify-sender@, allowed to send as portwright@,
 # and its password in password_file, 0600, written on the server, never here)
 [mail]
 host = "mail.vhrd.tech"
@@ -52,7 +52,7 @@ port = 465
 tls = "implicit"
 user = "notify-sender@vhrd.tech"
 password_file = "/home/vhrd-notify/.config/vhrd-notify/smtp-password"
-from = "donguru@vhrd.tech"
+from = "portwright@vhrd.tech"
 from_name = "VHRD"
 hello = "vhrd.tech"
 timeout_secs = 30

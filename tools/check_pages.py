@@ -36,7 +36,7 @@ Links: every page in the site map is reached from the front page by links (no or
 href on every page reached ends in '/' when it names a page and answers 200 without a redirect. On every page reached,
 the first mention of each project in data/links.toml is a link to it (tools/mentions.py).
 Mail: no page or file has an address in it ('@vhrd.tech'); with JavaScript every mail link is a mailto link with
-its subject (projects@ on /services, donguru@ on /portwright and the front page, contact@ in the footer), and without
+its subject (projects@ on /services, portwright@ on /portwright and the front page, contact@ in the footer), and without
 it a mail link is plain text ("projects at vhrd.tech") and a labelled one does not show.
 A picture on its way shows as a small scope screen in its box and fades in when it comes, without a size change.
 The signup form (only against the local build, which posts to a local notify service with a store of its own): with
@@ -1024,8 +1024,8 @@ MAIL_LINKS = """() => [...document.querySelectorAll('a[data-mail]')].map((a) =>
    a.getClientRects().length > 0 || !!a.closest('.notify-msg')])"""
 # Mail links each page must have, as the script makes them.
 MAIL_WANTED = {
-    "": ["mailto:donguru@vhrd.tech?subject=Portwright%20launch", "mailto:contact@vhrd.tech"],
-    "portwright/": ["mailto:donguru@vhrd.tech?subject=Portwright%20launch"],
+    "": ["mailto:portwright@vhrd.tech?subject=Portwright%20launch", "mailto:contact@vhrd.tech"],
+    "portwright/": ["mailto:portwright@vhrd.tech?subject=Portwright%20launch"],
     "services/": ["mailto:projects@vhrd.tech?subject=Project"],
     "about/": ["mailto:contact@vhrd.tech"],
 }

@@ -335,7 +335,7 @@ mod tests {
         let to = Email::parse("someone@example.com").unwrap();
         let m = String::from_utf8(mailer().confirm_mail(&to, &links()).unwrap()).unwrap();
         for want in [
-            "From: VHRD <donguru@vhrd.tech>\r\n",
+            "From: VHRD <portwright@vhrd.tech>\r\n",
             "To: someone@example.com\r\n",
             "Subject: Confirm your Portwright signup\r\n",
             "Auto-Submitted: auto-generated\r\n",
@@ -365,7 +365,7 @@ mod tests {
         // long headers are folded onto a second line; unfolded, they read as one
         let m = String::from_utf8(m).unwrap().replace("\r\n ", " ");
         for want in [
-            "List-Unsubscribe: <https://vhrd.tech/api/notify/unsubscribe?t=RRR>, <mailto:donguru@vhrd.tech?subject=unsubscribe>\r\n",
+            "List-Unsubscribe: <https://vhrd.tech/api/notify/unsubscribe?t=RRR>, <mailto:portwright@vhrd.tech?subject=unsubscribe>\r\n",
             "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n",
             "List-Id: Portwright <portwright.vhrd.tech>\r\n",
             "Leave the list: https://vhrd.tech/notify/remove/#RRR",
