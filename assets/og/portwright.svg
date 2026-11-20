@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Donguru · one cable from your PC to your board share image. Edit freely in Inkscape or by hand: save as plain SVG, then `just og` renders it.
+<!-- Portwright · one cable from your PC to your board share image. Edit freely in Inkscape or by hand: save as plain SVG, then `just og` renders it.
      Classes (.bg .ink .red .headline-shadow) are coloured by assets/og/light.css (the JPEG look, also
      this file's own default below) and assets/og/dark.css (the transparent X look); see AGENTS.md, "Link
      previews". Don't add fill="..." on those elements directly: it would fight the stylesheet. -->
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
      width="1200" height="627" viewBox="0 0 1200 627">
-  <title>Donguru · one cable from your PC to your board</title>
+  <title>Portwright · one cable from your PC to your board</title>
   <style>
     .bg { fill: #ffffff; }
     .ink { fill: #1a1a1a; }
@@ -45,8 +45,8 @@
 
   <!-- headline: Audiowide, flush left with the corners above, the product name (if any) in red -->
   <g id="headline" class="headline-shadow">
-    <text x="32" y="100"><tspan class="red">Donguru</tspan><tspan class="ink"> · one cable from your PC</tspan></text>
-    <text x="32" y="170"><tspan class="ink">to your board</tspan></text>
+    <text x="32" y="100"><tspan class="red">Portwright</tspan><tspan class="ink"> · one cable from</tspan></text>
+    <text x="32" y="170"><tspan class="ink">your PC to your board</tspan></text>
   </g>
 
   <!-- the halo, then the board picture, by relative href to its render (never shipped itself) -->
