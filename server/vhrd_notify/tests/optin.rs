@@ -189,7 +189,7 @@ const JSON: (&str, &str) = ("Accept", "application/json");
 
 async fn signup(addr: SocketAddr, email: &str) -> String {
     let body = format!(
-        "email={}&list=donguru&consent=2026-11-06&from=donguru&leave_empty=",
+        "email={}&list=portwright&consent=2026-11-06&from=portwright&leave_empty=",
         email.replace('@', "%40")
     );
     http(
@@ -239,7 +239,7 @@ async fn sign_up_confirm_export_remove() {
     let mail = got.lock().unwrap()[0].clone();
     assert_eq!(mail.to, "someone@example.com");
     assert!(
-        mail.data.contains("Subject: Confirm your Donguru signup"),
+        mail.data.contains("Subject: Confirm your Portwright signup"),
         "{}",
         mail.data
     );
@@ -418,7 +418,7 @@ async fn a_record_removed_during_a_round_gets_no_mail() {
     for email in ["hold@example.com", "gone@example.com"] {
         let i = vhrd_notify::store::Intake {
             time: vhrd_notify::utc::now_secs(),
-            list: "donguru".into(),
+            list: "portwright".into(),
             email: vhrd_notify::Email::parse(email).unwrap(),
             consent: "2026-11-06".into(),
         };
@@ -473,14 +473,14 @@ async fn a_launch_mail_carries_the_one_click_unsubscribe() {
     let text = vhrd_notify::outbox::list_text_path(&cfg.store, "launch-1");
     std::fs::write(
         &text,
-        "Donguru is live\nIt's here: https://vhrd.tech/portwright/\n\nLeave the list: {remove}\n",
+        "Portwright is live\nIt's here: https://vhrd.tech/portwright/\n\nLeave the list: {remove}\n",
     )
     .unwrap();
     let rules = cfg.rules();
     Store::new(&cfg.store)
         .transact(|intake, st| {
             vhrd_notify::list::fold(&mut st.records, intake, &rules, vhrd_notify::store::Id::random)?;
-            let n = vhrd_notify::list::queue_launch(&mut st.records, "donguru", "launch-1", None, 0);
+            let n = vhrd_notify::list::queue_launch(&mut st.records, "portwright", "launch-1", None, 0);
             Ok((true, n))
         })
         .unwrap();
@@ -490,14 +490,14 @@ async fn a_launch_mail_carries_the_one_click_unsubscribe() {
         got.lock()
             .unwrap()
             .iter()
-            .any(|g| g.data.contains("Subject: Donguru is live"))
+            .any(|g| g.data.contains("Subject: Portwright is live"))
     })
     .await;
     let launch = got
         .lock()
         .unwrap()
         .iter()
-        .find(|g| g.data.contains("Subject: Donguru is live"))
+        .find(|g| g.data.contains("Subject: Portwright is live"))
         .unwrap()
         .clone();
     assert_eq!(launch.to, "fan@example.com");

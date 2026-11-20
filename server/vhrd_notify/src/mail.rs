@@ -320,8 +320,8 @@ mod tests {
 
     fn links() -> Links {
         Links {
-            list: "donguru".into(),
-            title: "Donguru".into(),
+            list: "portwright".into(),
+            title: "Portwright".into(),
             confirm: "https://vhrd.tech/notify/confirm/#CCC".into(),
             remove: "https://vhrd.tech/notify/remove/#RRR".into(),
             one_click: "https://vhrd.tech/api/notify/unsubscribe?t=RRR".into(),
@@ -337,7 +337,7 @@ mod tests {
         for want in [
             "From: VHRD <donguru@vhrd.tech>\r\n",
             "To: someone@example.com\r\n",
-            "Subject: Confirm your Donguru signup\r\n",
+            "Subject: Confirm your Portwright signup\r\n",
             "Auto-Submitted: auto-generated\r\n",
             "Content-Type: text/plain; charset=utf-8\r\n",
             "https://vhrd.tech/notify/confirm/#CCC",
@@ -357,7 +357,7 @@ mod tests {
         let m = mailer()
             .list_mail(
                 &to,
-                "Donguru is live",
+                "Portwright is live",
                 "It's here.\n\nLeave the list: {remove}\n",
                 &links(),
             )
@@ -367,7 +367,7 @@ mod tests {
         for want in [
             "List-Unsubscribe: <https://vhrd.tech/api/notify/unsubscribe?t=RRR>, <mailto:donguru@vhrd.tech?subject=unsubscribe>\r\n",
             "List-Unsubscribe-Post: List-Unsubscribe=One-Click\r\n",
-            "List-Id: Donguru <donguru.vhrd.tech>\r\n",
+            "List-Id: Portwright <portwright.vhrd.tech>\r\n",
             "Leave the list: https://vhrd.tech/notify/remove/#RRR",
         ] {
             assert!(m.contains(want), "{want:?} not in\n{m}");

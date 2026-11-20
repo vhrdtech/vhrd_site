@@ -16,7 +16,7 @@ fn setup(name: &str) -> (PathBuf, PathBuf) {
     let rec = |email: &str, n: u8, status: Status| Record {
         id: Id([n; 16]),
         nonce: Id([n + 100; 16]),
-        list: "donguru".into(),
+        list: "portwright".into(),
         email: Email::parse(email).unwrap(),
         status,
         signed_up: 1_793_973_789,
@@ -60,13 +60,13 @@ fn export_and_count_see_confirmed_records_only() {
     assert_eq!(
         out,
         format!(
-            "email,list,signed_up,consent,confirmed\nyes@example.com,donguru,{},2026-11-06,{}\n",
+            "email,list,signed_up,consent,confirmed\nyes@example.com,portwright,{},2026-11-06,{}\n",
             utc::format(1_793_973_789),
             utc::format(1_793_973_800)
         )
     );
     let (_, out, _) = run(&cfg, &["count"]);
-    assert_eq!(out, "donguru\t1 confirmed\t1 pending\n");
+    assert_eq!(out, "portwright\t1 confirmed\t1 pending\n");
     let (_, out, _) = run(&cfg, &["list"]);
     assert_eq!(out.lines().count(), 2);
     std::fs::remove_dir_all(dir).unwrap();
@@ -81,11 +81,11 @@ fn send_queues_only_with_yes() {
     let args = [
         "send",
         "--list",
-        "donguru",
+        "portwright",
         "--name",
         "launch-1",
         "--subject",
-        "Donguru is live",
+        "Portwright is live",
         "--text",
         t,
     ];
@@ -112,7 +112,7 @@ fn send_queues_only_with_yes() {
         &[
             "send",
             "--list",
-            "donguru",
+            "portwright",
             "--name",
             "x",
             "--subject",
@@ -128,7 +128,7 @@ fn send_queues_only_with_yes() {
     let test = [
         "send",
         "--list",
-        "donguru",
+        "portwright",
         "--name",
         "t",
         "--subject",

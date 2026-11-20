@@ -46,7 +46,7 @@ nav = [
 notify = { name = "Get notified", path = "/portwright/#notify" }
 # The version of the signup form's consent line (vh.notify); the notify service accepts only the versions in its
 # settings (deploy/notify.toml consent_versions), so a new text gets a new version there first.
-notify_consent = "2026-11-06"
+notify_consent = "2026-11-20"
 # The link-preview images: the headline in Audiowide on the left, Portwright's top-side render on the right, framed
 # with the brand's red corner marks and wordmark, 1200x627, laid out in assets/og/default.svg and rendered by
 # resvg (`just og`, tools/og_images.py). The crawlers that crop to the centre square (LinkedIn, WhatsApp) get

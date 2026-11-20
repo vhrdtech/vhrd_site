@@ -186,7 +186,7 @@
 {%- endcomponent vh.term %}
 
 {#- The Portwright signup form (NOTIFY-2 notify-form), posting to the notify service (AGENTS.md "Notify service"). `from` names
-    the page for the service's redirect after a post without JavaScript ("donguru" or "home"); the service sends
+    the page for the service's redirect after a post without JavaScript ("portwright" or "home"); the service sends
     the visitor back to `#notify-ok`, `-bad`, `-wait` or `-err`, which CSS shows with :target. With JavaScript,
     site.js posts it with fetch and shows the same message in place. The consent line's version is
     `extra.notify_consent` (passed as `consent`): a new text gets a new version, added to the service's settings first. The endpoint is
@@ -194,7 +194,7 @@
     One per page: {{ <vh.notify from="home" consent={config.extra.notify_consent} /> }} -#}
 {% component vh.notify(from: string, consent: string, button: string = "Get notified") %}
 <form class="notify-form" action="{{ get_env(name='VHRD_NOTIFY_API', default=get_url(path='api/notify')) }}" method="post" data-notify>
-<input type="hidden" name="list" value="donguru">
+<input type="hidden" name="list" value="portwright">
 <input type="hidden" name="consent" value="{{ consent }}">
 <input type="hidden" name="from" value="{{ from }}">
 <p class="notify-hp" aria-hidden="true"><label>Leave this empty <input name="leave_empty" tabindex="-1" autocomplete="off"></label></p>

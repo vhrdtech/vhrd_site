@@ -26,7 +26,7 @@ When you leave your address in a "Get notified" form for [Portwright](@/portwrig
 - your e-mail address;
 - the list you signed up for;
 - the time you signed up;
-- which version of the text next to the form you saw (this one is 2026-11-06);
+- which version of the text next to the form you saw (this one is 2026-11-20);
 - the time you confirmed;
 - how many mails we sent to it, and when the last one went out.
 

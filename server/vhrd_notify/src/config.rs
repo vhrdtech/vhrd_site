@@ -15,6 +15,9 @@ pub struct Config {
     pub store: PathBuf,
     /// The lists a form may name.
     pub lists: Vec<String>,
+    /// A list's earlier names and the list each is now. A form, an intake line or a stored record naming an old name
+    /// counts as the new one, and the store is rewritten with the new name once ([`crate::store::rename_lists`]).
+    pub renamed_lists: BTreeMap<String, String>,
     /// The consent text versions a form may carry (the site's `extra.notify_consent`). A new text adds its version
     /// here before the site shows it.
     pub consent_versions: Vec<String>,
@@ -132,12 +135,13 @@ impl Default for Config {
         Config {
             listen: "127.0.0.1:8471".into(),
             store: "signups.tsv".into(),
-            lists: vec!["donguru".into()],
+            lists: vec!["portwright".into()],
+            renamed_lists: BTreeMap::new(),
             consent_versions: vec!["2026-11-05".into()],
             site_origin: "https://vhrd.tech".into(),
             pages: vec![
                 Page {
-                    name: "donguru".into(),
+                    name: "portwright".into(),
                     path: "/portwright/".into(),
                 },
                 Page {
@@ -163,7 +167,7 @@ impl Default for Config {
             max_intake_bytes: 1 << 20,
             client_ip_header: "x-real-ip".into(),
             token_key: "token-key".into(),
-            titles: BTreeMap::from([("donguru".into(), "Donguru".into())]),
+            titles: BTreeMap::from([("portwright".into(), "Portwright".into())]),
             mail: None,
         }
     }
@@ -206,6 +210,13 @@ impl Config {
         for p in &self.pages {
             if !p.path.starts_with('/') || p.path.starts_with("//") || p.path.contains(['\r', '\n', '#', '?']) {
                 return Err(format!("pages: {:?} is not a plain path from the site's root", p.path));
+            }
+        }
+        for (old, new) in &self.renamed_lists {
+            if !crate::store::is_token(old) || self.lists.contains(old) || !self.lists.contains(new) {
+                return Err(format!(
+                    "renamed_lists: {old:?} = {new:?}: an old name no list has now, renamed to one of the lists"
+                ));
             }
         }
         for t in self.lists.iter().chain(&self.consent_versions) {
@@ -292,7 +303,9 @@ mod tests {
             ("mail.vhrd.tech", 465, MailTls::Implicit)
         );
         assert!(m.password_file.starts_with("/home/vhrd-notify/.config/"));
-        assert!(c.consent_versions.contains(&"2026-11-06".to_string()));
+        assert!(c.consent_versions.contains(&"2026-11-20".to_string()));
+        assert_eq!(c.lists, ["portwright"]);
+        assert_eq!(c.renamed_lists.get("donguru").map(String::as_str), Some("portwright"));
     }
 
     #[test]
@@ -310,6 +323,15 @@ mod tests {
         assert!(bad(|c| c.site_origin = "https://vhrd.tech/".into()));
         assert!(bad(|c| c.max_body = 0));
         assert!(bad(|c| c.lists.push("other".into())));
+        let rename = |old: &str, new: &str| {
+            let mut c = Config::default();
+            c.renamed_lists.insert(old.into(), new.into());
+            c.check().is_err()
+        };
+        assert!(!rename("donguru", "portwright"));
+        assert!(rename("donguru", "other"));
+        assert!(rename("portwright", "portwright"));
+        assert!(rename("Dong uru", "portwright"));
         let mail = |f: fn(&mut Mail)| {
             let mut m = Mail::default();
             f(&mut m);

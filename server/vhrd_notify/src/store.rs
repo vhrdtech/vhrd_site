@@ -4,7 +4,7 @@
 //!   hears anything, the same work for every address. Time (UTC), list, address, consent version:
 //!
 //!   ```text
-//!   2026-11-05T14:03:09Z<TAB>donguru<TAB>someone@example.com<TAB>2026-11-06
+//!   2026-11-05T14:03:09Z<TAB>portwright<TAB>someone@example.com<TAB>2026-11-06
 //!   ```
 //!
 //!   A last line without its newline is a write that never finished: reads leave it out.
@@ -19,9 +19,15 @@
 //! release can't read the new format; after a rollback to it every signup fails (503) rather than going on the list
 //! unconfirmed.
 //!
+//! A list renamed in the settings (`renamed_lists`) is renamed in both files as they are read: an intake line or a
+//! record naming the old name counts as the new one, and the next rewrite stores the new name, once. An address with
+//! a record under both names keeps one ([`rename_lists`]). Record ids and nonces stay, so the links in mails already
+//! sent keep working. The previous release still reads the rewritten state: a list name is any [`is_token`].
+//!
 //! The service and the CLI both take an exclusive lock on a lock file beside it (never on the state itself, which a
 //! rewrite replaces), so a change from one never loses a change from the other.
 
+use std::collections::BTreeMap;
 use std::fmt;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, Read, Write};
@@ -230,6 +236,8 @@ pub struct Store {
     path: PathBuf,
     intake: PathBuf,
     lock: PathBuf,
+    /// A list's old name and its new one (the settings' `renamed_lists`).
+    renames: BTreeMap<String, String>,
 }
 
 /// Held while the files are read or changed; dropping it unlocks.
@@ -247,7 +255,15 @@ impl Store {
             intake: with(".intake"),
             lock: with(".lock"),
             path,
+            renames: BTreeMap::new(),
         }
+    }
+
+    /// The same store, reading each old list name in `renames` as its new one.
+    #[must_use]
+    pub fn renaming(mut self, renames: BTreeMap<String, String>) -> Store {
+        self.renames = renames;
+        self
     }
 
     pub fn path(&self) -> &Path {
@@ -324,7 +340,13 @@ impl Store {
         let text = read_complete(&self.intake)?;
         text.lines()
             .enumerate()
-            .map(|(n, l)| Intake::parse(l).ok_or_else(|| broken(&self.intake, n + 1)))
+            .map(|(n, l)| {
+                let mut i = Intake::parse(l).ok_or_else(|| broken(&self.intake, n + 1))?;
+                if let Some(new) = self.renames.get(&i.list) {
+                    i.list.clone_from(new);
+                }
+                Ok(i)
+            })
             .collect()
     }
 
@@ -333,18 +355,19 @@ impl Store {
         let mut lines = text.lines().enumerate().peekable();
         if lines.peek().is_none_or(|(_, l)| *l == HEADER) {
             lines.next();
-            let records = lines
+            let mut records = lines
                 .map(|(n, l)| Record::parse(l).ok_or_else(|| broken(&self.path, n + 1)))
                 .collect::<io::Result<_>>()?;
-            return Ok(State {
-                records,
-                migrated: false,
-            });
+            let migrated = rename_lists(&mut records, &self.renames);
+            return Ok(State { records, migrated });
         }
         // the first release's lines: each one waits for its confirmation mail, like a fresh signup
         let mut records: Vec<Record> = Vec::new();
         for (n, l) in lines {
-            let i = Intake::parse(l).ok_or_else(|| broken(&self.path, n + 1))?;
+            let mut i = Intake::parse(l).ok_or_else(|| broken(&self.path, n + 1))?;
+            if let Some(new) = self.renames.get(&i.list) {
+                i.list.clone_from(new);
+            }
             if records.iter().any(|r| r.list == i.list && r.email == i.email) {
                 continue;
             }
@@ -391,6 +414,41 @@ impl Store {
         fs::rename(&tmp, &self.path)?;
         sync_dir(&self.path)
     }
+}
+
+/// Gives every record of an old list name in `renames` its new name; true when one had an old name.
+///
+/// An address with a record under both names (signed up again on the old name after a rollback) keeps one: the
+/// confirmed one, else the one signed up first. The other goes, with the links of its mails. Records keep their
+/// order, ids and nonces. Once renamed, nothing has an old name, so a second call changes nothing.
+pub fn rename_lists(records: &mut Vec<Record>, renames: &BTreeMap<String, String>) -> bool {
+    let mut renamed = false;
+    for r in records.iter_mut() {
+        if let Some(new) = renames.get(&r.list) {
+            r.list.clone_from(new);
+            renamed = true;
+        }
+    }
+    if !renamed {
+        return false;
+    }
+    let rank = |r: &Record| (r.status != Status::Confirmed, r.signed_up);
+    let mut best: BTreeMap<(&str, &Email), usize> = BTreeMap::new();
+    for (i, r) in records.iter().enumerate() {
+        best.entry((r.list.as_str(), &r.email))
+            .and_modify(|b| {
+                if rank(r) < rank(&records[*b]) {
+                    *b = i;
+                }
+            })
+            .or_insert(i);
+    }
+    let keep: Vec<bool> = (0..records.len())
+        .map(|i| best[&(records[i].list.as_str(), &records[i].email)] == i)
+        .collect();
+    let mut keep = keep.into_iter();
+    records.retain(|_| keep.next().expect("one flag per record"));
+    true
 }
 
 /// The file up to the end of its last complete line; a missing file is empty.
@@ -444,7 +502,7 @@ mod tests {
     fn intake(email: &str, time: i64) -> Intake {
         Intake {
             time,
-            list: "donguru".into(),
+            list: "portwright".into(),
             email: Email::parse(email).unwrap(),
             consent: "2026-11-06".into(),
         }
@@ -454,7 +512,7 @@ mod tests {
         Record {
             id: Id([1; 16]),
             nonce: Id([0xab; 16]),
-            list: "donguru".into(),
+            list: "portwright".into(),
             email: Email::parse(email).unwrap(),
             status: Status::Confirmed,
             signed_up: 1_793_973_789,
@@ -462,7 +520,7 @@ mod tests {
             confirmed: Some(1_793_973_800),
             mails: 2,
             last_mail: Some(1_793_973_790),
-            outbox: Some(Outbox::Launch("donguru-launch".into())),
+            outbox: Some(Outbox::Launch("portwright-launch".into())),
             attempts: 1,
             next_try: 1_793_973_900,
         }
@@ -492,7 +550,7 @@ mod tests {
         for (i, bad) in [
             "XYZ",
             "AB".repeat(16).as_str(),
-            "Donguru",
+            "Portwright",
             "a b@c.no",
             "done",
             "yesterday",
@@ -614,6 +672,103 @@ mod tests {
         fs::remove_dir_all(dir).unwrap();
     }
 
+    fn on(list: &str, email: &str, n: u8, confirmed: bool, signed_up: i64) -> Record {
+        Record {
+            id: Id([n; 16]),
+            nonce: Id([n + 100; 16]),
+            list: list.into(),
+            status: if confirmed { Status::Confirmed } else { Status::Pending },
+            signed_up,
+            confirmed: confirmed.then_some(signed_up + 5),
+            outbox: (!confirmed).then_some(Outbox::Confirm),
+            ..record(email)
+        }
+    }
+
+    #[test]
+    fn a_renamed_list_is_rewritten_once() {
+        let (dir, plain) = temp_store("rename");
+        let before = vec![
+            on("donguru", "a@b.no", 1, true, 100),
+            on("donguru", "c@d.no", 2, false, 100),
+            // on both names: the confirmed one stays, else the first
+            on("portwright", "e@f.no", 3, false, 200),
+            on("donguru", "e@f.no", 4, true, 300),
+            on("donguru", "g@h.no", 5, false, 100),
+            on("portwright", "g@h.no", 6, false, 150),
+            on("other", "i@j.no", 7, true, 100),
+        ];
+        let b = before.clone();
+        plain
+            .transact(move |_, s| {
+                s.records = b;
+                Ok((true, ()))
+            })
+            .unwrap();
+        plain.accept(&intake("k@l.no", 400), 1 << 20).unwrap();
+        let k = Intake {
+            list: "donguru".into(),
+            ..intake("k@l.no", 400)
+        };
+        fs::write(dir.join("signups.tsv.intake"), k.line()).unwrap();
+
+        let st = Store::new(st_path(&dir)).renaming(BTreeMap::from([("donguru".into(), "portwright".into())]));
+        // a read shows the new names, and changes nothing on disk
+        let seen = st.read().unwrap();
+        assert!(seen.iter().all(|r| r.list != "donguru"), "{seen:?}");
+        assert!(fs::read_to_string(st.path()).unwrap().contains("\tdonguru\t"));
+
+        let got = st.transact(|i, _| Ok((false, i))).unwrap();
+        assert_eq!(got.len(), 1);
+        assert_eq!((got[0].list.as_str(), got[0].email.as_str()), ("portwright", "k@l.no"));
+        let after = plain.read().unwrap();
+        let kept: Vec<(u8, &str)> = after.iter().map(|r| (r.id.0[0], r.list.as_str())).collect();
+        assert_eq!(
+            kept,
+            [
+                (1, "portwright"),
+                (2, "portwright"),
+                (4, "portwright"),
+                (5, "portwright"),
+                (7, "other")
+            ]
+        );
+        // ids, nonces and everything else as they were
+        for r in &after {
+            let old = before.iter().find(|o| o.id == r.id).unwrap();
+            assert_eq!(
+                r,
+                &Record {
+                    list: r.list.clone(),
+                    ..old.clone()
+                }
+            );
+        }
+
+        // once more, with and without the rename: not a byte changes
+        let text = fs::read_to_string(st.path()).unwrap();
+        assert!(!text.contains("donguru"), "{text}");
+        st.transact(|_, _| Ok((false, ()))).unwrap();
+        plain.transact(|_, _| Ok((false, ()))).unwrap();
+        assert_eq!(fs::read_to_string(st.path()).unwrap(), text);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn the_first_releases_lines_are_renamed_too() {
+        let (dir, plain) = temp_store("rename-v1");
+        fs::write(plain.path(), "2026-11-05T14:03:09Z\tdonguru\ta@b.no\t2026-11-05\n").unwrap();
+        let st = Store::new(st_path(&dir)).renaming(BTreeMap::from([("donguru".into(), "portwright".into())]));
+        st.transact(|_, _| Ok((false, ()))).unwrap();
+        let rs = plain.read().unwrap();
+        assert_eq!((rs.len(), rs[0].list.as_str()), (1, "portwright"));
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    fn st_path(dir: &Path) -> PathBuf {
+        dir.join("signups.tsv")
+    }
+
     #[test]
     fn ids_have_one_spelling() {
         let id = Id::random().unwrap();
@@ -624,9 +779,9 @@ mod tests {
 
     #[test]
     fn tokens() {
-        assert!(is_token("donguru"));
+        assert!(is_token("portwright"));
         assert!(is_token("2026-11-05"));
-        for s in ["", "Donguru", "a b", "a\tb", "a\nb", "ø", &"a".repeat(33)] {
+        for s in ["", "Portwright", "a b", "a\tb", "a\nb", "ø", &"a".repeat(33)] {
             assert!(!is_token(s), "{s:?}");
         }
     }

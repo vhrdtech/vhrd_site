@@ -313,7 +313,7 @@ jobs:
             got="$(post probe=1)"
             [ "$got" = "400 $GIT" ] || { echo "::error::$GIT answered, then not ('$got'): it did not stay up, and the activator went back to the previous release or found none (its journal on the server)"; exit 1; }
           fi
-          got="$(post 'email=not-an-address&list=donguru&consent=none&from=home&leave_empty=')"
+          got="$(post 'email=not-an-address&list=portwright&consent=none&from=home&leave_empty=')"
           [ "$got" = "400 $GIT" ] || { echo "::error::a bad address got '$got', not 400 from $GIT"; exit 1; }
           echo "vhrd_notify $GIT is live: $URL answers 400 to a bad address"
 

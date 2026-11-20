@@ -87,9 +87,46 @@ async fn send(app: &axum::Router, p: Post<'_>) -> (StatusCode, Option<String>, S
 
 fn good(email: &str) -> String {
     format!(
-        "email={}&list=donguru&consent=2026-11-05&from=donguru&leave_empty=",
+        "email={}&list=portwright&consent=2026-11-05&from=portwright&leave_empty=",
         email.replace('@', "%40")
     )
+}
+
+#[tokio::test]
+async fn an_old_list_name_signs_up_on_the_new_one() {
+    let (mut cfg, dir) = config();
+    let store = Store::new(&cfg.store);
+    let app = router(App::new(cfg.clone()));
+    let old = good("a@b.no").replace("list=portwright", "list=donguru");
+    let (s, _, _) = send(
+        &app,
+        Post {
+            body: &old,
+            ..Default::default()
+        },
+    )
+    .await;
+    assert_eq!(s, StatusCode::BAD_REQUEST, "not renamed: an unknown list");
+
+    cfg.renamed_lists.insert("donguru".into(), "portwright".into());
+    let app = router(App::new(cfg));
+    let (s, _, _) = send(
+        &app,
+        Post {
+            body: &old,
+            ..Default::default()
+        },
+    )
+    .await;
+    assert_eq!(s, StatusCode::OK);
+    let all = records(&store);
+    assert_eq!(
+        all.iter()
+            .map(|r| (r.email.as_str(), r.list.as_str()))
+            .collect::<Vec<_>>(),
+        [("a@b.no", "portwright")]
+    );
+    std::fs::remove_dir_all(dir).unwrap();
 }
 
 #[tokio::test]
@@ -121,7 +158,7 @@ async fn signup_is_stored_once() {
     assert_eq!(all.len(), 1);
     assert_eq!(
         (all[0].email.as_str(), all[0].list.as_str(), all[0].consent.as_str()),
-        ("someone@example.com", "donguru", "2026-11-05")
+        ("someone@example.com", "portwright", "2026-11-05")
     );
     assert_eq!(all[0].status, vhrd_notify::store::Status::Pending);
     std::fs::remove_dir_all(dir).unwrap();
@@ -131,7 +168,7 @@ async fn signup_is_stored_once() {
 async fn without_script_redirects_back_to_the_page() {
     let (cfg, dir) = config();
     let app = router(App::new(cfg));
-    let body = good("a@b.no").replace("from=donguru", "from=home");
+    let body = good("a@b.no").replace("from=portwright", "from=home");
     let (s, loc, _) = send(
         &app,
         Post {
@@ -143,7 +180,7 @@ async fn without_script_redirects_back_to_the_page() {
     .await;
     assert_eq!(s, StatusCode::SEE_OTHER);
     assert_eq!(loc.as_deref(), Some("https://vhrd.tech/#notify-ok"));
-    let body = "email=nope&list=donguru&consent=2026-11-05&from=donguru";
+    let body = "email=nope&list=portwright&consent=2026-11-05&from=portwright";
     let (s, loc, _) = send(
         &app,
         Post {
@@ -156,7 +193,7 @@ async fn without_script_redirects_back_to_the_page() {
     assert_eq!(s, StatusCode::SEE_OTHER);
     assert_eq!(loc.as_deref(), Some("https://vhrd.tech/portwright/#notify-bad"));
     // a page not listed goes to the first one, never to a place the form names
-    let body = "email=nope&list=donguru&consent=2026-11-05&from=https%3A%2F%2Fevil.example";
+    let body = "email=nope&list=portwright&consent=2026-11-05&from=https%3A%2F%2Fevil.example";
     let (_, loc, _) = send(
         &app,
         Post {
@@ -177,16 +214,16 @@ async fn bad_input_is_a_plain_400_that_echoes_nothing() {
     let app = router(App::new(Config { rate_limit: 100, ..cfg }));
     let evil = "<script>alert(1)</script>";
     let bodies = [
-        format!("email={evil}&list=donguru&consent=2026-11-05"),
-        "email=a%40b.no%0D%0ABcc%3A+x%40y.no&list=donguru&consent=2026-11-05".into(),
-        "email=r%C3%B8m%C3%A5n%40example.no&list=donguru&consent=2026-11-05".into(),
+        format!("email={evil}&list=portwright&consent=2026-11-05"),
+        "email=a%40b.no%0D%0ABcc%3A+x%40y.no&list=portwright&consent=2026-11-05".into(),
+        "email=r%C3%B8m%C3%A5n%40example.no&list=portwright&consent=2026-11-05".into(),
         "email=a%40b.no&list=other&consent=2026-11-05".into(),
-        "email=a%40b.no&list=donguru&consent=1999-01-01".into(),
-        "email=a%40b.no&list=donguru".into(),
-        format!("email=a%40b.no&list=donguru&consent=2026-11-05&{evil}=1"),
-        "email=a%40b.no&email=c%40d.no&list=donguru&consent=2026-11-05".into(),
-        format!("email={}%40b.no&list=donguru&consent=2026-11-05", "a".repeat(300)),
-        "email=%FF%FE%40b.no&list=donguru&consent=2026-11-05".into(),
+        "email=a%40b.no&list=portwright&consent=1999-01-01".into(),
+        "email=a%40b.no&list=portwright".into(),
+        format!("email=a%40b.no&list=portwright&consent=2026-11-05&{evil}=1"),
+        "email=a%40b.no&email=c%40d.no&list=portwright&consent=2026-11-05".into(),
+        format!("email={}%40b.no&list=portwright&consent=2026-11-05", "a".repeat(300)),
+        "email=%FF%FE%40b.no&list=portwright&consent=2026-11-05".into(),
     ];
     for body in &bodies {
         let (s, _, text) = send(

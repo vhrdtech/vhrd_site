@@ -98,7 +98,7 @@ fn main() -> ExitCode {
 }
 
 fn run(cmd: Cmd, cfg: Config) -> Result<(), String> {
-    let store = Store::new(&cfg.store);
+    let store = Store::new(&cfg.store).renaming(cfg.renamed_lists.clone());
     let err = |e: std::io::Error| format!("{}: {e}", store.path().display());
     // the signups not folded in yet count too: every command sees the list as the service will
     let rules = cfg.rules();

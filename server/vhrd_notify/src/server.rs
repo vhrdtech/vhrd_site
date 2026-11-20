@@ -116,7 +116,7 @@ impl App {
             )
         };
         Ok(Arc::new(App {
-            store: Arc::new(Store::new(&cfg.store)),
+            store: Arc::new(Store::new(&cfg.store).renaming(cfg.renamed_lists.clone())),
             limit: Mutex::new(
                 limit(cfg.rate_limit, cfg.rate_limit_network).per_network_day(cfg.rate_limit_network_day),
             ),
@@ -316,6 +316,8 @@ async fn signup(app: &Arc<App>, form: &Form, ip: Option<IpAddr>) -> Outcome {
             return Outcome::Bad;
         }
     };
+    // a page from before a list's rename (cached, or the old site while a deploy runs) still signs up
+    let list = cfg.renamed_lists.get(list).unwrap_or(list);
     if !cfg.lists.contains(list) || !cfg.consent_versions.contains(consent) {
         eprintln!("vhrd_notify: refused: unknown list or consent version");
         return Outcome::Bad;
@@ -442,7 +444,7 @@ mod tests {
 
     #[test]
     fn form_fields_once_and_known_only() {
-        let f = parse_form(b"email=a%40b.no&list=donguru&consent=v1&from=home&leave_empty=").unwrap();
+        let f = parse_form(b"email=a%40b.no&list=portwright&consent=v1&from=home&leave_empty=").unwrap();
         assert_eq!(f.email.as_deref(), Some("a@b.no"));
         assert_eq!(f.leave_empty.as_deref(), Some(""));
         assert!(parse_form(b"email=a&email=b").is_none());

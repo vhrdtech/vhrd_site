@@ -269,7 +269,7 @@ mod tests {
     fn signup(email: &str, time: i64) -> Intake {
         Intake {
             time,
-            list: "donguru".into(),
+            list: "portwright".into(),
             email: Email::parse(email).unwrap(),
             consent: "2026-11-06".into(),
         }
@@ -419,10 +419,10 @@ mod tests {
         // c confirmed while its mail is still due for a retry: the confirm clears it
         confirm(&mut rs, c, 2);
         let only = Email::parse("c@b.no").unwrap();
-        assert_eq!(queue_launch(&mut rs, "donguru", "test", Some(&only), 9), (1, 0));
+        assert_eq!(queue_launch(&mut rs, "portwright", "test", Some(&only), 9), (1, 0));
         rs[1].outbox = None;
-        assert_eq!(queue_launch(&mut rs, "donguru", "launch-1", None, 10), (2, 0));
-        assert_eq!(queue_launch(&mut rs, "donguru", "launch-2", None, 11), (0, 2));
+        assert_eq!(queue_launch(&mut rs, "portwright", "launch-1", None, 10), (2, 0));
+        assert_eq!(queue_launch(&mut rs, "portwright", "launch-2", None, 11), (0, 2));
         let due: Vec<Id> = due(&rs, 10)
             .into_iter()
             .filter(|(_, o)| *o != Outbox::Confirm)

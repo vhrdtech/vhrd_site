@@ -171,7 +171,7 @@ rollback-notify:
     tpm ship web-notify vhrd_notify --rollback
 
 # The signups on the web server, as the service's user (sudo rule in AGENTS.md "Notify service"): `just notify count`,
-# `list`, `export > donguru.csv`, `delete ADDRESS`
+# `list`, `export > portwright.csv`, `delete ADDRESS`
 notify *args:
     ssh -p {{ web_port }} {{ web }} sudo -n -u vhrd-notify {{ notify_dir }}/vhrd_notify --config {{ notify_dir }}/notify.toml {{ args }}
 

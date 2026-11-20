@@ -744,7 +744,7 @@ fn the_services_other_files_are_left_alone() -> Result<(), Failed> {
     let d = e.dir();
     fs::write(
         d.join("signups.tsv"),
-        b"2026-11-05T07:00:00Z\tdonguru\tsomeone@example.com\t2026-11-05\n",
+        b"2026-11-05T07:00:00Z\tportwright\tsomeone@example.com\t2026-11-05\n",
     )?;
     fs::write(d.join("intake.tsv"), b"x\n")?;
     fs::create_dir(d.join("other"))?;
