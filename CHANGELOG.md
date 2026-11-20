@@ -193,6 +193,7 @@
 
 ### Fixed
 
+- A code sample's `source` may name a README inside the repo (SITE-7 open-source-page); napier's sample reads `crates/si_dynamic/README.md` again.
 - The ShrinkWrap card on /open-source and its `vh.ref` link pointed at `wire_weaver/tree/master/shrink_wrap`, a dead link since WireWeaver's layering refactor moved shrink_wrap to its own repo, romixlab/shrink_wrap (17 Nov 2026). `data/stack.toml` and `data/links.toml` now point there; WireWeaver and its other framework crates stay at vhrdtech/wire_weaver.
 - The browser check (`tools/check_pages.py`) failed now and then on a busy PC with `failed .../favicon.svg` or a board render, a different file each run: a request the next `page.goto` cancels (the last page's lazy images or favicon, still loading) fails as `net::ERR_ABORTED` and was counted against the next page. Aborted requests are no longer failures; a missing file still shows as a 404 console error.
 - The live build's check refused `static/img/og/*.png` (ASSET-2 og-images) and `static/term/cnt-tui.cast` (BLOCK-7 term-live) as types the site does not ship, so deploy run 42191397718 failed "Build the live site" and nothing went live. `tools/check_live.py built` now allows a `.png` under `img/og/` and a `.cast` under `term/`, and still refuses both everywhere else (a board render's PNG source among them). `just test` now runs the same `built` check against `target/test` (it used to run only `redirects`, a part of it), so a new file type the build ships fails before landing, not at deploy.

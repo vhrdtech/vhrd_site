@@ -6,8 +6,8 @@ tools/check_pages.py and runnable alone. Every entry with `code` may also have `
   line continuations (a backslash before a line break) are removed (only line breaks, indentation and the re-flow of
   comments may differ). Every line at most 80 columns.
 - `wide` is the column bucket of `code_wide`: 50, 60, 70 or 80, at least its longest line.
-- `source` (data/repos.toml): where the sample is taken from as it is, `README` (a code block of README.md) or
-  `examples/NAME`. The sample is consecutive whole lines of it; only line breaks, indentation and the re-flow of
+- `source` (data/repos.toml): where the sample is taken from as it is, `README` (a code block of README.md),
+  `examples/NAME`, or a README inside the repo by its path (`crates/si_dynamic/README.md`, a workspace member's). The sample is consecutive whole lines of it; only line breaks, indentation and the re-flow of
   comments differ, and rustdoc's hidden `# ` lines are left out. Checked against a checkout in $VHRD_REPOS/NAME
   (default ~/git), and skipped with a note where there is none. Not compiled.
 Usage: python3 tools/samples.py [FILE.toml ...] (default: both data files)
@@ -60,14 +60,25 @@ def from_block(sample, block):
     return False
 
 
+def source_ok(source):
+    """`README`, `examples/NAME`, or a relative path inside the repo ending in README.md."""
+    if source == "README":
+        return True
+    parts = pathlib.PurePosixPath(source).parts
+    if source.startswith("/") or not parts or ".." in parts or "\\" in source:
+        return False
+    return (parts[0] == "examples" and len(parts) > 1) or parts[-1] == "README.md"
+
+
 def check_source(entry):
-    """`source`: every version of the sample comes from one code block of the repo's README.md, or from the file
-    under examples/ it names."""
+    """`source`: every version of the sample comes from one code block of the repo's README.md (or the README.md it
+    names), or from the file under examples/ it names."""
     source = entry.get("source")
     if not source:
         return [], None
-    if source != "README" and not source.startswith("examples/"):
-        return [f"{entry['name']}: source must be README or examples/NAME, not {source!r}"], None
+    if not source_ok(source):
+        return [f"{entry['name']}: source must be README, examples/NAME or a path to a README.md in the repo, "
+                f"not {source!r}"], None
     repos = pathlib.Path(os.environ.get("VHRD_REPOS", pathlib.Path.home() / "git"))
     path = repos / entry["name"] / ("README.md" if source == "README" else source)
     if not path.exists():
