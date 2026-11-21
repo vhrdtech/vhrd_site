@@ -33,6 +33,7 @@ tower = { version = "0.5.3", default-features = false, features = ["util"] }
 vhrd_notify = { path = "server/vhrd_notify" }
 
 [profile.dev]
+debug = false
 # debug info in .dwo files next to the objects, not packed into every test binary
 split-debuginfo = "unpacked"
 
