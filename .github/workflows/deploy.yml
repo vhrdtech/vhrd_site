@@ -214,6 +214,7 @@ jobs:
           sparse-checkout: |
             .github/deploy
             deploy/old-urls.txt
+            deploy/golden-links.txt
             deploy/redirects.map
             deploy/nginx-og.conf
             deploy/nginx-og-location.conf
