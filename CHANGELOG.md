@@ -44,6 +44,7 @@
 
 ### Changed
 
+- Portwright links point at the renamed repo `vhrdtech/portwright` and its docs at vhrdtech.github.io/portwright; the template entry is `portwright_template` (SITE-11 portwright-page).
 - The product page moves from /donguru/ to /portwright/ (SITE-11 portwright-page); /donguru/ and its #notify answer a 301 there.
 - Donguru is now Portwright on every page (SITE-11 portwright-page); the examples use the `pw` command and `portwright_core`.
 - Portwright's share image says Portwright, its headline rewrapped to fit (ASSET-2 og-images).

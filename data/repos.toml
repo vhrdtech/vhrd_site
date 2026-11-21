@@ -140,11 +140,11 @@ desc = "A Rust attribute macro for structs made with bitfield-struct. A field ta
 # Firmware and embedded
 
 [[repo]]
-name = "typec_dongle"
+name = "portwright"
 owner = "vhrdtech"
 area = "firmware"
 lang = "Rust"
-docs = "https://vhrdtech.github.io/typec_dongle/"
+docs = "https://vhrdtech.github.io/portwright/"
 desc = "Portwright is a USB-C dongle that turns one USB-C port into a small test bench: a USB hub, UART, I2C, GPIO and ADC, a power switch and a power meter. The `portwright` (`pw`) command line drives all of it, with JSON output and fixed exit codes for scripts and CI. A Python package does the same through the same Rust library. Rev B boards for testers are planned for the end of 2026."
 
 [[repo]]
@@ -343,7 +343,7 @@ with cannify_micro.Device() as dev:
 '''
 
 [[repo]]
-name = "donguru_template"
+name = "portwright_template"
 owner = "romixlab"
 area = "templates"
 private = true
