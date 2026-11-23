@@ -2,7 +2,7 @@ board = "B153"
 product = "Portwright (Type-C Serial)"
 slug = "portwright"
 revision = "A"
-source_file = "b153_typec_serial/source/b153a/b153a_typec_serial.kicad_pcb"
+source_file = "b153_portwright/source/b153a/b153a_portwright.kicad_pcb"
 hw_git_hash = "05afb76"
 
 [[views]]

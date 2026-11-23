@@ -1,5 +1,5 @@
 # Portwright (B153): the tables of /portwright, copied from the datasheet, Preview 0.2 of 24 Oct 2026
-# (~/git/hw/b153_typec_serial/spec/datasheet/b153_datasheet.typ). The values, units and notes stay exactly as there:
+# (~/git/hw/b153_portwright/spec/datasheet/b153_datasheet.typ). The values, units and notes stay exactly as there:
 # Marketing's rule is that the specs on the page equal the datasheet. When the datasheet changes, change this file.
 # Markup in the strings: [tbd] becomes the tbd badge; <sub> and <code> pass through.
 # One board on the site, no variants: a value the datasheet's Main and Plus share is shown, a
