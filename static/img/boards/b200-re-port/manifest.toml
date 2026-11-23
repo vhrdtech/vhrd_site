@@ -2,7 +2,7 @@ board = "B200"
 product = "Pinsmith"
 slug = "re-port"
 revision = "A"
-source_file = "b200_pinsmith/source/b200a/b200_pinsmith.kicad_pcb"
+source_file = "b200_re_port/source/b200a/b200_re_port.kicad_pcb"
 hw_git_hash = "05afb76"
 
 [[views]]
